@@ -14,12 +14,15 @@ import type {
   ParamValueZeroOrMore,
   ParamValueZeroOrOne,
 } from 'vue-router'
-import type { _ExtractParamParserType } from 'vue-router/experimental';
+import type {
+  _ExtractParamParserType,
+} from 'vue-router/experimental'
 
 declare module 'vue-router' {
   interface TypesConfig {
-    ParamParsers: never;
-    RouteNamedMap: import('vue-router/auto-routes').RouteNamedMap;
+    _ParamParsers: {}
+    RouteNamedMap: import('vue-router/auto-routes').RouteNamedMap
+    _RouteFileInfoMap: import('vue-router/auto-routes')._RouteFileInfoMap
   }
 }
 
@@ -33,29 +36,43 @@ declare module 'vue-router/auto-routes' {
       '/',
       Record<never, never>,
       Record<never, never>,
-      '//(index)' | '//second'
-    >;
-    '//(index)': RouteRecordInfo<
-      '//(index)',
-      '/',
-      Record<never, never>,
-      Record<never, never>,
-      never
-    >;
-    '//second': RouteRecordInfo<
-      '//second',
-      '/second',
-      Record<never, never>,
-      Record<never, never>,
-      never
-    >;
+      | never
+    >,
     '/[...path]': RouteRecordInfo<
       '/[...path]',
       '/:path(.*)',
       { path: ParamValue<true> },
       { path: ParamValue<false> },
-      never
-    >;
+      | never
+    >,
+    '/admin': RouteRecordInfo<
+      '/admin',
+      '/admin',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/login': RouteRecordInfo<
+      '/login',
+      '/login',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/student': RouteRecordInfo<
+      '/student',
+      '/student',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/teacher': RouteRecordInfo<
+      '/teacher',
+      '/teacher',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
   }
 
   /**
@@ -70,21 +87,53 @@ declare module 'vue-router/auto-routes' {
    */
   export interface _RouteFileInfoMap {
     'src/pages/index.vue': {
-      routes: '/' | '//(index)' | '//second';
-      views: 'default';
-    };
-    'src/pages/index/(index).vue': {
-      routes: '//(index)';
-      views: never;
-    };
-    'src/pages/index/second.vue': {
-      routes: '//second';
-      views: never;
-    };
+      routes:
+        | '/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'src/pages/[...path].vue': {
-      routes: '/[...path]';
-      views: never;
-    };
+      routes:
+        | '/[...path]'
+      views:
+        | never
+      pathParamNames:
+        | 'path'
+    }
+    'src/pages/admin.vue': {
+      routes:
+        | '/admin'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/login.vue': {
+      routes:
+        | '/login'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/student.vue': {
+      routes:
+        | '/student'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/teacher.vue': {
+      routes:
+        | '/teacher'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
   }
 
   /**
@@ -94,7 +143,9 @@ declare module 'vue-router/auto-routes' {
    * @internal
    */
   export type _RouteNamesForFilePath<FilePath extends string> =
-    _RouteFileInfoMap extends Record<FilePath, infer Info> ? Info['routes'] : keyof RouteNamedMap;
+    _RouteFileInfoMap extends Record<FilePath, infer Info>
+      ? Info['routes']
+      : keyof RouteNamedMap
 }
 
-export {};
+export {}
