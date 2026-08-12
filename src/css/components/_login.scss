@@ -1,0 +1,12 @@
+@use 'quasar/src/css/variables' as q;
+
+.login-page {
+  min-height: 100vh;
+  background: q.$blue-grey-1;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
+}

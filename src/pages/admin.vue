@@ -1,17 +1,20 @@
 <template>
-  <router-view />
-  <div>
-    <adminNavbar />
-  </div>
+  <q-layout view="hHh lpR fFf">
+    <AppNavbar />
+
+    <q-page-container>
+      <router-view />
+    </q-page-container>
+  </q-layout>
 </template>
 
 <script setup lang="ts">
-import adminNavbar from '@/components/adminNavbar.vue'
+import AppNavbar from '../components/navigation/AppNavbar.vue';
 
 definePage({
   meta: {
     requiresAuth: true,
     roles: ['admin'],
   },
-})
+});
 </script>

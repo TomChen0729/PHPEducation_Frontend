@@ -1,17 +1,8 @@
 // app global css
+@use './components/navbar';
+@use './components/login';
 
 // login page css
-.login-page {
-  min-height: 100vh;
-  background: $blue-grey-1;
-}
-
-.login-card {
-  width: 100%;
-  max-width: 420px;
-  border-radius: 16px;
-}
-
 
 // admin page css
 

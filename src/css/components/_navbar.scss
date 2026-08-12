@@ -1,0 +1,88 @@
+@use 'quasar/src/css/variables' as q;
+
+// Navbar Base
+.app-navbar {
+  min-height: 64px;
+  padding: 0 24px;
+  color: white;
+
+  /* 系統名稱 */
+  &__title {
+    flex: 0 0 auto;
+
+    font-size: 20px;
+    font-weight: 700;
+
+    cursor: pointer;
+  }
+
+  /* Desktop Navigation */
+  &__navigation {
+    display: flex;
+    align-items: center;
+
+    margin-left: 32px;
+
+    gap: 4px;
+  }
+
+  &__button {
+    font-weight: 500;
+  }
+
+  /* Desktop User */
+  &__user {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+  }
+
+  /* Mobile Menu */
+  &__mobile-menu {
+    display: none;
+  }
+
+  &__mobile-list {
+    min-width: 220px;
+  }
+}
+
+// Role Colors
+
+/* 管理員 */
+.app-navbar--admin {
+  background-color: q.$deep-purple-4;
+}
+
+/* 教師 */
+.app-navbar--teacher {
+  background-color: q.$light-blue-5;
+}
+
+/* 學生 */
+.app-navbar--student {
+  background-color: q.$teal-4;
+}
+
+// Responsive
+@media (max-width: 1023px) {
+  .app-navbar {
+    padding: 0 16px;
+
+    /* 隱藏 Desktop Navigation */
+    &__navigation {
+      display: none;
+    }
+
+    /* 隱藏 Desktop User */
+    &__user {
+      display: none;
+    }
+
+    /* 顯示 Hamburger */
+    &__mobile-menu {
+      display: inline-flex;
+    }
+  }
+}
