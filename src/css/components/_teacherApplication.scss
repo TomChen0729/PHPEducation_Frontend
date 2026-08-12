@@ -1,0 +1,69 @@
+@use 'quasar/src/css/variables' as q;
+
+.teacherApplication-page {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 32px 16px;
+
+  background-color: q.$blue-1;
+}
+
+.teacherApplication-card {
+  width: 100%;
+  max-width: 480px;
+
+  border-radius: 16px;
+  padding: 32px 16px;
+
+  &__header {
+    text-align: center;
+  }
+}
+
+.teacherApplication-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  &__submit {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  &__error {
+    color: #c10015;
+
+    font-size: 14px;
+    text-align: center;
+  }
+
+  &__success {
+    color: #21ba45;
+
+    font-size: 14px;
+    text-align: center;
+  }
+
+  &__back {
+    margin-top: 8px;
+
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+/* RWD */
+@media (max-width: 599px) {
+  .teacherApplication-page {
+    padding: 16px;
+  }
+
+  .teacherApplication-card {
+    border-radius: 12px;
+  }
+}
