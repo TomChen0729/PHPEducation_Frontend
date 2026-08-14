@@ -1,0 +1,57 @@
+.teacher-approval {
+  overflow: hidden;
+
+  border-radius: 12px;
+
+  &__header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__scroll {
+    height: 420px;
+  }
+
+  &__list {
+    padding: 12px;
+  }
+
+  &__item {
+    margin-bottom: 8px;
+
+    background-color: white;
+
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  &__reason {
+    margin-top: 4px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__empty {
+    padding: 40px 16px;
+
+    text-align: center;
+    color: #777;
+  }
+}
+
+@media (max-width: 599px) {
+  .teacher-approval {
+    &__scroll {
+      height: 340px;
+    }
+
+    &__actions {
+      flex-direction: column;
+    }
+  }
+}

@@ -1,0 +1,29 @@
+.user-stats {
+  display: grid;
+
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 16px;
+
+  &__card {
+    border-radius: 12px;
+  }
+
+  &__label {
+    margin-bottom: 8px;
+
+    color: #555;
+    font-size: 15px;
+  }
+
+  &__value {
+    font-size: 30px;
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 599px) {
+  .user-stats {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,64 @@
+.user-management-page {
+  padding: 24px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 15px;
+  }
+
+  &__title {
+    margin: 0;
+
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  &__description {
+    margin: 4px 0 0;
+
+    color: #666;
+  }
+
+  &__pending-count {
+    padding: 15px 10px;
+
+    color: #000000;
+  }
+
+  &__panels {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 20px;
+
+    margin-top: 24px;
+  }
+}
+
+/* RWD */
+@media (max-width: 1023px) {
+  .user-management-page {
+    padding: 16px;
+
+    &__panels {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+@media (max-width: 599px) {
+  .user-management-page {
+    &__header {
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    &__title {
+      font-size: 24px;
+    }
+  }
+}

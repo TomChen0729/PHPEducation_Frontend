@@ -1,0 +1,26 @@
+.confirm-dialog {
+  width: 100%;
+  max-width: 420px;
+
+  border-radius: 12px;
+
+  &__header {
+    padding-bottom: 8px;
+  }
+
+  &__content {
+    color: #555;
+    line-height: 1.6;
+  }
+
+  &__actions {
+    padding: 8px 16px 16px;
+  }
+}
+
+/* RWD */
+@media (max-width: 599px) {
+  .confirm-dialog {
+    width: calc(100vw - 32px);
+  }
+}

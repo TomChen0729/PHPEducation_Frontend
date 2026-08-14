@@ -2,10 +2,16 @@
 @use './components/navbar';
 @use './components/login';
 @use './components/teacherApplication';
+@use './components/confirmDialog';
 
 // login page css
 
 // admin page css
+@use './components/admin/studentActivationPanel';
+@use './components/admin/teacherAccountResultDialog';
+@use './components/admin/teacherApprovalPanel';
+@use './components/admin/userManagement';
+@use './components/admin/userStatsCards';
 
 // teacher page css
 

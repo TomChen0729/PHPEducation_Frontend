@@ -7,6 +7,7 @@ export interface NavigationItem {
 }
 
 export const navigationByRole: Record<UserRole, NavigationItem[]> = {
+  // 管理者頁面
   admin: [
     {
       label: '首頁',
@@ -16,7 +17,7 @@ export const navigationByRole: Record<UserRole, NavigationItem[]> = {
     {
       label: '使用者管理',
       icon: 'manage_accounts',
-      to: '/admin/users',
+      to: '/admin/userManagement',
     },
     {
       label: '課程管理',
@@ -30,6 +31,7 @@ export const navigationByRole: Record<UserRole, NavigationItem[]> = {
     },
   ],
 
+  // 教師頁面
   teacher: [
     {
       label: '首頁',
@@ -63,6 +65,7 @@ export const navigationByRole: Record<UserRole, NavigationItem[]> = {
     },
   ],
 
+  // 學生頁面
   student: [
     {
       label: '首頁',
