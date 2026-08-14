@@ -1,13 +1,8 @@
 import { computed, ref } from 'vue';
-import axios from 'axios';
 
 import { teacherApplicationApi } from '../api/teacher-application.api';
 
-import type {
-  TeacherAccountResult,
-  TeacherApplication,
-  TeacherApplicationErrorResponse,
-} from '../types/teacher-application';
+import type { TeacherApplication } from '../types/teacher-application';
 
 import type { PendingStudentItem, UserStats } from '../types/user-management';
 
@@ -109,24 +104,18 @@ export function useUserManagement() {
     return teacherApplications.value.length + pendingStudents.value.length;
   });
 
-  async function approveTeacherApplication(id: number): Promise<TeacherAccountResult | null> {
+  async function approveTeacherApplication(applicationId: number): Promise<boolean> {
     approveLoading.value = true;
     errorMessage.value = '';
 
     try {
-      const response = await teacherApplicationApi.approve(id);
+      await teacherApplicationApi.approve(applicationId);
 
-      teacherApplications.value = teacherApplications.value.filter((teacher) => teacher.id !== id);
+      return true;
+    } catch {
+      errorMessage.value = '教師帳號核准失敗';
 
-      return response.data.data;
-    } catch (error: unknown) {
-      if (axios.isAxiosError<TeacherApplicationErrorResponse>(error)) {
-        errorMessage.value = error.response?.data?.message ?? '教師申請核准失敗';
-      } else {
-        errorMessage.value = '教師申請核准失敗';
-      }
-
-      return null;
+      return false;
     } finally {
       approveLoading.value = false;
     }

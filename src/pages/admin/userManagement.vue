@@ -49,15 +49,6 @@
       :loading="approveLoading"
       @confirm="handleConfirm"
     />
-
-    <!-- 教師帳號建立結果 -->
-    <TeacherAccountResultDialog
-      v-if="teacherAccountDialog.result"
-      v-model="teacherAccountDialog.open"
-      :teacher-name="teacherAccountDialog.teacherName"
-      :result="teacherAccountDialog.result"
-      @close="clearTeacherAccountResult"
-    />
   </q-page>
 </template>
 
@@ -67,13 +58,12 @@ import { reactive } from 'vue';
 import ConfirmDialog from '../../components/common/ConfirmDialog.vue';
 
 import StudentActivationPanel from '../../components/admin/user-management/StudentActivationPanel.vue';
-import TeacherAccountResultDialog from '../../components/admin/user-management/TeacherAccountResultDialog.vue';
 import TeacherApprovalPanel from '../../components/admin/user-management/TeacherApprovalPanel.vue';
 import UserStatsCards from '../../components/admin/user-management/UserStatsCards.vue';
 
 import { useUserManagement } from '../../composables/useUserManagement';
 
-import type { TeacherAccountResult, TeacherApplication } from '../../types/teacher-application';
+import type { TeacherApplication } from '../../types/teacher-application';
 
 type ConfirmAction = 'approveTeacher' | 'activateStudents' | null;
 
@@ -97,13 +87,6 @@ const confirmDialog = reactive({
   message: '',
   confirmLabel: '確定',
   confirmColor: 'primary',
-});
-
-const teacherAccountDialog = reactive({
-  open: false,
-  teacherName: '',
-
-  result: null as TeacherAccountResult | null,
 });
 
 /* 教師核准 */
@@ -176,19 +159,5 @@ async function approveTeacher() {
   }
 
   confirmDialog.open = false;
-
-  teacherAccountDialog.teacherName = teacher.name;
-
-  teacherAccountDialog.result = result;
-
-  teacherAccountDialog.open = true;
-}
-
-/* 清除明文帳密 */
-
-function clearTeacherAccountResult() {
-  teacherAccountDialog.open = false;
-  teacherAccountDialog.teacherName = '';
-  teacherAccountDialog.result = null;
 }
 </script>

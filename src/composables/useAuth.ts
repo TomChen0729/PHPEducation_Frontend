@@ -3,7 +3,16 @@ import { useRouter } from 'vue-router';
 import { Notify } from 'quasar';
 import axios from 'axios';
 
-import { authApi } from '../api/auth.api';
+// =========================
+// 目前：使用假資料
+// =========================
+import { authService } from '../services/auth.service';
+
+// =========================
+// 正式 Backend 時改用這個
+// =========================
+// import { authApi } from '../api/auth.api';
+
 import { useAuthStore } from '../stores/auth';
 import { getHomePathByRole } from '../utils/auth-route';
 
@@ -16,38 +25,56 @@ export function useAuth() {
   const loading = ref(false);
   const errorMessage = ref('');
 
+  // =========================
+  // Login
+  // =========================
   async function login(data: LoginRequest) {
     loading.value = true;
     errorMessage.value = '';
 
     try {
-      const response = await authApi.login(data);
+      // 假資料
+      const response = await authService.login(data);
 
-      // 儲存 Token 與登入者資料
+      // 正式 Backend 時改成：
+      // const response =
+      //   await authApi.login(data);
+
       authStore.setAuth(response.data);
 
-      // 根據角色跳轉
       await redirectByRole(response.data.user.role);
     } catch (error: unknown) {
+      // 正式 Axios API Error
       if (axios.isAxiosError<LoginErrorResponse>(error)) {
-        const responseData = error.response?.data;
+        errorMessage.value = error.response?.data.message ?? '登入失敗，請稍後再試';
 
-        if (responseData?.message) {
-          errorMessage.value = responseData.message;
-        } else {
-          errorMessage.value = '登入失敗，請稍後再試';
-        }
-      } else {
-        errorMessage.value = '登入失敗，請稍後再試';
+        return;
       }
+
+      // Mock Error
+      if (error instanceof Error) {
+        errorMessage.value = error.message;
+
+        return;
+      }
+
+      errorMessage.value = '登入失敗，請稍後再試';
     } finally {
       loading.value = false;
     }
   }
 
+  // =========================
+  // Logout
+  // =========================
   async function logout() {
     try {
-      const response = await authApi.logout();
+      // 假資料
+      const response = await authService.logout();
+
+      // 正式 Backend 時改成：
+      // const response =
+      //   await authApi.logout();
 
       authStore.clearAuth();
 
@@ -55,12 +82,11 @@ export function useAuth() {
 
       Notify.create({
         type: 'positive',
-        message: response.data.message || '登出成功',
+        message: response.data.message,
         position: 'top',
         timeout: 1500,
       });
     } catch {
-      // 就算 Token 已失效，也清除本地登入狀態
       authStore.clearAuth();
 
       await router.replace('/login');
@@ -74,6 +100,9 @@ export function useAuth() {
     }
   }
 
+  // =========================
+  // Role Redirect
+  // =========================
   async function redirectByRole(role: UserRole) {
     await router.replace(getHomePathByRole(role));
   }
@@ -81,6 +110,7 @@ export function useAuth() {
   return {
     loading,
     errorMessage,
+
     login,
     logout,
   };
