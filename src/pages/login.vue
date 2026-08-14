@@ -5,26 +5,19 @@
         <q-card class="login-card q-pa-lg">
           <!-- 標題 -->
           <q-card-section class="text-center">
-            <div class="text-h4 text-weight-bold">
-              登入
-            </div>
+            <div class="text-h4 text-weight-bold">登入</div>
           </q-card-section>
 
           <!-- 登入表單 -->
           <q-card-section>
-            <q-form
-              class="q-gutter-y-md"
-              @submit="handleLogin"
-            >
+            <q-form class="q-gutter-y-md" @submit="handleLogin">
               <!-- 帳號 -->
               <q-input
                 v-model="account"
                 outlined
                 label="帳號"
                 autocomplete="username"
-                :rules="[
-                  (value) => !!value || '請輸入帳號',
-                ]"
+                :rules="[(value) => !!value || '請輸入帳號']"
               >
                 <template #prepend>
                   <q-icon name="person" />
@@ -38,9 +31,7 @@
                 label="密碼"
                 :type="showPassword ? 'text' : 'password'"
                 autocomplete="current-password"
-                :rules="[
-                  (value) => !!value || '請輸入密碼',
-                ]"
+                :rules="[(value) => !!value || '請輸入密碼']"
               >
                 <template #prepend>
                   <q-icon name="lock" />
@@ -54,10 +45,7 @@
                   />
                 </template>
               </q-input>
-              <div
-                v-if="errorMessage"
-                class="text-negative text-center"
-              >
+              <div v-if="errorMessage" class="text-negative text-center">
                 {{ errorMessage }}
               </div>
 
@@ -88,23 +76,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useAuth } from '../composables/useAuth'
+import { ref } from 'vue';
+import { useAuth } from '../composables/useAuth';
 
-const account = ref('')
-const password = ref('')
-const showPassword = ref(false)
+const account = ref('');
+const password = ref('');
+const showPassword = ref(false);
 
-const {
-  login,
-  loading,
-  errorMessage,
-} = useAuth()
+const { login, loading, errorMessage } = useAuth();
 
 async function handleLogin() {
   await login({
     account: account.value,
     password: password.value,
-  })
+  });
 }
 </script>

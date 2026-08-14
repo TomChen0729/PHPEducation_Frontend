@@ -31,7 +31,7 @@
         </span>
 
         <q-btn icon="logout" flat round @click="handleLogout">
-          <q-tooltip> 登出 </q-tooltip>
+          <q-tooltip @click="logout"> 登出 </q-tooltip>
         </q-btn>
       </div>
 
@@ -75,7 +75,7 @@
                 <q-icon name="logout" />
               </q-item-section>
 
-              <q-item-section> 登出 </q-item-section>
+              <q-item-section @click="logout"> 登出 </q-item-section>
             </q-item>
           </q-list>
         </q-menu>
@@ -91,9 +91,11 @@ import { useRouter } from 'vue-router';
 import { navigationByRole } from '../../config/navigation';
 import { useAuthStore } from '../../stores/auth';
 import { getHomePathByRole } from '../../utils/auth-route';
+import { useAuth } from '../../composables/useAuth';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { logout } = useAuth();
 
 const navigationItems = computed(() => {
   if (!authStore.role) {

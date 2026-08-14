@@ -74,12 +74,13 @@ css/components/
 ## 3. 目前主要路由
 
 ```text
-/                    → 導向登入頁
-/login               → 登入頁
-/teacherApplication  → 教師帳號申請
-/admin                → 管理員頁面
-/teacher              → 教師頁面
-/student              → 學生頁面
+/                     → 導向登入頁
+/login                → 登入頁
+/teacherApplication   → 教師帳號申請
+/admin                 → 管理員頁面
+/admin/userManagement → 管理員－使用者管理
+/teacher               → 教師頁面
+/student               → 學生頁面
 ```
 
 `/login` 與 `/teacherApplication` 為公開頁面。
@@ -100,9 +101,11 @@ useAuth.ts
 auth.api.ts
    ↓
 Axios
+   ↓
+Backend
 ```
 
-並使用：
+登入狀態由：
 
 ```text
 stores/auth.ts
@@ -114,6 +117,43 @@ stores/auth.ts
 - 使用者角色
 - 登入狀態
 - Token
+
+App 啟動時透過：
+
+```text
+boot/auth.ts
+```
+
+執行 Session Restore：
+
+```text
+sessionStorage Token
+        ↓
+GET /auth/me
+        ↓
+Token 有效 → 恢復 user / role
+Token 無效 → clearAuth()
+```
+
+Axios 會自動附加：
+
+```text
+Authorization: Bearer {token}
+```
+
+目前 Authentication API：
+
+```text
+POST /auth/login   → 登入
+POST /auth/logout  → 登出
+GET  /auth/me      → 取得目前登入者
+```
+
+登出成功後使用 Quasar Notify 顯示短暫提示：
+
+```text
+登出成功
+```
 
 API Base URL：
 
@@ -210,6 +250,12 @@ css/components/_navbar.scss
 - 登入按鈕
 - 基礎 RWD
 - 教師帳號申請入口
+- 串接正式登入 API
+- 登入成功後儲存 Token
+- 依使用者角色導向對應首頁
+- App 重新整理後透過 `/auth/me` 恢復登入狀態
+- 登出時撤銷 Backend Token 並清除前端登入狀態
+- 登出成功顯示短暫 Notify 提示
 
 ### Router
 
@@ -255,7 +301,7 @@ Axios
 
 教師申請頁為公開頁面，不需要登入即可進入。
 
-目前教師申請 API 路徑：
+目前教師申請已建立正式 API 串接：
 
 ```text
 POST /teacher-applications
@@ -267,9 +313,238 @@ POST /teacher-applications
 http://127.0.0.1:8000/api/v1/teacher-applications
 ```
 
+Request：
+
+```text
+name
+email
+reason（選填）
+```
+
+前端會處理：
+
+- 申請成功訊息
+- Email 已存在
+- 已有待審核申請
+- Request 驗證錯誤
+
+### 管理員－使用者管理
+
+已建立管理員使用者管理頁：
+
+```text
+/admin/userManagement
+```
+
+主要功能包含：
+
+- 顯示教師總數
+- 顯示學生總數
+- 顯示目前學期課程數
+- 教師帳號申請審核
+- 學生帳號待開通清單
+- 學生多選 / 全選
+- 批次開通操作介面
+- 操作前確認視窗
+- 教師核准後顯示帳號與一次性密碼
+- 桌面版雙欄配置
+- 行動裝置改為上下排列
+- 清單區域使用 Scroll Area
+
+頁面主要結構：
+
+```text
+userManagement.vue
+        ↓
+useUserManagement.ts
+        ↓
+API / 狀態處理
+```
+
+相關元件：
+
+```text
+components/
+├─ common/
+│  └─ ConfirmDialog.vue
+└─ user-management/
+   ├─ UserStatsCards.vue
+   ├─ TeacherApprovalPanel.vue
+   ├─ StudentActivationPanel.vue
+   └─ TeacherAccountResultDialog.vue
+```
+
+各元件職責：
+
+```text
+UserStatsCards.vue
+→ 顯示教師、學生、目前學期課程統計
+
+TeacherApprovalPanel.vue
+→ 顯示待審核教師申請與核准操作
+
+StudentActivationPanel.vue
+→ 顯示待開通學生、單選、全選與批次操作介面
+
+ConfirmDialog.vue
+→ 共用操作確認視窗
+
+TeacherAccountResultDialog.vue
+→ 教師核准成功後顯示產生的帳號與一次性密碼
+```
+
+教師核准流程：
+
+```text
+使用者管理頁
+   ↓
+選擇教師申請
+   ↓
+ConfirmDialog
+   ↓
+approve API
+   ↓
+TeacherAccountResultDialog
+```
+
+教師核准已建立正式 API 串接：
+
+```text
+POST /teacher-applications/{id}/approve
+```
+
+完整 URL：
+
+```text
+http://127.0.0.1:8000/api/v1/teacher-applications/{id}/approve
+```
+
+核准流程：
+
+```text
+TeacherApprovalPanel
+        ↓
+ConfirmDialog
+        ↓
+POST /teacher-applications/{id}/approve
+        ↓
+TeacherAccountResultDialog
+```
+
+教師核准成功後，後端回傳：
+
+```text
+tid
+account
+password
+status
+```
+
+其中明文密碼只在結果視窗中暫時顯示，不存入 Pinia、localStorage 或 sessionStorage。
+
+學生帳號開通目前已完成前端選取、全選、批次操作與確認流程介面；實際開通 API 依後端正式接口再串接。
+
+使用者管理相關樣式依元件與頁面分開：
+
+```text
+css/
+├─ components/
+│  ├─ _confirm-dialog.scss
+│  ├─ _user-stats-cards.scss
+│  ├─ _teacher-approval-panel.scss
+│  ├─ _student-activation-panel.scss
+│  └─ _teacher-account-result-dialog.scss
+└─ pages/
+   └─ _user-management.scss
+```
+
+RWD 規劃：
+
+```text
+桌面版
+→ 統計卡片橫向排列
+→ 教師審核 / 學生開通雙欄排列
+
+窄螢幕
+→ 統計卡片依寬度調整
+→ 教師審核 / 學生開通改為上下排列
+```
+
+### Dashboard API
+
+已建立 Dashboard API 串接層：
+
+```text
+dashboard.api.ts
+        ↓
+useDashboard.ts
+        ↓
+GET /dashboard
+```
+
+API：
+
+```text
+GET /dashboard
+```
+
+完整 URL：
+
+```text
+http://127.0.0.1:8000/api/v1/dashboard
+```
+
+Dashboard 需要登入 Token，Axios 會自動附加 Bearer Token。
+
+後端依角色回傳不同資料：
+
+```text
+Admin
+→ user + pending_count
+
+Teacher
+→ user + courses
+
+Student
+→ user + courses
+```
+
+目前前端已建立共用 Dashboard API / Composable 結構，後續由各角色首頁依需求呈現資料。
+
 ---
 
-## 8. 前端開發原則
+## 8. 目前 API 串接狀態
+
+```text
+Authentication
+✅ POST /auth/login
+✅ POST /auth/logout
+✅ GET  /auth/me
+
+教師帳號申請
+✅ POST /teacher-applications
+
+管理員教師核准
+✅ POST /teacher-applications/{id}/approve
+
+Dashboard
+✅ GET /dashboard
+```
+
+目前仍待 Backend 提供或確認：
+
+```text
+GET  待審核教師申請清單
+GET  待開通學生清單
+POST 學生批次開通
+GET  管理員使用者統計
+```
+
+學生帳號開通功能目前已完成前端操作介面，待 Backend API 完成後再進行正式串接。
+
+---
+
+## 9. 前端開發原則
 
 目前專案維持以下分工：
 

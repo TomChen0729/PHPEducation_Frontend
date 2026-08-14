@@ -1,22 +1,23 @@
-import { defineBoot } from '#q-app'
+import { defineBoot } from '#q-app';
 
-import { authApi } from '../api/auth.api'
-import { useAuthStore } from '../stores/auth'
+import { authApi } from '../api/auth.api';
+import { useAuthStore } from '../stores/auth';
 
 export default defineBoot(async ({ store }) => {
-  const authStore = useAuthStore(store)
+  const authStore = useAuthStore(store);
 
-  const token = sessionStorage.getItem('auth_token')
-
-  if (!token) {
-    return
+  // sessionStorage 沒有 Token
+  if (!authStore.token) {
+    return;
   }
 
   try {
-    const response = await authApi.me()
+    const response = await authApi.me();
 
-    authStore.setUser(response.data.user)
+    // Token 有效，恢復使用者資料
+    authStore.setUser(response.data.user);
   } catch {
-    authStore.clearAuth()
+    // Token 無效或已過期
+    authStore.clearAuth();
   }
-})
+});

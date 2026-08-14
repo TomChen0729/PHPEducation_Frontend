@@ -3,7 +3,10 @@ import axios from 'axios';
 
 import { teacherApplicationApi } from '../api/teacher-application.api';
 
-import type { TeacherApplicationRequest } from '../types/teacher-application';
+import type {
+  TeacherApplicationRequest,
+  TeacherApplicationErrorResponse,
+} from '../types/teacher-application';
 
 export function useTeacherApplication() {
   const loading = ref(false);
@@ -16,25 +19,19 @@ export function useTeacherApplication() {
     successMessage.value = '';
 
     try {
-      await teacherApplicationApi.submit(data);
+      const response = await teacherApplicationApi.submit(data);
 
-      successMessage.value = '教師帳號申請已送出，請等待審核。';
+      successMessage.value = response.data.message;
 
-      return true;
+      return response.data.data;
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const message = error.response?.data?.message;
-
-        if (typeof message === 'string') {
-          errorMessage.value = message;
-        } else {
-          errorMessage.value = '申請失敗，請稍後再試。';
-        }
+      if (axios.isAxiosError<TeacherApplicationErrorResponse>(error)) {
+        errorMessage.value = error.response?.data.message ?? '申請失敗，請稍後再試';
       } else {
-        errorMessage.value = '申請失敗，請稍後再試。';
+        errorMessage.value = '申請失敗，請稍後再試';
       }
 
-      return false;
+      return null;
     } finally {
       loading.value = false;
     }
