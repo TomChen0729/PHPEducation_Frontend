@@ -158,7 +158,7 @@ GET  /auth/me      → 取得目前登入者
 API Base URL：
 
 ```env
-QCLI_API_BASE_URL=http://127.0.0.1:8000/api/v1
+QCLI_API_BASE_URL=http://phpeducation-backend.test/api/v1
 ```
 
 ---

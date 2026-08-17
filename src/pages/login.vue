@@ -64,7 +64,7 @@
               <div class="text-center">
                 <div class="text-subtitle2">
                   教師帳號申請？
-                  <router-link to="/register">點此申請</router-link>
+                  <router-link to="/teacherApplication">點此申請</router-link>
                 </div>
               </div>
             </q-form>
