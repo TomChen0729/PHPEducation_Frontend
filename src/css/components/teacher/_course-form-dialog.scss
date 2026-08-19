@@ -1,0 +1,92 @@
+.course-form-dialog {
+  display: flex;
+  flex-direction: column;
+
+  width: 520px;
+  max-width: 90vw;
+
+  border-radius: 12px;
+
+  .q-form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+    min-height: 0;
+  }
+
+  &__form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+    gap: 8px;
+
+    min-height: 0;
+
+    overflow-y: auto;
+  }
+
+  &__semester {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+  }
+
+  &__description {
+    .q-field__control {
+      height: 180px;
+    }
+
+    .q-field__native {
+      height: 150px;
+      max-height: 150px;
+
+      overflow-y: auto;
+
+      resize: none;
+    }
+  }
+
+  .q-card__actions {
+    flex-shrink: 0;
+
+    padding: 12px 16px 16px;
+
+    gap: 8px;
+  }
+}
+
+@media (max-width: 599px) {
+  .course-form-dialog {
+    width: calc(100vw - 32px);
+    height: calc(100vh - 32px);
+    max-width: none;
+
+    &__semester {
+      grid-template-columns: 1fr;
+
+      gap: 0;
+    }
+
+    &__description {
+      .q-field__control {
+        height: 150px;
+      }
+
+      .q-field__native {
+        height: 110px;
+        max-height: 110px;
+      }
+    }
+
+    .q-card__actions {
+      display: flex;
+
+      .q-btn {
+        flex: 1;
+      }
+    }
+  }
+}

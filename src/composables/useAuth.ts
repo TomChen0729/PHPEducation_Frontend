@@ -28,9 +28,9 @@ export function useAuth() {
       await redirectByRole(response.data.user.role);
     } catch (error: unknown) {
       if (axios.isAxiosError<LoginErrorResponse>(error)) {
-        errorMessage.value = error.response?.data.message ?? '登入失敗，請稍後再試';
+        errorMessage.value = '帳號或密碼錯誤，請重新輸入';
       } else {
-        errorMessage.value = '登入失敗，請稍後再試';
+        errorMessage.value = '帳號或密碼錯誤，請重新輸入';
       }
     } finally {
       loading.value = false;

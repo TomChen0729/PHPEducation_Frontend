@@ -41,7 +41,7 @@ export const navigationByRole: Record<UserRole, NavigationItem[]> = {
     {
       label: '課程管理',
       icon: 'school',
-      to: '/teacher/courses',
+      to: '/teacher/courseManagement',
     },
     {
       label: '教材管理',

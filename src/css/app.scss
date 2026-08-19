@@ -13,5 +13,8 @@
 @use './components/admin/userStatsCards';
 
 // teacher page css
+@use './components/teacher/course-management';
+@use './components/teacher/course-card';
+@use './components/teacher/course-form-dialog';
 
 // student page css

@@ -24,24 +24,26 @@
               <!-- Email -->
               <q-input
                 v-model="email"
-                label="Email"
+                label="Eportal Email"
                 type="email"
                 outlined
                 :rules="[
-                  (value) => !!value || '請輸入 Email',
-                  (value) => emailPattern.test(value) || 'Email 格式不正確',
+                  (value) => !!value || '請輸入 Eportal Email',
+                  (value) => emailPattern.test(value) || '格式不正確',
                 ]"
               />
 
-              <!-- 申請原因 -->
+              <!-- 帳號名稱 -->
               <q-input
-                v-model="reason"
-                label="申請原因"
-                type="textarea"
+                v-model="account"
+                label="帳號名稱"
+                type="text"
                 outlined
-                autogrow
-                :rules="[(value) => !!value || '請輸入申請原因']"
+                :rules="[(value) => !!value || '請輸入帳號名稱']"
               />
+
+              <!-- 申請原因 -->
+              <q-input v-model="reason" label="申請原因" type="textarea" outlined autogrow />
 
               <!-- 錯誤訊息 -->
               <div v-if="errorMessage" class="teacherApplication-form__error">
@@ -85,6 +87,7 @@ import { useTeacherApplication } from '../composables/useTeacherApplication';
 
 const name = ref('');
 const email = ref('');
+const account = ref('');
 const reason = ref('');
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -101,6 +104,7 @@ async function handleSubmit() {
   const success = await submitApplication({
     name: name.value,
     email: email.value,
+    account: account.value,
     reason: reason.value,
   });
 
@@ -110,6 +114,7 @@ async function handleSubmit() {
 
   name.value = '';
   email.value = '';
+  account.value = '';
   reason.value = '';
 }
 </script>
