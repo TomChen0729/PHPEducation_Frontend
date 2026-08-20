@@ -3,35 +3,38 @@ import axios from 'axios';
 
 import { teacherApplicationApi } from '../api/teacher-application.api';
 
-import type {
-  TeacherApplicationRequest,
-  TeacherApplicationErrorResponse,
-} from '../types/teacher-application';
+import type { TeacherApplicationRequest } from '../types/teacher-application';
 
 export function useTeacherApplication() {
   const loading = ref(false);
   const errorMessage = ref('');
-  const successMessage = ref('');
 
-  async function submitApplication(data: TeacherApplicationRequest) {
+  async function submitApplication(data: TeacherApplicationRequest): Promise<boolean> {
     loading.value = true;
     errorMessage.value = '';
-    successMessage.value = '';
 
     try {
-      const response = await teacherApplicationApi.submit(data);
+      await teacherApplicationApi.submit(data);
 
-      successMessage.value = response.data.message;
-
-      return response.data.data;
+      return true;
     } catch (error: unknown) {
-      if (axios.isAxiosError<TeacherApplicationErrorResponse>(error)) {
-        errorMessage.value = error.response?.data.message ?? '申請失敗，請稍後再試';
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.message;
+
+        if (message === 'This email is already registered as a teacher.') {
+          errorMessage.value = '此 Email 已註冊為教師帳號';
+        } else if (message === 'You have a pending teacher application.') {
+          errorMessage.value = '此 Email 已有待審核的教師申請';
+        } else if (error.response?.status === 422) {
+          errorMessage.value = '申請資料格式不正確，請檢查後重新送出';
+        } else {
+          errorMessage.value = message ?? '教師帳號申請失敗';
+        }
       } else {
-        errorMessage.value = '申請失敗，請稍後再試';
+        errorMessage.value = '教師帳號申請失敗';
       }
 
-      return null;
+      return false;
     } finally {
       loading.value = false;
     }
@@ -40,7 +43,6 @@ export function useTeacherApplication() {
   return {
     loading,
     errorMessage,
-    successMessage,
     submitApplication,
   };
 }

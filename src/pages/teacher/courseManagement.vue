@@ -74,12 +74,12 @@ import ConfirmDialog from '../../components/common/ConfirmDialog.vue';
 
 import { useTeacherCourses } from '../../composables/useTeacherCourses.js';
 
-import { useAuthStore } from '../../stores/auth.js';
+// import { useAuthStore } from '../../stores/auth.js';
 
 import type { Course, CreateCourseRequest } from '../../types/course.js';
 
 const router = useRouter();
-const authStore = useAuthStore();
+// const authStore = useAuthStore();
 
 const { courses, loading, errorMessage, fetchCourses, createCourse, updateCourse, deleteCourse } =
   useTeacherCourses();

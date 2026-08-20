@@ -55,6 +55,47 @@
     text-align: center;
     color: #777;
   }
+
+  &__filter {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+
+    padding: 12px 16px;
+  }
+
+  &__search {
+    background-color: white;
+    border-radius: 8px;
+  }
+
+  &__selection-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 5px 16px 0 16px;
+  }
+
+  &__student {
+    margin-bottom: 8px;
+
+    background-color: white;
+
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  &__footer {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 12px 16px;
+  }
 }
 
 @media (max-width: 599px) {

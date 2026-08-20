@@ -1,114 +1,180 @@
 <template>
   <q-card flat bordered class="student-activation bg-teal-1">
+    <!-- Header -->
     <q-card-section class="student-activation__header">
       <div>
         <div class="text-h6">學生帳號開通</div>
 
-        <div class="text-caption text-grey-7">選擇需要開通的學生</div>
+        <div class="text-caption text-grey-7">依照課程篩選並開通學生帳號</div>
       </div>
 
       <q-badge color="teal-7" :label="`${students.length} 位`" />
     </q-card-section>
 
-    <!-- <q-card-section class="student-activation__toolbar"> -->
-    <div class="student-activation__toolbar">
-      <q-checkbox
-        :model-value="allSelected"
-        :indeterminate="someSelected"
-        label="全選"
-        @update:model-value="toggleAll"
-      />
+    <q-separator />
 
-      <q-space />
+    <!-- Filter -->
+    <q-card-section class="student-activation__filter">
+      <!-- Course -->
+      <q-select
+        :model-value="selectedCourseId"
+        :options="courseOptions"
+        label="選擇課程"
+        class="student-activation__search"
+        outlined
+        emit-value
+        map-options
+        clearable
+        @update:model-value="$emit('update:selectedCourseId', $event)"
+      >
+        <template #prepend>
+          <q-icon name="school" />
+        </template>
+      </q-select>
 
-      <span> 已選 {{ selectedModel.length }} 位 </span>
-
-      <q-btn
-        label="開通已選帳號"
-        color="teal-7"
-        unelevated
-        :disable="selectedModel.length === 0"
-        @click="$emit('activate')"
-      />
-      <!-- </q-card-section> -->
-    </div>
+      <!-- Search -->
+      <q-input
+        :model-value="searchKeyword"
+        label="搜尋學號或姓名"
+        class="student-activation__search"
+        outlined
+        clearable
+        :disable="selectedCourseId === null"
+        @update:model-value="$emit('update:searchKeyword', String($event ?? ''))"
+      >
+        <template #prepend>
+          <q-icon name="search" />
+        </template>
+      </q-input>
+    </q-card-section>
 
     <q-separator />
 
-    <q-scroll-area class="student-activation__scroll">
-      <q-list v-if="students.length">
-        <q-item
-          v-for="student in students"
-          :key="student.id"
-          class="student-activation__item"
-          :class="{
-            'student-activation__item--selected': selectedModel.includes(student.id),
-          }"
-          clickable
-          @click="toggleStudent(student.id)"
-        >
-          <q-item-section avatar>
-            <q-checkbox v-model="selectedModel" :val="student.id" @click.stop />
-          </q-item-section>
+    <!-- 尚未選課程 -->
+    <q-card-section v-if="selectedCourseId === null" class="student-activation__empty">
+      <q-icon name="school" size="48px" color="grey-5" />
 
-          <q-item-section>
-            <q-item-label>
-              {{ student.studentNo }}
-              {{ student.name }}
-            </q-item-label>
+      <div>請先選擇要開通學生帳號的課程</div>
+    </q-card-section>
 
-            <q-item-label caption> 由 {{ student.providerTeacherName }} 提供 </q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
+    <template v-else>
+      <!-- Select All -->
+      <q-card-section class="student-activation__selection-header">
+        <q-checkbox
+          :model-value="allFilteredStudentsSelected"
+          label="全選"
+          :disable="students.length === 0"
+          @update:model-value="$emit('toggle-select-all')"
+        />
 
-      <div v-else class="student-activation__empty">目前沒有待開通學生</div>
-    </q-scroll-area>
+        <span class="text-caption text-grey-7"> 共 {{ students.length }} 位學生 </span>
+      </q-card-section>
+
+      <!-- Student List -->
+      <q-scroll-area class="student-activation__scroll">
+        <q-list separator>
+          <q-item
+            v-for="student in students"
+            :key="student.id"
+            clickable
+            class="student-activation__student"
+            :class="{
+              'student-activation__student--selected': selectedStudentIds.includes(student.id),
+            }"
+            @click="$emit('toggle-student', student.id)"
+          >
+            <q-item-section avatar>
+              <q-checkbox
+                :model-value="selectedStudentIds.includes(student.id)"
+                @click.stop
+                @update:model-value="$emit('toggle-student', student.id)"
+              />
+            </q-item-section>
+
+            <q-item-section>
+              <q-item-label>
+                {{ student.name }}
+              </q-item-label>
+
+              <q-item-label caption>
+                學號：
+                {{ student.studentNo }}
+              </q-item-label>
+
+              <q-item-label caption>
+                申請教師：
+                {{ student.providerTeacherName }}
+              </q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <!-- No Result -->
+          <q-item v-if="students.length === 0">
+            <q-item-section class="student-activation__empty">
+              <q-icon name="person_search" size="42px" color="grey-5" />
+
+              <div>沒有符合條件的學生</div>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-scroll-area>
+
+      <q-separator />
+
+      <!-- Footer -->
+      <q-card-section class="student-activation__footer">
+        <div>
+          已選擇
+          <strong>
+            {{ selectedStudentCount }}
+          </strong>
+          位學生
+        </div>
+
+        <q-btn
+          label="開通學生帳號"
+          icon="how_to_reg"
+          color="teal"
+          unelevated
+          :disable="selectedStudentCount === 0"
+          :loading="loading"
+          @click="$emit('request-activate')"
+        />
+      </q-card-section>
+    </template>
   </q-card>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import type { CourseFilterOption, PendingStudentItem } from '../../../types/user-management';
 
-import type { PendingStudentItem } from '../../../types/user-management';
+defineProps<{
+  courseOptions: CourseFilterOption[];
 
-const props = defineProps<{
+  selectedCourseId: number | null;
+
+  searchKeyword: string;
+
   students: PendingStudentItem[];
-  selectedIds: number[];
+
+  selectedStudentIds: number[];
+
+  selectedStudentCount: number;
+
+  allFilteredStudentsSelected: boolean;
+
+  loading?: boolean;
 }>();
 
-const emit = defineEmits<{
-  'update:selectedIds': [value: number[]];
-  activate: [];
+defineEmits<{
+  'update:selectedCourseId': [value: number | null];
+
+  'update:searchKeyword': [value: string];
+
+  'toggle-student': [studentId: number];
+
+  'toggle-select-all': [];
+
+  'request-activate': [];
 }>();
-
-const selectedModel = computed({
-  get: () => props.selectedIds,
-
-  set: (value: number[]) => {
-    emit('update:selectedIds', value);
-  },
-});
-
-const allSelected = computed(() => {
-  return props.students.length > 0 && selectedModel.value.length === props.students.length;
-});
-
-const someSelected = computed(() => {
-  return selectedModel.value.length > 0 && !allSelected.value;
-});
-
-function toggleAll(checked: boolean) {
-  selectedModel.value = checked ? props.students.map((student) => student.id) : [];
-}
-
-function toggleStudent(id: number) {
-  if (selectedModel.value.includes(id)) {
-    selectedModel.value = selectedModel.value.filter((selectedId) => selectedId !== id);
-
-    return;
-  }
-
-  selectedModel.value = [...selectedModel.value, id];
-}
 </script>
