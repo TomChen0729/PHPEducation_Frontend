@@ -78,7 +78,15 @@ declare module 'vue-router/auto-routes' {
       '/teacher',
       Record<never, never>,
       Record<never, never>,
+      | '/teacher/'
       | '/teacher/courseManagement'
+    >,
+    '/teacher/': RouteRecordInfo<
+      '/teacher/',
+      '/teacher',
+      Record<never, never>,
+      Record<never, never>,
+      | never
     >,
     '/teacher/courseManagement': RouteRecordInfo<
       '/teacher/courseManagement',
@@ -159,9 +167,18 @@ declare module 'vue-router/auto-routes' {
     'src/pages/teacher.vue': {
       routes:
         | '/teacher'
+        | '/teacher/'
         | '/teacher/courseManagement'
       views:
         | 'default'
+      pathParamNames:
+        | never
+    }
+    'src/pages/teacher/index.vue': {
+      routes:
+        | '/teacher/'
+      views:
+        | never
       pathParamNames:
         | never
     }

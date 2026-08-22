@@ -1,11 +1,13 @@
 <template>
   <q-page class="user-management-page">
-    <!-- 頁首 -->
+    <!-- =========================
+         頁首
+    ========================== -->
     <header class="user-management-page__header">
       <div>
         <h3 class="user-management-page__title">使用者管理</h3>
 
-        <p class="user-management-page__description">管理教師申請與學生帳號開通</p>
+        <p class="user-management-page__description">管理教師申請與課程開通</p>
       </div>
 
       <q-badge
@@ -16,33 +18,47 @@
       />
     </header>
 
-    <!-- 統計 -->
+    <!-- =========================
+         統計
+    ========================== -->
     <UserStatsCards :stats="stats" />
 
-    <!-- 管理區 -->
-    <section class="user-management-page__panels">
-      <!-- 教師申請核准 -->
-      <TeacherApprovalPanel :applications="teacherApplications" @approve="requestApproveTeacher" />
+    <!-- =========================
+         Error
+    ========================== -->
+    <q-banner v-if="errorMessage" rounded class="bg-red-1 text-negative q-mb-md">
+      {{ errorMessage }}
+    </q-banner>
 
-      <!-- 學生帳號開通 -->
-      <StudentActivationPanel
-        :course-options="courseOptions"
-        :selected-course-id="selectedCourseId"
-        :search-keyword="studentSearchKeyword"
-        :students="filteredPendingStudents"
-        :selected-student-ids="selectedStudentIds"
-        :selected-student-count="selectedStudentCount"
-        :all-filtered-students-selected="allFilteredStudentsSelected"
-        :loading="studentActivationLoading"
-        @update:selected-course-id="selectedCourseId = $event"
-        @update:search-keyword="studentSearchKeyword = $event"
-        @toggle-student="toggleStudent"
-        @toggle-select-all="toggleSelectAllStudents"
-        @request-activate="requestStudentActivation"
+    <!-- =========================
+         管理區域
+    ========================== -->
+    <section class="user-management-page__panels">
+      <!-- 教師申請 -->
+      <div class="relative-position">
+        <TeacherApprovalPanel
+          :applications="teacherApplications"
+          @approve="requestApproveTeacher"
+        />
+
+        <!-- 教師列表第一次載入 -->
+        <q-inner-loading :showing="teacherApplicationsLoading">
+          <q-spinner color="primary" size="40px" />
+        </q-inner-loading>
+      </div>
+
+      <!-- 課程開通 -->
+      <CourseActivationPanel
+        :applications="courseActivationApplications"
+        :loading-application-id="courseActivationLoadingId"
+        @view-students="handleViewStudents"
+        @request-approve="requestCourseActivation"
       />
     </section>
 
-    <!-- 共用確認視窗 -->
+    <!-- =========================
+         共用 Confirm Dialog
+    ========================== -->
     <ConfirmDialog
       v-model="confirmDialog.open"
       :title="confirmDialog.title"
@@ -56,68 +72,63 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { computed, onMounted, reactive } from 'vue';
 
 import { Notify } from 'quasar';
 
 import ConfirmDialog from '../../components/common/ConfirmDialog.vue';
 
-import StudentActivationPanel from '../../components/admin/user-management/StudentActivationPanel.vue';
+import CourseActivationPanel from '../../components/admin/user-management/CourseActivationPanel.vue';
+
 import TeacherApprovalPanel from '../../components/admin/user-management/TeacherApprovalPanel.vue';
+
 import UserStatsCards from '../../components/admin/user-management/UserStatsCards.vue';
 
 import { useUserManagement } from '../../composables/useUserManagement';
 
 import type { TeacherApplication } from '../../types/teacher-application';
 
-type ConfirmAction = 'approveTeacher' | 'activateStudents' | null;
+import type { CourseActivationApplication } from '../../types/user-management';
+
+type ConfirmAction = 'approveTeacher' | 'activateCourse' | null;
 
 const {
   /*
-   * 原本使用者管理資料
+   * 教師申請
    */
   teacherApplications,
-  stats,
-  pendingCount,
 
-  /*
-   * 教師核准
-   */
+  teacherApplicationsLoading,
+
   approveLoading,
+
+  fetchTeacherApplications,
+
   approveTeacherApplication,
 
   /*
-   * 課程篩選
+   * 課程開通
    */
-  courseOptions,
-  selectedCourseId,
-  selectedCourse,
+  courseActivationApplications,
+
+  courseActivationLoadingId,
+
+  approveCourseActivation,
 
   /*
-   * 學生搜尋
+   * 統計 / 共用
    */
-  studentSearchKeyword,
-  filteredPendingStudents,
+  stats,
 
-  /*
-   * 學生勾選
-   */
-  selectedStudentIds,
-  selectedStudentCount,
-  allFilteredStudentsSelected,
+  pendingCount,
 
-  /*
-   * 學生開通
-   */
-  studentActivationLoading,
-
-  toggleStudent,
-  toggleSelectAllStudents,
-  activateSelectedStudents,
+  errorMessage,
 } = useUserManagement();
 
 /*
- * 共用確認視窗狀態
+ * =========================
+ * Confirm Dialog
+ * =========================
  */
 const confirmDialog = reactive({
   open: false,
@@ -126,23 +137,29 @@ const confirmDialog = reactive({
 
   teacher: null as TeacherApplication | null,
 
+  courseApplication: null as CourseActivationApplication | null,
+
   title: '',
+
   message: '',
+
   confirmLabel: '確定',
+
   confirmColor: 'primary',
 });
 
 /*
- * 根據目前操作決定
- * ConfirmDialog 要顯示哪一個 Loading
+ * =========================
+ * Dialog Loading
+ * =========================
  */
 const confirmLoading = computed(() => {
   switch (confirmDialog.action) {
     case 'approveTeacher':
       return approveLoading.value;
 
-    case 'activateStudents':
-      return studentActivationLoading.value;
+    case 'activateCourse':
+      return courseActivationLoadingId.value !== null;
 
     default:
       return false;
@@ -151,14 +168,26 @@ const confirmLoading = computed(() => {
 
 /*
  * =========================
- * 教師帳號核准
+ * 頁面初始化
+ * =========================
+ *
+ * 正式取得 Pending 教師申請。
+ */
+onMounted(() => {
+  void fetchTeacherApplications();
+});
+
+/*
+ * =========================
+ * 教師核准
  * =========================
  */
-
 function requestApproveTeacher(teacher: TeacherApplication) {
   confirmDialog.action = 'approveTeacher';
 
   confirmDialog.teacher = teacher;
+
+  confirmDialog.courseApplication = null;
 
   confirmDialog.title = '核准教師申請';
 
@@ -173,26 +202,28 @@ function requestApproveTeacher(teacher: TeacherApplication) {
 
 /*
  * =========================
- * 學生帳號開通
+ * 課程開通
  * =========================
  */
-
-function requestStudentActivation() {
-  if (selectedStudentCount.value === 0) {
-    return;
-  }
-
-  const courseName = selectedCourse.value?.courseName ?? '目前課程';
-
-  confirmDialog.action = 'activateStudents';
+function requestCourseActivation(application: CourseActivationApplication) {
+  confirmDialog.action = 'activateCourse';
 
   confirmDialog.teacher = null;
 
-  confirmDialog.title = '開通學生帳號';
+  confirmDialog.courseApplication = application;
 
-  confirmDialog.message = `確定要開通「${courseName}」的 ${selectedStudentCount.value} 位學生帳號嗎？`;
+  confirmDialog.title = '確認開通課程';
 
-  confirmDialog.confirmLabel = '確定開通';
+  /*
+   * 維持你現在的 Dialog 內容，
+   * 不另外修改。
+   */
+  confirmDialog.message =
+    `確定要開通「${application.courseName}」嗎？` +
+    `此課程共有 ${application.studentCount} 位學生。` +
+    '系統將自動為尚未有帳號的學生建立帳號，並將學生加入此課程。';
+
+  confirmDialog.confirmLabel = '確認開通';
 
   confirmDialog.confirmColor = 'teal';
 
@@ -201,28 +232,48 @@ function requestStudentActivation() {
 
 /*
  * =========================
- * 確認操作
+ * 檢視學生
+ * =========================
+ *
+ * 目前仍維持 Mock / 暫時提示。
+ * 之後等新的 Course-based API。
+ */
+function handleViewStudents(application: CourseActivationApplication) {
+  Notify.create({
+    type: 'info',
+
+    message: `「${application.courseName}」共有 ` + `${application.studentCount} 位學生`,
+
+    position: 'top',
+
+    timeout: 2000,
+  });
+}
+
+/*
+ * =========================
+ * Confirm
  * =========================
  */
-
 async function handleConfirm() {
   switch (confirmDialog.action) {
     case 'approveTeacher':
       await approveTeacher();
+
       break;
 
-    case 'activateStudents':
-      await activateStudents();
+    case 'activateCourse':
+      await activateCourse();
+
       break;
   }
 }
 
 /*
  * =========================
- * 執行教師核准
+ * 正式核准教師
  * =========================
  */
-
 async function approveTeacher() {
   const teacher = confirmDialog.teacher;
 
@@ -240,8 +291,11 @@ async function approveTeacher() {
 
   Notify.create({
     type: 'positive',
+
     message: '教師帳號核准成功',
+
     position: 'top',
+
     timeout: 1500,
   });
 
@@ -250,32 +304,17 @@ async function approveTeacher() {
 
 /*
  * =========================
- * 執行學生帳號開通
+ * 課程開通 Mock
  * =========================
  */
+async function activateCourse() {
+  const application = confirmDialog.courseApplication;
 
-async function activateStudents() {
-  if (selectedStudentCount.value === 0) {
+  if (!application) {
     return;
   }
 
-  /*
-   * 先記錄數量。
-   *
-   * 因為 activateSelectedStudents()
-   * 成功後會清空 selectedStudentIds。
-   */
-  const count = selectedStudentCount.value;
-
-  const courseName = selectedCourse.value?.courseName ?? '目前課程';
-
-  /*
-   * 現階段為 Mock。
-   *
-   * Backend 完成後，
-   * useUserManagement 內部再改成正式 API。
-   */
-  const success = await activateSelectedStudents();
+  const success = await approveCourseActivation(application.id);
 
   if (!success) {
     return;
@@ -285,8 +324,11 @@ async function activateStudents() {
 
   Notify.create({
     type: 'positive',
-    message: `「${courseName}」已成功開通 ${count} 位學生帳號`,
+
+    message: `「${application.courseName}」開通成功`,
+
     position: 'top',
+
     timeout: 1500,
   });
 
@@ -294,12 +336,16 @@ async function activateStudents() {
 }
 
 /*
- * 清除 ConfirmDialog 狀態
+ * =========================
+ * Reset Dialog
+ * =========================
  */
 function resetConfirmDialog() {
   confirmDialog.action = null;
 
   confirmDialog.teacher = null;
+
+  confirmDialog.courseApplication = null;
 
   confirmDialog.title = '';
 

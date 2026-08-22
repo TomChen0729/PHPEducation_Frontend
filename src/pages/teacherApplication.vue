@@ -36,14 +36,14 @@
               />
 
               <!-- 帳號名稱 -->
-              <q-input
+              <!-- <q-input
                 v-model="form.account"
                 label="帳號名稱*"
                 type="text"
                 outlined
                 lazy-rules="ondemand"
                 :rules="[(value) => !!value || '請輸入帳號名稱']"
-              />
+              /> -->
 
               <!-- 申請原因 -->
               <q-input
@@ -100,7 +100,7 @@ import { useTeacherApplication } from '../composables/useTeacherApplication';
 const form = reactive({
   name: '',
   email: '',
-  account: '',
+  // account: '',
   reason: '',
 });
 
@@ -119,7 +119,7 @@ async function handleSubmit() {
   const success = await submitApplication({
     name: form.name.trim(),
     email: form.email.trim(),
-    account: form.account.trim(),
+    // account: form.account.trim(),
     reason: form.reason.trim() || '',
   });
 
@@ -151,7 +151,7 @@ async function handleSubmit() {
 function resetForm() {
   form.name = '';
   form.email = '';
-  form.account = '';
+  // form.account = '';
   form.reason = '';
 }
 </script>

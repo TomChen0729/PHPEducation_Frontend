@@ -14,7 +14,7 @@
     <!-- 學生 -->
     <q-card flat class="user-stats__card bg-teal-1">
       <q-card-section>
-        <div class="user-stats__label">學生總數</div>
+        <div class="user-stats__label">課程總數</div>
 
         <div class="user-stats__value">
           {{ stats.studentCount }}

@@ -3,20 +3,17 @@ import type { User } from './auth';
 export interface DashboardCourse {
   id: number;
   name: string;
+  description: string | null;
   semester: string;
   teacher_id: number;
-  created_at?: string | null;
-  updated_at?: string | null;
 }
 
-export interface CourseDashboardResponse {
+export interface DashboardResponse {
   user: User;
-  courses: DashboardCourse[];
-}
 
-export interface AdminDashboardResponse {
-  user: User;
-  pending_count: number;
-}
+  // Teacher / Student
+  courses?: DashboardCourse[];
 
-export type DashboardResponse = CourseDashboardResponse | AdminDashboardResponse;
+  // Admin
+  pending_count?: number;
+}

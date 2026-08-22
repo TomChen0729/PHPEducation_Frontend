@@ -1,19 +1,24 @@
-export interface PendingStudentItem {
+export interface CourseActivationApplication {
   id: number;
-
-  studentNo: string;
-  name: string;
-
-  providerTeacherName: string;
 
   courseId: number;
   courseName: string;
   semester: string;
+
+  teacherId: number;
+  teacherName: string;
+
+  studentCount: number;
+
+  status: 'pending' | 'approved';
 }
 
-export interface CourseFilterOption {
-  label: string;
-  value: number;
+export interface CourseActivationStudent {
+  id: number;
+
+  studentNo: string;
+  name: string;
+  email: string;
 }
 
 export interface UserStats {

@@ -1,5 +1,5 @@
 <template>
-  <q-card flat bordered class="teacher-approval bg-blue-1">
+  <q-card flat bordered class="teacher-approval">
     <!-- Header -->
     <q-card-section class="teacher-approval__header">
       <div>

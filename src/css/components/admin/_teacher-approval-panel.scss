@@ -1,4 +1,11 @@
+@use 'quasar/src/css/variables' as q;
+
 .teacher-approval {
+  height: 100%;
+  min-height: 520px;
+
+  background-color: q.$blue-1;
+
   overflow: hidden;
 
   border-radius: 12px;

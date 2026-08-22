@@ -9,8 +9,10 @@
       </q-card-section>
 
       <!-- 內容 -->
-      <q-card-section class="confirm-dialog__content">
-        {{ message }}
+      <q-card-section class="confirm-dialog__message">
+        <slot name="message">
+          {{ message }}
+        </slot>
       </q-card-section>
 
       <!-- 按鈕 -->

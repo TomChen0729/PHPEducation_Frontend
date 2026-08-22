@@ -7,10 +7,10 @@
 // login page css
 
 // admin page css
-@use './components/admin/studentActivationPanel';
-@use './components/admin/teacherApprovalPanel';
-@use './components/admin/userManagement';
-@use './components/admin/userStatsCards';
+@use './components/admin/course-activation-panel';
+@use './components/admin/teacher-approval-panel';
+@use './components/admin/user-management';
+@use './components/admin/user-stats-cards';
 
 // teacher page css
 @use './components/teacher/course-management';
