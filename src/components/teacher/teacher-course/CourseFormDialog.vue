@@ -80,7 +80,7 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
 
-import type { Course, CreateCourseRequest } from '../../../types/course';
+import type { Course, CourseRequest } from '../../../types/course';
 
 type TermValue = 1 | 2;
 
@@ -100,7 +100,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
-  submit: [data: CreateCourseRequest];
+  submit: [data: CourseRequest];
 }>();
 
 const form = reactive<CourseForm>({
@@ -208,7 +208,7 @@ function handleSubmit() {
 
   emit('submit', {
     name: form.name.trim(),
-    description: form.description.trim() || null,
+    description: form.description.trim(),
     semester,
   });
 }

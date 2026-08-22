@@ -1,30 +1,27 @@
 export interface Course {
   id: number;
+
   name: string;
-  description: string | null;
+
+  description: string;
+
   semester: string;
+
+  teacher_id: number;
 }
 
-export interface CreateCourseRequest {
+export interface CourseRequest {
   name: string;
-  description?: string | null;
-  semester: string;
-}
 
-export interface UpdateCourseRequest {
-  name: string;
-  description?: string | null;
-  semester: string;
-}
+  description: string;
 
-export interface CourseListResponse {
-  courses: Course[];
+  semester: string;
 }
 
 export interface CourseResponse {
   course: Course;
 }
 
-export interface DeleteCourseResponse {
-  message: string;
+export interface CourseListResponse {
+  courses: Course[];
 }

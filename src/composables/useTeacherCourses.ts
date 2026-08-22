@@ -3,7 +3,7 @@ import axios from 'axios';
 
 import { teacherCourseApi } from '../api/teacher-course.api';
 
-import type { Course, CreateCourseRequest, UpdateCourseRequest } from '../types/course';
+import type { Course, CourseRequest } from '../types/course';
 
 export function useTeacherCourses() {
   const courses = ref<Course[]>([]);
@@ -15,7 +15,7 @@ export function useTeacherCourses() {
     errorMessage.value = '';
 
     try {
-      const response = await teacherCourseApi.getAll();
+      const response = await teacherCourseApi.getCourses();
 
       courses.value = response.data.courses;
     } catch {
@@ -25,12 +25,12 @@ export function useTeacherCourses() {
     }
   }
 
-  async function createCourse(data: CreateCourseRequest) {
+  async function createCourse(data: CourseRequest) {
     loading.value = true;
     errorMessage.value = '';
 
     try {
-      await teacherCourseApi.create(data);
+      await teacherCourseApi.createCourse(data);
 
       await fetchCourses();
 
@@ -48,12 +48,12 @@ export function useTeacherCourses() {
     }
   }
 
-  async function updateCourse(courseId: number, data: UpdateCourseRequest) {
+  async function updateCourse(courseId: number, data: CourseRequest) {
     loading.value = true;
     errorMessage.value = '';
 
     try {
-      await teacherCourseApi.update(courseId, data);
+      await teacherCourseApi.updateCourse(courseId, data);
 
       await fetchCourses();
 
@@ -72,7 +72,7 @@ export function useTeacherCourses() {
     errorMessage.value = '';
 
     try {
-      await teacherCourseApi.remove(courseId);
+      await teacherCourseApi.deleteCourse(courseId);
 
       await fetchCourses();
 

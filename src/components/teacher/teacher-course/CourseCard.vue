@@ -28,9 +28,9 @@
       <q-btn
         label="進入課程"
         icon-right="arrow_forward"
+        color="blue"
         unelevated
-        color="light-blue-7"
-        @click="$emit('enter', course)"
+        :to="`/teacher/course/${course.id}`"
       />
     </q-card-actions>
   </q-card>

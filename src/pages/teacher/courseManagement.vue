@@ -76,7 +76,7 @@ import { useTeacherCourses } from '../../composables/useTeacherCourses.js';
 
 // import { useAuthStore } from '../../stores/auth.js';
 
-import type { Course, CreateCourseRequest } from '../../types/course.js';
+import type { Course, CourseRequest } from '../../types/course.js';
 
 const router = useRouter();
 // const authStore = useAuthStore();
@@ -110,7 +110,7 @@ function openEditDialog(course: Course) {
   courseDialogOpen.value = true;
 }
 
-async function handleCourseSubmit(data: CreateCourseRequest) {
+async function handleCourseSubmit(data: CourseRequest) {
   let success = false;
 
   if (courseDialogMode.value === 'create') {
