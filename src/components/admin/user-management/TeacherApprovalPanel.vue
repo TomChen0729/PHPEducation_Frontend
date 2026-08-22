@@ -35,7 +35,7 @@
             <div class="teacher-approval__actions">
               <q-btn label="核准" color="primary" unelevated @click="$emit('approve', teacher)" />
 
-              <q-btn label="拒絕" color="negative" outline @click="$emit('reject', teacher)" />
+              <!-- <q-btn label="拒絕" color="negative" outline @click="$emit('reject', teacher)" /> -->
             </div>
           </q-item-section>
         </q-item>
