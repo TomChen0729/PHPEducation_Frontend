@@ -1,6 +1,9 @@
 @use 'quasar/src/css/variables' as q;
 
 .course-activation-panel {
+  display: flex;
+  flex-direction: column;
+
   height: 100%;
   min-height: 520px;
 
@@ -10,6 +13,11 @@
 
   overflow: hidden;
 
+  /*
+   * =========================
+   * Header
+   * =========================
+   */
   &__header {
     display: flex;
     align-items: center;
@@ -18,40 +26,312 @@
     gap: 16px;
 
     padding: 16px 20px;
+
+    h5 {
+      margin: 0 0 4px;
+
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0;
+
+      font-size: 14px;
+
+      color: #666;
+    }
   }
 
+  /*
+   * =========================
+   * 課程選擇
+   * =========================
+   */
+  &__course-select {
+    margin: 0 16px 12px;
+
+    background-color: #ffffff;
+
+    border-radius: 8px;
+  }
+
+  /*
+   * =========================
+   * 搜尋
+   * =========================
+   */
+  &__search {
+    display: grid;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+
+    gap: 10px;
+
+    margin: 0 16px 12px;
+
+    .q-field {
+      background-color: #ffffff;
+
+      border-radius: 8px;
+    }
+
+    .q-btn {
+      min-width: 84px;
+    }
+  }
+
+  /*
+   * =========================
+   * 目前選擇的課程資訊
+   * =========================
+   */
+  &__course-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin: 0 16px 10px;
+
+    padding: 10px 14px;
+
+    background-color: rgba(255, 255, 255, 0.65);
+
+    border-radius: 8px;
+
+    div {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+
+      gap: 8px;
+    }
+
+    strong {
+      font-size: 14px;
+
+      color: #222;
+    }
+
+    span {
+      font-size: 13px;
+
+      color: #757575;
+    }
+  }
+
+  /*
+   * =========================
+   * 全選 / 已選數量
+   * =========================
+   */
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin: 0 16px 8px;
+
+    padding: 4px 2px;
+
+    font-size: 13px;
+
+    color: #666;
+
+    strong {
+      color: q.$teal-8;
+    }
+  }
+
+  /*
+   * =========================
+   * Loading
+   * =========================
+   */
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 1;
+
+    min-height: 280px;
+  }
+
+  /*
+   * =========================
+   * Scroll
+   * =========================
+   */
   &__scroll {
-    height: 410px;
+    flex: 1;
+
+    height: 300px;
+
+    min-height: 0;
   }
 
+  /*
+   * =========================
+   * 學生列表
+   * =========================
+   */
   &__list {
     display: flex;
     flex-direction: column;
 
     gap: 10px;
 
-    padding: 14px 16px;
+    padding: 8px 16px 14px;
   }
 
   /*
-   * 每一門課程
-   * 對應你截圖的白色圓角區塊
+   * 原本：
+   * 每一門課程的白色區塊
+   *
+   * 現在改成：
+   * 每一位待開通學生
    */
   &__item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
 
-    gap: 20px;
+    gap: 12px;
 
-    padding: 14px 20px;
+    padding: 14px 16px;
 
     background-color: #ffffff;
 
     border: 1px solid #d6d6d6;
     border-radius: 10px;
+
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+
+    &:hover {
+      border-color: q.$teal-3;
+
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
   }
 
+  /*
+   * =========================
+   * 學生資料
+   * =========================
+   */
+  &__student-info {
+    flex: 1;
+
+    min-width: 0;
+  }
+
+  &__student-top {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-bottom: 5px;
+
+    strong {
+      font-size: 15px;
+
+      color: #111;
+    }
+  }
+
+  &__student-meta {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 4px 14px;
+
+    font-size: 13px;
+
+    color: #666;
+
+    span {
+      word-break: break-word;
+    }
+  }
+
+  &__student-extra {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 4px 14px;
+
+    margin-top: 4px;
+
+    font-size: 12px;
+
+    color: #888;
+  }
+
+  /*
+   * =========================
+   * Footer
+   * =========================
+   */
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    flex-shrink: 0;
+
+    gap: 16px;
+
+    padding: 14px 16px;
+
+    border-top: 1px solid q.$teal-2;
+  }
+
+  &__selection-summary {
+    font-size: 13px;
+
+    color: #555;
+  }
+
+  /*
+   * =========================
+   * Empty
+   * =========================
+   */
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    flex: 1;
+
+    gap: 10px;
+
+    min-height: 280px;
+
+    color: #777;
+
+    text-align: center;
+  }
+
+  /*
+   * =========================
+   * 舊版 class
+   *
+   * 先保留，避免其他地方
+   * 還有使用時樣式消失
+   * =========================
+   */
   &__content {
     flex: 1;
 
@@ -87,25 +367,88 @@
       min-width: 76px;
     }
   }
+}
 
-  &__empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    flex: 1;
-
-    min-height: 380px;
-
-    color: #777;
+/*
+ * =========================
+ * Tablet
+ * =========================
+ */
+@media (max-width: 899px) {
+  .course-activation-panel {
+    &__scroll {
+      height: 360px;
+    }
   }
 }
 
+/*
+ * =========================
+ * Mobile
+ * =========================
+ */
 @media (max-width: 599px) {
   .course-activation-panel {
+    min-height: 580px;
+
+    &__header {
+      align-items: flex-start;
+
+      padding: 14px 16px;
+    }
+
+    &__search {
+      grid-template-columns: 1fr;
+
+      .q-btn {
+        width: 100%;
+      }
+    }
+
+    &__course-info {
+      div {
+        flex-direction: column;
+        align-items: flex-start;
+
+        gap: 2px;
+      }
+    }
+
+    &__toolbar {
+      align-items: flex-start;
+      flex-direction: column;
+
+      gap: 4px;
+    }
+
+    &__scroll {
+      height: 360px;
+    }
+
     &__item {
+      align-items: flex-start;
+
+      padding: 12px;
+    }
+
+    &__student-meta,
+    &__student-extra {
+      flex-direction: column;
+
+      gap: 2px;
+    }
+
+    &__footer {
       flex-direction: column;
       align-items: stretch;
+
+      .q-btn {
+        width: 100%;
+      }
+    }
+
+    &__selection-summary {
+      text-align: center;
     }
 
     &__actions {
@@ -114,6 +457,14 @@
   }
 }
 
+/*
+ * ============================================================
+ * 舊版學生名單 Dialog
+ *
+ * 目前正式 API 新版本可能不會再使用，
+ * 先保留避免其他地方受到影響。
+ * ============================================================
+ */
 .course-student-list-dialog {
   width: 560px;
   max-width: 92vw;

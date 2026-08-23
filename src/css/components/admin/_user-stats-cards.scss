@@ -1,29 +1,153 @@
-.user-stats {
+@use 'quasar/src/css/variables' as q;
+
+.user-stats,
+.user-stats-cards {
   display: grid;
 
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /*
+   * 原本 3 張
+   *
+   * 現在：
+   * 教師 / 學生 / 課程 / 本學期課程
+   */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 
   gap: 16px;
 
+  /*
+   * =========================
+   * Card
+   * =========================
+   */
   &__card {
     border-radius: 12px;
+
+    overflow: hidden;
+
+    .q-card__section {
+      display: flex;
+      align-items: center;
+
+      gap: 14px;
+
+      min-height: 92px;
+    }
   }
 
+  /*
+   * =========================
+   * Icon
+   * =========================
+   */
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    width: 46px;
+    height: 46px;
+
+    border-radius: 10px;
+
+    /*
+     * Teacher
+     */
+    &--teacher {
+      color: q.$purple-7;
+
+      background-color: q.$purple-1;
+    }
+
+    /*
+     * Student
+     */
+    &--student {
+      color: q.$teal-7;
+
+      background-color: q.$teal-1;
+    }
+
+    /*
+     * Course
+     */
+    &--course {
+      color: q.$blue-7;
+
+      background-color: q.$blue-1;
+    }
+
+    /*
+     * Semester Course
+     */
+    &--semester {
+      color: q.$orange-8;
+
+      background-color: q.$orange-1;
+    }
+  }
+
+  /*
+   * =========================
+   * Label
+   * =========================
+   */
   &__label {
     margin-bottom: 8px;
 
     color: #555;
+
     font-size: 15px;
   }
 
+  /*
+   * =========================
+   * Value
+   * =========================
+   */
   &__value {
     font-size: 30px;
     font-weight: 700;
+
+    color: #111;
   }
 }
 
+/*
+ * =========================
+ * Tablet
+ *
+ * 4 張 → 2 x 2
+ * =========================
+ */
+@media (max-width: 1023px) {
+  .user-stats,
+  .user-stats-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/*
+ * =========================
+ * Mobile
+ *
+ * 1 欄
+ * =========================
+ */
 @media (max-width: 599px) {
-  .user-stats {
+  .user-stats,
+  .user-stats-cards {
     grid-template-columns: 1fr;
+
+    &__card {
+      .q-card__section {
+        min-height: 82px;
+      }
+    }
+
+    &__value {
+      font-size: 26px;
+    }
   }
 }

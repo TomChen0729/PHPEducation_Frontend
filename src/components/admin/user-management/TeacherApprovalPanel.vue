@@ -1,49 +1,59 @@
 <template>
-  <q-card flat bordered class="teacher-approval">
-    <!-- Header -->
-    <q-card-section class="teacher-approval__header">
+  <section class="teacher-approval-panel">
+    <div class="teacher-approval-panel__header">
       <div>
-        <div class="text-h6">教師申請核准</div>
+        <h5>教師申請核准</h5>
 
-        <div class="text-caption text-grey-7">待處理的教師帳號申請</div>
+        <p>審核待申請的教師帳號</p>
       </div>
 
-      <q-badge color="blue-7" :label="`${applications.length} 件`" />
-    </q-card-section>
+      <q-badge color="blue" :label="`${applications.length} 件`" />
+    </div>
 
-    <q-separator />
+    <!-- Loading -->
+    <div v-if="loading" class="teacher-approval-panel__loading">
+      <q-spinner color="primary" size="36px" />
+    </div>
 
-    <!-- Scroll -->
-    <q-scroll-area class="teacher-approval__scroll">
-      <q-list v-if="applications.length > 0" class="teacher-approval__list">
-        <q-item v-for="teacher in applications" :key="teacher.id" class="teacher-approval__item">
-          <q-item-section>
-            <q-item-label class="text-weight-medium">
-              {{ teacher.name }}
-            </q-item-label>
+    <!-- Empty -->
+    <div v-else-if="applications.length === 0" class="teacher-approval-panel__empty">
+      <div>目前沒有待審核的教師申請</div>
+    </div>
 
-            <q-item-label caption>
-              {{ teacher.email }}
-            </q-item-label>
-
-            <q-item-label caption class="teacher-approval__reason">
-              申請原因：{{ teacher.reason }}
-            </q-item-label>
-          </q-item-section>
-
-          <q-item-section side>
-            <div class="teacher-approval__actions">
-              <q-btn label="核准" color="primary" unelevated @click="$emit('approve', teacher)" />
-
-              <!-- <q-btn label="拒絕" color="negative" outline @click="$emit('reject', teacher)" /> -->
+    <!-- List -->
+    <q-scroll-area v-else class="teacher-approval-panel__scroll">
+      <div class="teacher-approval-panel__list">
+        <div
+          v-for="application in applications"
+          :key="application.id"
+          class="teacher-approval-panel__item"
+        >
+          <div class="teacher-approval-panel__info">
+            <div class="teacher-approval-panel__name">
+              {{ application.name }}
             </div>
-          </q-item-section>
-        </q-item>
-      </q-list>
 
-      <div v-else class="teacher-approval__empty">目前沒有待審核的教師申請</div>
+            <div class="teacher-approval-panel__email">
+              {{ application.email }}
+            </div>
+
+            <div v-if="application.reason" class="teacher-approval-panel__reason">
+              {{ application.reason }}
+            </div>
+          </div>
+
+          <q-btn
+            unelevated
+            color="primary"
+            label="核准"
+            :loading="approvingTeacherId === application.id"
+            :disable="approvingTeacherId !== null && approvingTeacherId !== application.id"
+            @click="$emit('approve', application)"
+          />
+        </div>
+      </div>
     </q-scroll-area>
-  </q-card>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -51,10 +61,13 @@ import type { TeacherApplication } from '../../../types/teacher-application';
 
 defineProps<{
   applications: TeacherApplication[];
+
+  loading: boolean;
+
+  approvingTeacherId: number | null;
 }>();
 
 defineEmits<{
-  approve: [teacher: TeacherApplication];
-  reject: [teacher: TeacherApplication];
+  approve: [application: TeacherApplication];
 }>();
 </script>

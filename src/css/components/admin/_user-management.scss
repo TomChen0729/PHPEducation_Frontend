@@ -1,10 +1,17 @@
 .user-management-page {
   padding: 24px;
 
+  /*
+   * =========================
+   * Header
+   * =========================
+   */
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    gap: 16px;
 
     margin-bottom: 15px;
   }
@@ -22,24 +29,61 @@
     color: #666;
   }
 
+  /*
+   * =========================
+   * Pending Badge
+   * =========================
+   */
   &__pending-count {
+    flex-shrink: 0;
+
     padding: 15px 10px;
 
     color: #000000;
   }
 
+  /*
+   * =========================
+   * API Error
+   * =========================
+   */
+  &__error {
+    margin-top: 16px;
+  }
+
+  /*
+   * =========================
+   * Teacher + Student
+   * =========================
+   */
   &__panels {
     display: grid;
 
     grid-template-columns: repeat(2, minmax(0, 1fr));
 
+    align-items: stretch;
+
     gap: 20px;
 
     margin-top: 24px;
+
+    /*
+     * 讓左右 Panel
+     * 同樣高度
+     */
+    > * {
+      min-width: 0;
+
+      height: 100%;
+    }
   }
 }
 
-/* RWD */
+/*
+ * =========================
+ * Tablet
+ * =========================
+ */
 @media (max-width: 1023px) {
   .user-management-page {
     padding: 16px;
@@ -50,15 +94,30 @@
   }
 }
 
+/*
+ * =========================
+ * Mobile
+ * =========================
+ */
 @media (max-width: 599px) {
   .user-management-page {
     &__header {
+      flex-direction: column;
       align-items: flex-start;
+
       gap: 12px;
     }
 
     &__title {
       font-size: 24px;
+    }
+
+    &__pending-count {
+      padding: 8px 10px;
+    }
+
+    &__panels {
+      margin-top: 18px;
     }
   }
 }
