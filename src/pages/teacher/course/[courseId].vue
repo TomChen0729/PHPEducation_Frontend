@@ -15,25 +15,33 @@
           class="course-workspace-page__back"
         />
 
-        <h5 class="text-weight-bold course-workspace-page__title">
+        <h3 class="course-workspace-page__title">
           {{ course?.name ?? '課程' }}
-        </h5>
+        </h3>
 
         <div v-if="course" class="course-workspace-page__semester">
           {{ formatSemester(course.semester) }}
         </div>
       </div>
+
+      <!-- 目前只有學生資料是假資料 -->
+      <q-badge
+        color="orange"
+        text-color="white"
+        label="學生管理目前為 MOCK"
+        class="course-workspace-page__mock-badge"
+      />
     </header>
 
     <!-- =========================
-         Error
+         Course Error
     ========================== -->
     <q-banner v-if="pageErrorMessage" rounded class="bg-red-1 text-negative q-mb-md">
       {{ pageErrorMessage }}
     </q-banner>
 
     <!-- =========================
-         Course Workspace
+         Workspace
     ========================== -->
     <q-card flat bordered class="course-workspace-page__container">
       <!-- Tabs -->
@@ -53,14 +61,16 @@
 
       <q-separator />
 
-      <!-- Panels -->
+      <!-- =========================
+           Panels
+      ========================== -->
       <q-tab-panels v-model="tab" animated class="course-workspace-page__panels">
-        <!-- =====================
-             Course API
-        ====================== -->
+        <!-- Course -->
         <q-tab-panel name="info">
           <CourseInfoPanel
-            ref="courseInfoPanelRef"
+            ref="
+              courseInfoPanelRef
+            "
             :course="course"
             :loading="courseLoading"
             :saving="courseSaving"
@@ -68,9 +78,7 @@
           />
         </q-tab-panel>
 
-        <!-- =====================
-             Student MOCK
-        ====================== -->
+        <!-- Student MOCK -->
         <q-tab-panel name="students">
           <CourseStudentPanel
             :students="students"
@@ -79,12 +87,12 @@
           />
         </q-tab-panel>
 
-        <!-- =====================
-             Material API
-        ====================== -->
+        <!-- Material -->
         <q-tab-panel name="materials">
           <CourseMaterialPanel
-            ref="materialPanelRef"
+            ref="
+              materialPanelRef
+            "
             :drafts="drafts"
             :loading="materialLoading"
             :importing="importing"
@@ -96,6 +104,7 @@
             @import="handleImportMaterial"
             @clear-import-error="clearMaterialErrorMessage"
             @view="openMaterialViewer"
+            @edit="openMaterialEditor"
             @publish="requestPublish"
             @create-draft="handleCreateDraft"
           />
@@ -127,6 +136,52 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+
+    <!-- =========================
+         Material Editor
+    ========================== -->
+    <q-dialog v-model="materialEditorOpen" persistent>
+      <q-card class="course-workspace-page__material-editor">
+        <!-- Header -->
+        <q-card-section class="course-workspace-page__material-editor-header">
+          <div>
+            <div class="text-h6">
+              {{ editingDraft?.name }}
+            </div>
+
+            <div class="text-caption text-grey-7">教材草稿編輯</div>
+          </div>
+
+          <q-btn flat round dense icon="close" :disable="editing" @click="closeMaterialEditor" />
+        </q-card-section>
+
+        <q-separator />
+
+        <!-- Editor -->
+        <q-card-section v-if="editingDraft" class="course-workspace-page__material-editor-content">
+          <MaterialDraftEditor
+            ref="
+              materialEditorRef
+            "
+            :draft="editingDraft"
+            :editing="editing"
+            :error-message="materialErrorMessage"
+            @add-topic="handleAddTopic"
+            @update-topic="handleUpdateTopic"
+            @delete-topic="handleDeleteTopic"
+            @add-chapter="handleAddChapter"
+            @update-chapter="handleUpdateChapter"
+            @delete-chapter="handleDeleteChapter"
+            @add-unit="handleAddUnit"
+            @update-unit="handleUpdateUnit"
+            @delete-unit="handleDeleteUnit"
+            @add-card="handleAddCard"
+            @update-card="handleUpdateCard"
+            @delete-card="handleDeleteCard"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -143,28 +198,25 @@ import CourseStudentPanel from '../../../components/teacher/course-workspace/Cou
 
 import CourseMaterialPanel from '../../../components/teacher/course-workspace/CourseMaterialPanel.vue';
 
+import MaterialDraftEditor from '../../../components/teacher/course-workspace/MaterialDraftEditor.vue';
+
 import MaterialTreeViewer from '../../../components/teacher/course-workspace/MaterialTreeViewer.vue';
 
 import { useTeacherCourseWorkspace } from '../../../composables/useTeacherCourseWorkspace';
 
-import { useTeacherMaterialManagement } from '../../../composables/useTeacherMaterialManagement.js';
+import { useTeacherMaterialManagement } from '../../../composables/useTeacherMaterialManagement';
 
-import type { CourseRequest } from '../../../types/course';
+import type { TeacherCourseRequest } from '../../../types/teacher-course-workspace';
 
 import type { MaterialDraft } from '../../../types/material';
 
-const route = useRoute();
-
 /*
  * =========================
- * Course ID
+ * Route
  * =========================
- *
- * 同時解決你前面遇到的：
- *
- * Property 'courseId'
- * does not exist...
  */
+const route = useRoute();
+
 const courseId = computed<number | null>(() => {
   const params = route.params as Record<string, string | string[] | undefined>;
 
@@ -181,6 +233,11 @@ const courseId = computed<number | null>(() => {
   return Number.isNaN(id) ? null : id;
 });
 
+/*
+ * =========================
+ * Tab
+ * =========================
+ */
 const tab = ref('info');
 
 /*
@@ -192,13 +249,11 @@ const {
   course,
 
   courseLoading,
-
   courseSaving,
 
   courseErrorMessage,
 
   fetchCourse,
-
   updateCourse,
 
   /*
@@ -207,7 +262,6 @@ const {
   students,
 
   addMockStudent,
-
   removeMockStudent,
 } = useTeacherCourseWorkspace();
 
@@ -222,17 +276,46 @@ const {
   loading: materialLoading,
 
   downloadingTemplate,
+
   importing,
+
   creatingDraft,
+
   publishingDraftId,
+
+  editing,
 
   errorMessage: materialErrorMessage,
 
   fetchDrafts,
+
   downloadTemplate,
+
   importMaterial,
+
   createDraftFromPublished,
+
   publishDraft,
+
+  /*
+   * CRUD
+   */
+  addTopic,
+  updateTopic,
+  deleteTopic,
+
+  addChapter,
+  updateChapter,
+  deleteChapter,
+
+  addUnit,
+  updateUnit,
+  deleteUnit,
+
+  addKnowledgeCard,
+  updateKnowledgeCard,
+  deleteKnowledgeCard,
+
   clearDrafts,
 
   clearErrorMessage: clearMaterialErrorMessage,
@@ -247,9 +330,11 @@ const courseInfoPanelRef = ref<InstanceType<typeof CourseInfoPanel> | null>(null
 
 const materialPanelRef = ref<InstanceType<typeof CourseMaterialPanel> | null>(null);
 
+const materialEditorRef = ref<InstanceType<typeof MaterialDraftEditor> | null>(null);
+
 /*
  * =========================
- * Material Viewer
+ * Viewer
  * =========================
  */
 const materialViewerOpen = ref(false);
@@ -258,8 +343,21 @@ const selectedDraft = ref<MaterialDraft | null>(null);
 
 /*
  * =========================
+ * Editor
+ * =========================
+ */
+const materialEditorOpen = ref(false);
+
+const editingDraft = ref<MaterialDraft | null>(null);
+
+/*
+ * =========================
  * Page Error
  * =========================
+ *
+ * Material Import Error
+ * 不顯示在頁面，
+ * 會顯示在 Import Dialog。
  */
 const pageErrorMessage = computed(() => {
   return courseErrorMessage.value;
@@ -267,13 +365,8 @@ const pageErrorMessage = computed(() => {
 
 /*
  * =========================
- * Course ID Change
+ * Init
  * =========================
- *
- * 進頁面或切換動態路由時：
- *
- * 1. GET Course
- * 2. GET Material Drafts
  */
 watch(
   courseId,
@@ -295,10 +388,10 @@ watch(
 
 /*
  * =========================
- * Save Course
+ * Course Save
  * =========================
  */
-async function handleSaveCourse(data: CourseRequest) {
+async function handleSaveCourse(data: TeacherCourseRequest) {
   if (courseId.value === null) {
     return;
   }
@@ -349,7 +442,7 @@ function handleAddStudent(student: {
 
 /*
  * =========================
- * Template
+ * Download Template
  * =========================
  */
 async function handleDownloadTemplate() {
@@ -372,7 +465,7 @@ async function handleDownloadTemplate() {
 
 /*
  * =========================
- * Import Material
+ * Import
  * =========================
  */
 async function handleImportMaterial(file: File) {
@@ -383,18 +476,20 @@ async function handleImportMaterial(file: File) {
   const draft = await importMaterial(courseId.value, file);
 
   /*
-   * 匯入失敗
-   * → Dialog 保留
-   * → 讓老師可以看到錯誤後重新選檔
+   * Failed
+   *
+   * Dialog 保持開啟，
+   * 錯誤顯示在 Dialog。
    */
   if (!draft) {
     return;
   }
 
   /*
-   * 匯入成功
-   * → 自動關閉匯入 Dialog
-   * → 同時清除 QFile
+   * Success
+   *
+   * Loading 完成後
+   * 自動關閉 Dialog。
    */
   materialPanelRef.value?.closeImportDialog();
 
@@ -407,22 +502,248 @@ async function handleImportMaterial(file: File) {
 
     timeout: 1800,
   });
-
-  /*
-   * 匯入成功後直接打開教材內容
-   */
-  openMaterialViewer(draft);
 }
 
 /*
  * =========================
- * View Material
+ * Viewer
  * =========================
  */
 function openMaterialViewer(draft: MaterialDraft) {
   selectedDraft.value = draft;
 
   materialViewerOpen.value = true;
+}
+
+/*
+ * =========================
+ * Editor
+ * =========================
+ */
+function openMaterialEditor(draft: MaterialDraft) {
+  if (draft.status !== 'draft') {
+    return;
+  }
+
+  clearMaterialErrorMessage();
+
+  editingDraft.value = draft;
+
+  materialEditorOpen.value = true;
+}
+
+function closeMaterialEditor() {
+  clearMaterialErrorMessage();
+
+  materialEditorOpen.value = false;
+
+  editingDraft.value = null;
+}
+
+/*
+ * Backend 每次回傳完整 Draft，
+ * 直接用最新 Draft 覆蓋。
+ */
+function applyUpdatedDraft(draft: MaterialDraft) {
+  editingDraft.value = draft;
+
+  materialEditorRef.value?.closeEditDialogs();
+}
+
+/*
+ * =========================
+ * Topic CRUD
+ * =========================
+ */
+async function handleAddTopic(name: string) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await addTopic(editingDraft.value.id, {
+    name,
+  });
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+async function handleUpdateTopic(nodeId: string, name: string) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await updateTopic(editingDraft.value.id, nodeId, {
+    name,
+  });
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+async function handleDeleteTopic(nodeId: string) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await deleteTopic(editingDraft.value.id, nodeId);
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+/*
+ * =========================
+ * Chapter CRUD
+ * =========================
+ */
+async function handleAddChapter(topicId: string, name: string) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await addChapter(editingDraft.value.id, topicId, {
+    name,
+  });
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+async function handleUpdateChapter(nodeId: string, name: string) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await updateChapter(editingDraft.value.id, nodeId, {
+    name,
+  });
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+async function handleDeleteChapter(nodeId: string) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await deleteChapter(editingDraft.value.id, nodeId);
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+/*
+ * =========================
+ * Unit CRUD
+ * =========================
+ */
+async function handleAddUnit(chapterId: string, name: string) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await addUnit(editingDraft.value.id, chapterId, {
+    name,
+  });
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+async function handleUpdateUnit(nodeId: string, name: string) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await updateUnit(editingDraft.value.id, nodeId, {
+    name,
+  });
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+async function handleDeleteUnit(nodeId: string) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await deleteUnit(editingDraft.value.id, nodeId);
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+/*
+ * =========================
+ * Knowledge Card CRUD
+ * =========================
+ */
+async function handleAddCard(
+  unitId: string,
+
+  data: {
+    title: string;
+
+    content: string;
+
+    example: string | null;
+  },
+) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await addKnowledgeCard(editingDraft.value.id, unitId, data);
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+async function handleUpdateCard(
+  nodeId: string,
+
+  data: {
+    title: string;
+
+    content: string;
+
+    example: string | null;
+  },
+) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await updateKnowledgeCard(editingDraft.value.id, nodeId, data);
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
+}
+
+async function handleDeleteCard(nodeId: string) {
+  if (!editingDraft.value) {
+    return;
+  }
+
+  const draft = await deleteKnowledgeCard(editingDraft.value.id, nodeId);
+
+  if (draft) {
+    applyUpdatedDraft(draft);
+  }
 }
 
 /*
@@ -465,10 +786,6 @@ async function handlePublish(draft: MaterialDraft) {
     return;
   }
 
-  materialViewerOpen.value = false;
-
-  selectedDraft.value = null;
-
   Notify.create({
     type: 'positive',
 
@@ -506,7 +823,10 @@ async function handleCreateDraft() {
     timeout: 1500,
   });
 
-  openMaterialViewer(draft);
+  /*
+   * 建完直接進編輯器
+   */
+  openMaterialEditor(draft);
 }
 
 /*

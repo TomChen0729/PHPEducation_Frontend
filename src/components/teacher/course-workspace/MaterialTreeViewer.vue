@@ -7,52 +7,50 @@
       <div>目前沒有教材內容</div>
     </div>
 
-    <!-- =========================
-         Topic
-    ========================== -->
+    <!-- Topics -->
     <div v-else class="material-tree-viewer__topics">
       <q-expansion-item
         v-for="topic in draft.topics"
         :key="topic.id"
         default-opened
         expand-separator
-        icon="topic"
         :label="topic.name"
         :caption="`${topic.chapters.length} 個章節`"
-        header-class="material-tree-viewer__topic-header"
+        icon="topic"
         class="material-tree-viewer__topic"
+        header-class="
+          material-tree-viewer__topic-header
+        "
       >
-        <!-- =====================
-             Chapter
-        ====================== -->
+        <!-- Chapters -->
         <div class="material-tree-viewer__chapters">
           <q-expansion-item
             v-for="chapter in topic.chapters"
             :key="chapter.id"
             expand-separator
-            icon="menu_book"
             :label="chapter.name"
             :caption="`${chapter.units.length} 個單元`"
-            header-class="material-tree-viewer__chapter-header"
+            icon="menu_book"
             class="material-tree-viewer__chapter"
+            header-class="
+              material-tree-viewer__chapter-header
+            "
           >
-            <!-- =================
-                 Unit
-            ================== -->
+            <!-- Units -->
             <div class="material-tree-viewer__units">
               <q-expansion-item
                 v-for="unit in chapter.units"
                 :key="unit.id"
                 expand-separator
-                icon="view_list"
                 :label="unit.name"
                 :caption="`${unit.knowledge_cards.length} 張知識卡`"
-                header-class="material-tree-viewer__unit-header"
+                icon="view_list"
                 class="material-tree-viewer__unit"
+                header-class="
+                  material-tree-viewer__unit-header
+                "
               >
-                <!-- =================
-                     Knowledge Card
-                ================== -->
+                <!-- Cards -->
                 <div class="material-tree-viewer__cards">
                   <q-card
                     v-for="card in unit.knowledge_cards"
@@ -70,13 +68,26 @@
                         </span>
                       </div>
 
-                      <div class="material-tree-viewer__card-content">
-                        {{ card.content }}
+                      <!-- Content -->
+                      <div class="material-tree-viewer__card-block">
+                        <div class="material-tree-viewer__card-label">內容</div>
+
+                        <div class="material-tree-viewer__card-content">
+                          {{ card.content }}
+                        </div>
+                      </div>
+
+                      <!-- Example -->
+                      <div v-if="card.example" class="material-tree-viewer__card-example">
+                        <div class="material-tree-viewer__card-label">範例</div>
+
+                        <div>
+                          {{ card.example }}
+                        </div>
                       </div>
                     </q-card-section>
                   </q-card>
 
-                  <!-- No Card -->
                   <div
                     v-if="unit.knowledge_cards.length === 0"
                     class="material-tree-viewer__level-empty"
@@ -86,14 +97,12 @@
                 </div>
               </q-expansion-item>
 
-              <!-- No Unit -->
               <div v-if="chapter.units.length === 0" class="material-tree-viewer__level-empty">
                 此章節尚無單元
               </div>
             </div>
           </q-expansion-item>
 
-          <!-- No Chapter -->
           <div v-if="topic.chapters.length === 0" class="material-tree-viewer__level-empty">
             此主題尚無章節
           </div>

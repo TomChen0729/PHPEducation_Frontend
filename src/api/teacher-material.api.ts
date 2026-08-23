@@ -11,7 +11,7 @@ import type {
 export const teacherMaterialApi = {
   /*
    * =========================
-   * Excel 範本
+   * Excel Template
    * =========================
    */
   downloadTemplate() {
@@ -22,17 +22,12 @@ export const teacherMaterialApi = {
 
   /*
    * =========================
-   * Excel 匯入
+   * Material Import
    * =========================
    */
   importMaterial(courseId: number, file: File) {
     const formData = new FormData();
 
-    /*
-     * Backend 要求欄位名稱一定是：
-     *
-     * file
-     */
     formData.append('file', file, file.name);
 
     return api.post<MaterialDraftResponse>(
@@ -52,7 +47,7 @@ export const teacherMaterialApi = {
 
   /*
    * =========================
-   * 從 Published 建立 Draft
+   * Published → Draft
    * =========================
    */
   createDraftFromPublished(courseId: number) {

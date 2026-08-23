@@ -7,7 +7,7 @@
       <div>
         <h5>教材管理</h5>
 
-        <p>查看、匯入與發布本課程教材</p>
+        <p>查看、匯入、編輯與發布本課程教材</p>
       </div>
 
       <div class="course-material-panel__header-actions">
@@ -69,6 +69,9 @@
             <q-badge :color="statusColor(draft.status)" :label="statusLabel(draft.status)" />
           </div>
 
+          <!-- =====================
+               Actions
+          ====================== -->
           <div class="course-material-panel__actions">
             <!-- View -->
             <q-btn
@@ -79,14 +82,14 @@
               @click="$emit('view', draft)"
             />
 
-            <!-- Draft -->
+            <!-- Edit Draft -->
             <q-btn
               v-if="draft.status === 'draft'"
               flat
               color="blue"
               icon="edit"
               label="編輯教材"
-              @click="$emit('view', draft)"
+              @click="$emit('edit', draft)"
             />
 
             <!-- Publish -->
@@ -100,7 +103,7 @@
               @click="$emit('publish', draft)"
             />
 
-            <!-- Published -->
+            <!-- Published → Draft -->
             <q-btn
               v-if="draft.status === 'published'"
               outline
@@ -129,15 +132,16 @@
         <q-separator />
 
         <q-card-section>
-          <!-- 匯入失敗訊息 -->
-          <q-banner v-if="importErrorMessage" rounded class="bg-red-1 text-negative q-mb-md">
+          <!-- Import Error -->
+          <q-banner v-if="props.importErrorMessage" rounded class="bg-red-1 text-negative q-mb-md">
             <template #avatar>
               <q-icon name="error_outline" color="negative" />
             </template>
 
-            {{ importErrorMessage }}
+            {{ props.importErrorMessage }}
           </q-banner>
 
+          <!-- QFile -->
           <q-file
             v-model="selectedFile"
             outlined
@@ -153,14 +157,14 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="取消" :disable="importing" @click="closeImportDialog" />
+          <q-btn flat label="取消" :disable="props.importing" @click="closeImportDialog" />
 
           <q-btn
             unelevated
             color="blue"
             icon="upload"
             label="匯入"
-            :loading="importing"
+            :loading="props.importing"
             :disable="selectedFile === null"
             @click="submitImport"
           />
@@ -175,7 +179,7 @@ import { ref } from 'vue';
 
 import type { MaterialDraft, MaterialDraftStatus } from '../../../types/material';
 
-defineProps<{
+const props = defineProps<{
   drafts: MaterialDraft[];
 
   loading: boolean;
@@ -200,6 +204,8 @@ const emit = defineEmits<{
 
   view: [draft: MaterialDraft];
 
+  edit: [draft: MaterialDraft];
+
   publish: [draft: MaterialDraft];
 
   'create-draft': [];
@@ -209,19 +215,11 @@ const importDialog = ref(false);
 
 const selectedFile = ref<File | null>(null);
 
-function submitImport() {
-  /*
-   * 確認真的拿到 File。
-   */
-  if (!selectedFile.value || !(selectedFile.value instanceof File)) {
-    console.error('選擇的教材不是 File：', selectedFile.value);
-
-    return;
-  }
-
-  emit('import', selectedFile.value);
-}
-
+/*
+ * =========================
+ * Open Import
+ * =========================
+ */
 function openImportDialog() {
   selectedFile.value = null;
 
@@ -230,6 +228,33 @@ function openImportDialog() {
   importDialog.value = true;
 }
 
+/*
+ * =========================
+ * File Change
+ * =========================
+ */
+function handleFileChange() {
+  emit('clear-import-error');
+}
+
+/*
+ * =========================
+ * Submit
+ * =========================
+ */
+function submitImport() {
+  if (selectedFile.value === null) {
+    return;
+  }
+
+  emit('import', selectedFile.value);
+}
+
+/*
+ * =========================
+ * Close
+ * =========================
+ */
 function closeImportDialog() {
   selectedFile.value = null;
 
@@ -242,10 +267,11 @@ defineExpose({
   closeImportDialog,
 });
 
-function handleFileChange() {
-  emit('clear-import-error');
-}
-
+/*
+ * =========================
+ * Status
+ * =========================
+ */
 function statusLabel(status: MaterialDraftStatus) {
   switch (status) {
     case 'draft':

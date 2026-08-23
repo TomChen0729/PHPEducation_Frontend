@@ -560,3 +560,595 @@
     font-size: 13px;
   }
 }
+
+/*
+ * ============================================================
+ * Material Viewer - Knowledge Card 新增欄位
+ * ============================================================
+ *
+ * 原本 MaterialTreeViewer 樣式保留，
+ * 這裡只補 Backend 新增 example 欄位需要的樣式。
+ */
+
+.material-tree-viewer {
+  /*
+   * Knowledge Card 內容區塊
+   */
+  &__card-block {
+    margin-top: 8px;
+  }
+
+  /*
+   * 「內容」、「範例」的小標題
+   */
+  &__card-label {
+    margin-bottom: 4px;
+
+    color: #78909c;
+
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /*
+   * Knowledge Card 範例
+   */
+  &__card-example {
+    margin-top: 14px;
+
+    padding: 12px 14px;
+
+    color: #455a64;
+
+    line-height: 1.7;
+
+    white-space: pre-wrap;
+
+    background-color: #f5f7f8;
+
+    border-left: 4px solid #90a4ae;
+    border-radius: 6px;
+  }
+}
+
+/*
+ * ============================================================
+ * Material Editor Dialog
+ * ============================================================
+ *
+ * [courseId].vue
+ *
+ * <q-card
+ *   class="course-workspace-page__material-editor"
+ * >
+ */
+
+.course-workspace-page {
+  /*
+   * 整個教材編輯 Dialog
+   */
+  &__material-editor {
+    display: flex;
+    flex-direction: column;
+
+    width: 1200px;
+    height: 800px;
+
+    max-width: 96vw !important;
+    max-height: 94vh !important;
+
+    overflow: hidden;
+
+    border-radius: 12px;
+  }
+
+  /*
+   * Editor Header
+   */
+  &__material-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    flex-shrink: 0;
+
+    gap: 16px;
+
+    padding: 18px 22px;
+
+    background-color: #ffffff;
+  }
+
+  /*
+   * Editor 內容
+   *
+   * 內容太長時只讓這裡滾動，
+   * Header 維持固定。
+   */
+  &__material-editor-content {
+    flex: 1;
+
+    min-height: 0;
+
+    padding: 20px;
+
+    overflow-y: auto;
+
+    background-color: #f5f7f9;
+  }
+}
+
+/*
+ * ============================================================
+ * Material Draft Editor
+ * ============================================================
+ */
+
+.material-draft-editor {
+  width: 100%;
+
+  /*
+   * =========================
+   * Toolbar
+   * =========================
+   */
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 18px;
+
+    padding: 4px 2px;
+  }
+
+  /*
+   * =========================
+   * Empty
+   * =========================
+   */
+
+  &__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 260px;
+
+    padding: 24px;
+
+    color: #999999;
+
+    text-align: center;
+
+    background-color: #ffffff;
+
+    border: 1px dashed #cfd8dc;
+    border-radius: 10px;
+  }
+
+  /*
+   * =========================
+   * Topic
+   * 第一層
+   * =========================
+   */
+
+  &__topics {
+    display: flex;
+    flex-direction: column;
+
+    gap: 14px;
+  }
+
+  &__topic {
+    overflow: hidden;
+
+    background-color: #ffffff;
+
+    border: 1px solid #bbdefb;
+    border-radius: 10px;
+  }
+
+  /*
+   * 注意：
+   * 你的 SCSS 是全域 @use，
+   * 所以這裡直接使用 header-class 的 class。
+   */
+  &__topic-header {
+    min-height: 64px;
+
+    background-color: #e3f2fd;
+
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  /*
+   * =========================
+   * Chapter
+   * 第二層
+   * =========================
+   */
+
+  &__chapters {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+
+    padding: 14px 16px 16px 28px;
+
+    background-color: #fafafa;
+
+    border-left: 4px solid #42a5f5;
+  }
+
+  &__chapter {
+    overflow: hidden;
+
+    background-color: #ffffff;
+
+    border: 1px solid #d6e4ec;
+    border-radius: 8px;
+  }
+
+  &__chapter-header {
+    min-height: 56px;
+
+    background-color: #f3f8fc;
+
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /*
+   * =========================
+   * Unit
+   * 第三層
+   * =========================
+   */
+
+  &__units {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+
+    padding: 12px 14px 14px 28px;
+
+    background-color: #fcfcfc;
+
+    border-left: 3px solid #90caf9;
+  }
+
+  &__unit {
+    overflow: hidden;
+
+    background-color: #ffffff;
+
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+  }
+
+  &__unit-header {
+    min-height: 50px;
+
+    background-color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /*
+   * =========================
+   * Knowledge Card
+   * 第四層
+   * =========================
+   */
+
+  &__cards {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+
+    padding: 14px 16px 16px 30px;
+
+    background-color: #fafafa;
+
+    border-left: 2px solid #b0bec5;
+  }
+
+  &__card {
+    overflow: hidden;
+
+    background-color: #ffffff;
+
+    border-radius: 8px;
+  }
+
+  /*
+   * Card 標題 + 編輯刪除按鈕
+   */
+  &__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+  }
+
+  /*
+   * Card Content 區域
+   */
+  &__card-section {
+    margin-top: 12px;
+  }
+
+  /*
+   * 「內容」、「範例」標籤
+   */
+  &__card-label {
+    margin-bottom: 5px;
+
+    color: #78909c;
+
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /*
+   * Card 正文
+   */
+  &__card-content {
+    color: #616161;
+
+    line-height: 1.7;
+
+    white-space: pre-wrap;
+  }
+
+  /*
+   * =========================
+   * Knowledge Card Example
+   * Backend 新增 example
+   * =========================
+   */
+
+  &__card-example {
+    margin-top: 14px;
+
+    padding: 12px 14px;
+
+    color: #455a64;
+
+    line-height: 1.7;
+
+    white-space: pre-wrap;
+
+    background-color: #f5f7f8;
+
+    border-left: 4px solid #90a4ae;
+    border-radius: 6px;
+  }
+
+  /*
+   * =========================
+   * 空階層
+   * =========================
+   */
+
+  &__level-empty {
+    padding: 20px;
+
+    color: #9e9e9e;
+
+    font-size: 13px;
+
+    text-align: center;
+
+    background-color: #fafafa;
+  }
+
+  /*
+   * =========================
+   * Topic / Chapter / Unit
+   * 新增修改 Dialog
+   * =========================
+   */
+
+  &__dialog {
+    width: 500px;
+
+    max-width: 92vw;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+  }
+
+  /*
+   * =========================
+   * Knowledge Card Dialog
+   * =========================
+   *
+   * 因為現在有：
+   *
+   * title
+   * content
+   * example
+   *
+   * 所以比一般名稱 Dialog 再寬一點。
+   */
+
+  &__card-dialog {
+    width: 700px;
+
+    max-width: 92vw;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+  }
+
+  /*
+   * Card 新增 / 修改表單
+   */
+  &__card-form {
+    display: flex;
+    flex-direction: column;
+
+    gap: 16px;
+
+    /*
+     * Content / Example textarea
+     */
+    textarea {
+      min-height: 120px;
+      max-height: 180px;
+
+      overflow-y: auto;
+
+      resize: none;
+    }
+  }
+}
+
+/*
+ * ============================================================
+ * Material Draft Editor
+ * Tablet
+ * ============================================================
+ */
+
+@media (max-width: 899px) {
+  .course-workspace-page {
+    &__material-editor {
+      width: 94vw;
+      height: 88vh;
+    }
+  }
+
+  .material-draft-editor {
+    /*
+     * 平板稍微減少階層縮排，
+     * 避免第四層空間太小。
+     */
+    &__chapters {
+      padding-left: 20px;
+    }
+
+    &__units {
+      padding-left: 20px;
+    }
+
+    &__cards {
+      padding-left: 20px;
+    }
+  }
+}
+
+/*
+ * ============================================================
+ * Material Draft Editor
+ * Mobile
+ * ============================================================
+ */
+
+@media (max-width: 599px) {
+  .course-workspace-page {
+    &__material-editor {
+      width: 96vw;
+      height: 90vh;
+
+      max-width: 96vw !important;
+      max-height: 90vh !important;
+    }
+
+    &__material-editor-header {
+      padding: 14px 16px;
+    }
+
+    &__material-editor-content {
+      padding: 12px;
+    }
+  }
+
+  .material-draft-editor {
+    /*
+     * Toolbar 手機改直向
+     */
+    &__toolbar {
+      flex-direction: column;
+      align-items: stretch;
+
+      .q-btn {
+        width: 100%;
+      }
+    }
+
+    /*
+     * 手機減少階層縮排
+     */
+    &__chapters {
+      padding: 10px 8px 12px 12px;
+
+      border-left-width: 3px;
+    }
+
+    &__units {
+      padding: 10px 8px 12px 12px;
+
+      border-left-width: 2px;
+    }
+
+    &__cards {
+      padding: 10px 8px 12px 12px;
+
+      border-left-width: 2px;
+    }
+
+    /*
+     * Knowledge Card Header
+     */
+    &__card-header {
+      align-items: flex-start;
+
+      gap: 8px;
+    }
+
+    /*
+     * Dialog
+     */
+    &__dialog,
+    &__card-dialog {
+      width: 94vw;
+
+      max-width: 94vw;
+    }
+
+    /*
+     * textarea 手機高度
+     */
+    &__card-form {
+      textarea {
+        min-height: 100px;
+        max-height: 150px;
+      }
+    }
+  }
+
+  /*
+   * Viewer 新增的 Example
+   * 手機稍微縮小 padding
+   */
+  .material-tree-viewer {
+    &__card-example {
+      padding: 10px 12px;
+    }
+  }
+}

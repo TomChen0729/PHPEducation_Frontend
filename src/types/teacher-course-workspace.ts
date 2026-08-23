@@ -1,4 +1,4 @@
-export interface CourseWorkspaceInfo {
+export interface TeacherCourse {
   id: number;
 
   name: string;
@@ -7,9 +7,30 @@ export interface CourseWorkspaceInfo {
 
   semester: string;
 
-  teacherName: string;
+  teacher_id: number;
 }
 
+export interface TeacherCourseRequest {
+  name: string;
+
+  description: string;
+
+  semester: string;
+}
+
+export interface TeacherCourseResponse {
+  course: TeacherCourse;
+}
+
+export interface TeacherCourseListResponse {
+  courses: TeacherCourse[];
+}
+
+/*
+ * =========================
+ * Student MOCK
+ * =========================
+ */
 export interface CourseStudentMock {
   id: number;
 
@@ -20,16 +41,4 @@ export interface CourseStudentMock {
   email: string;
 
   status: 'pending' | 'active';
-}
-
-export interface CourseMaterialMock {
-  id: number;
-
-  name: string;
-
-  status: 'draft' | 'published' | 'archived';
-
-  topicCount: number;
-
-  updatedAt: string;
 }

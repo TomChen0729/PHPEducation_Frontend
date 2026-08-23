@@ -9,7 +9,16 @@ export interface MaterialKnowledgeCardNode {
   id: string;
 
   title: string;
+
   content: string;
+
+  /*
+   * 知識卡範例
+   *
+   * Backend 新增欄位。
+   * 沒有範例時允許 null。
+   */
+  example: string | null;
 
   sort_order: number;
 }
@@ -90,9 +99,9 @@ export interface MaterialDraftListResponse {
 }
 
 export interface MaterialPublishResponse {
-  draft: MaterialDraft;
-
   message: string;
+
+  draft: MaterialDraft;
 }
 
 /*
@@ -116,6 +125,11 @@ export interface KnowledgeCardPayload {
   title: string;
 
   content: string;
+
+  /*
+   * Backend 新增
+   */
+  example?: string | null;
 
   sort_order?: number | null;
 }

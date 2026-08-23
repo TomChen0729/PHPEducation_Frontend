@@ -7,8 +7,18 @@ import { teacherMaterialApi } from '../api/teacher-material.api';
 import type { KnowledgeCardPayload, MaterialDraft, MaterialNamePayload } from '../types/material';
 
 export function useTeacherMaterialManagement() {
+  /*
+   * =========================
+   * Draft
+   * =========================
+   */
   const drafts = ref<MaterialDraft[]>([]);
 
+  /*
+   * =========================
+   * Loading
+   * =========================
+   */
   const loading = ref(false);
 
   const downloadingTemplate = ref(false);
@@ -20,10 +30,16 @@ export function useTeacherMaterialManagement() {
   const publishingDraftId = ref<number | null>(null);
 
   /*
-   * 教材節點新增 / 修改 / 刪除 Loading
+   * Topic / Chapter / Unit /
+   * Knowledge Card CRUD
    */
   const editing = ref(false);
 
+  /*
+   * =========================
+   * Error
+   * =========================
+   */
   const errorMessage = ref('');
 
   function clearErrorMessage() {
@@ -31,9 +47,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =================================
-   * Draft List
-   * =================================
+   * =========================
+   * GET Draft List
+   * =========================
    */
   async function fetchDrafts(courseId: number): Promise<void> {
     loading.value = true;
@@ -52,9 +68,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =================================
-   * Template
-   * =================================
+   * =========================
+   * Download Template
+   * =========================
    */
   async function downloadTemplate(): Promise<boolean> {
     downloadingTemplate.value = true;
@@ -91,9 +107,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =================================
-   * Excel Import
-   * =================================
+   * =========================
+   * Import Excel
+   * =========================
    */
   async function importMaterial(courseId: number, file: File): Promise<MaterialDraft | null> {
     importing.value = true;
@@ -116,9 +132,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =================================
+   * =========================
    * Published → Draft
-   * =================================
+   * =========================
    */
   async function createDraftFromPublished(courseId: number): Promise<MaterialDraft | null> {
     creatingDraft.value = true;
@@ -141,9 +157,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =================================
+   * =========================
    * Publish
-   * =================================
+   * =========================
    */
   async function publishDraft(courseId: number, draftId: number): Promise<boolean> {
     publishingDraftId.value = draftId;
@@ -166,9 +182,12 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =================================
-   * 更新前端 Draft
-   * =================================
+   * =========================
+   * Replace Draft
+   * =========================
+   *
+   * Backend 每次 CRUD 都回傳
+   * 最新完整 Draft。
    */
   function replaceDraft(updatedDraft: MaterialDraft) {
     drafts.value = drafts.value.map((draft) =>
@@ -177,15 +196,16 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =================================
+   * =========================
    * Topic
-   * =================================
+   * =========================
    */
   async function addTopic(
     draftId: number,
     data: MaterialNamePayload,
   ): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -209,6 +229,7 @@ export function useTeacherMaterialManagement() {
     data: MaterialNamePayload,
   ): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -228,6 +249,7 @@ export function useTeacherMaterialManagement() {
 
   async function deleteTopic(draftId: number, nodeId: string): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -246,9 +268,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =================================
+   * =========================
    * Chapter
-   * =================================
+   * =========================
    */
   async function addChapter(
     draftId: number,
@@ -256,6 +278,7 @@ export function useTeacherMaterialManagement() {
     data: MaterialNamePayload,
   ): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -279,6 +302,7 @@ export function useTeacherMaterialManagement() {
     data: MaterialNamePayload,
   ): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -298,6 +322,7 @@ export function useTeacherMaterialManagement() {
 
   async function deleteChapter(draftId: number, nodeId: string): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -316,9 +341,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =================================
+   * =========================
    * Unit
-   * =================================
+   * =========================
    */
   async function addUnit(
     draftId: number,
@@ -326,6 +351,7 @@ export function useTeacherMaterialManagement() {
     data: MaterialNamePayload,
   ): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -349,6 +375,7 @@ export function useTeacherMaterialManagement() {
     data: MaterialNamePayload,
   ): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -368,6 +395,7 @@ export function useTeacherMaterialManagement() {
 
   async function deleteUnit(draftId: number, nodeId: string): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -386,9 +414,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =================================
+   * =========================
    * Knowledge Card
-   * =================================
+   * =========================
    */
   async function addKnowledgeCard(
     draftId: number,
@@ -396,6 +424,7 @@ export function useTeacherMaterialManagement() {
     data: KnowledgeCardPayload,
   ): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -419,6 +448,7 @@ export function useTeacherMaterialManagement() {
     data: KnowledgeCardPayload,
   ): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -441,6 +471,7 @@ export function useTeacherMaterialManagement() {
     nodeId: string,
   ): Promise<MaterialDraft | null> {
     editing.value = true;
+
     errorMessage.value = '';
 
     try {
@@ -460,6 +491,7 @@ export function useTeacherMaterialManagement() {
 
   function clearDrafts() {
     drafts.value = [];
+
     errorMessage.value = '';
   }
 
@@ -502,6 +534,11 @@ export function useTeacherMaterialManagement() {
   };
 }
 
+/*
+ * =========================
+ * API Error
+ * =========================
+ */
 function getApiErrorMessage(error: unknown, fallback: string): string {
   if (!axios.isAxiosError(error)) {
     return fallback;
