@@ -6,6 +6,7 @@ import type {
   MaterialDraftResponse,
   MaterialNamePayload,
   MaterialPublishResponse,
+  PublishedTopic,
 } from '../types/material';
 
 export const teacherMaterialApi = {
@@ -25,9 +26,17 @@ export const teacherMaterialApi = {
    * Material Import
    * =========================
    */
-  importMaterial(courseId: number, file: File) {
+  importMaterial(courseId: number, topic: string, file: File) {
     const formData = new FormData();
 
+    /*
+     * 主題名稱
+     */
+    formData.append('topic', topic.trim());
+
+    /*
+     * Excel
+     */
     formData.append('file', file, file.name);
 
     return api.post<MaterialDraftResponse>(
@@ -101,6 +110,40 @@ export const teacherMaterialApi = {
     );
   },
 
+  getPublishedChapters(topicId: number) {
+    return api.get<{
+      chapters: Array<{
+        id: number;
+        name: string;
+        sort_order: number;
+        item_count: number;
+      }>;
+    }>(`/teacher/topics/${topicId}/chapters`);
+  },
+
+  getPublishedUnits(chapterId: number) {
+    return api.get<{
+      units: Array<{
+        id: number;
+        name: string;
+        sort_order: number;
+        item_count: number;
+      }>;
+    }>(`/teacher/chapters/${chapterId}/units`);
+  },
+
+  getPublishedKnowledgeCards(unitId: number) {
+    return api.get<{
+      knowledge_cards: Array<{
+        id: number;
+        title: string;
+        content: string;
+        example: string | null;
+        sort_order: number;
+      }>;
+    }>(`/teacher/units/${unitId}/knowledge-cards`);
+  },
+
   /*
    * =========================
    * Unit
@@ -156,5 +199,31 @@ export const teacherMaterialApi = {
    */
   publish(draftId: number) {
     return api.post<MaterialPublishResponse>(`/teacher/material-drafts/${draftId}/publish`);
+  },
+
+  /*
+   * =========================
+   * Draft Topic
+   * =========================
+   */
+  deleteDraftTopic(draftId: number, nodeId: string) {
+    return api.delete(`/teacher/material-drafts/${draftId}/topics/${nodeId}`);
+  },
+
+  /*
+   * =========================
+   * Published Topic
+   * =========================
+   */
+  deletePublishedTopic(topicId: number) {
+    return api.delete<{
+      message: string;
+    }>(`/teacher/topics/${topicId}`);
+  },
+
+  getPublishedTopics(courseId: number) {
+    return api.get<{
+      topics: PublishedTopic[];
+    }>(`/teacher/courses/${courseId}/topics`);
   },
 };

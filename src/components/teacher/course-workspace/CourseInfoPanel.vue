@@ -5,7 +5,7 @@
     ========================== -->
     <div class="course-info-panel__header">
       <div>
-        <h5>課程資訊</h5>
+        <h5 class="text-weight-bold">課程資訊</h5>
 
         <p>查看與修改課程基本資料</p>
       </div>

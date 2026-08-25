@@ -133,3 +133,13 @@ export interface KnowledgeCardPayload {
 
   sort_order?: number | null;
 }
+
+export interface PublishedTopic {
+  id: number;
+
+  name: string;
+
+  sort_order: number;
+
+  item_count: number;
+}

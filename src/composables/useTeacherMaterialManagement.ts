@@ -4,7 +4,12 @@ import axios from 'axios';
 
 import { teacherMaterialApi } from '../api/teacher-material.api';
 
-import type { KnowledgeCardPayload, MaterialDraft, MaterialNamePayload } from '../types/material';
+import type {
+  KnowledgeCardPayload,
+  MaterialDraft,
+  MaterialNamePayload,
+  PublishedTopic,
+} from '../types/material';
 
 export function useTeacherMaterialManagement() {
   /*
@@ -13,6 +18,13 @@ export function useTeacherMaterialManagement() {
    * =========================
    */
   const drafts = ref<MaterialDraft[]>([]);
+
+  /*
+   * =========================
+   * Published Topics
+   * =========================
+   */
+  const publishedTopics = ref<PublishedTopic[]>([]);
 
   /*
    * =========================
@@ -47,9 +59,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =========================
+   * ============================================================
    * GET Draft List
-   * =========================
+   * ============================================================
    */
   async function fetchDrafts(courseId: number): Promise<void> {
     loading.value = true;
@@ -68,9 +80,112 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =========================
+   * ============================================================
+   * GET Published Topics
+   * ============================================================
+   *
+   * GET
+   * /teacher/courses/{courseId}/topics
+   *
+   * 這裡取得的是正式教材 topics table，
+   * 不是 MaterialDraft.tree。
+   */
+  async function fetchPublishedTopics(courseId: number): Promise<void> {
+    errorMessage.value = '';
+
+    try {
+      const response = await teacherMaterialApi.getPublishedTopics(courseId);
+
+      publishedTopics.value = response.data.topics;
+    } catch (error: unknown) {
+      errorMessage.value = getApiErrorMessage(error, '已發布主題取得失敗');
+    }
+  }
+
+  async function fetchPublishedTopicTree(topic: PublishedTopic): Promise<MaterialDraft | null> {
+    errorMessage.value = '';
+
+    try {
+      const chapterResponse = await teacherMaterialApi.getPublishedChapters(topic.id);
+
+      const chapters = await Promise.all(
+        chapterResponse.data.chapters.map(async (chapter) => {
+          const unitResponse = await teacherMaterialApi.getPublishedUnits(chapter.id);
+
+          const units = await Promise.all(
+            unitResponse.data.units.map(async (unit) => {
+              const cardResponse = await teacherMaterialApi.getPublishedKnowledgeCards(unit.id);
+
+              return {
+                id: String(unit.id),
+
+                name: unit.name,
+
+                sort_order: unit.sort_order,
+
+                knowledge_cards: cardResponse.data.knowledge_cards.map((card) => ({
+                  id: String(card.id),
+
+                  title: card.title,
+
+                  content: card.content,
+
+                  example: card.example,
+
+                  sort_order: card.sort_order,
+                })),
+              };
+            }),
+          );
+
+          return {
+            id: String(chapter.id),
+
+            name: chapter.name,
+
+            sort_order: chapter.sort_order,
+
+            units,
+          };
+        }),
+      );
+
+      /*
+       * 轉成目前 MaterialTreeViewer
+       * 可以直接使用的格式。
+       */
+      return {
+        id: -topic.id,
+
+        course_id: 0,
+
+        name: topic.name,
+
+        status: 'published',
+
+        topics: [
+          {
+            id: String(topic.id),
+
+            name: topic.name,
+
+            sort_order: topic.sort_order,
+
+            chapters,
+          },
+        ],
+      };
+    } catch (error: unknown) {
+      errorMessage.value = getApiErrorMessage(error, '已發布教材取得失敗');
+
+      return null;
+    }
+  }
+
+  /*
+   * ============================================================
    * Download Template
-   * =========================
+   * ============================================================
    */
   async function downloadTemplate(): Promise<boolean> {
     downloadingTemplate.value = true;
@@ -107,18 +222,26 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =========================
+   * ============================================================
    * Import Excel
-   * =========================
+   * ============================================================
    */
-  async function importMaterial(courseId: number, file: File): Promise<MaterialDraft | null> {
+  async function importMaterial(
+    courseId: number,
+    topic: string,
+    file: File,
+  ): Promise<MaterialDraft | null> {
     importing.value = true;
 
     errorMessage.value = '';
 
     try {
-      const response = await teacherMaterialApi.importMaterial(courseId, file);
+      const response = await teacherMaterialApi.importMaterial(courseId, topic, file);
 
+      /*
+       * 匯入成功後
+       * 重新取得 Draft List。
+       */
       await fetchDrafts(courseId);
 
       return response.data.draft;
@@ -132,9 +255,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =========================
+   * ============================================================
    * Published → Draft
-   * =========================
+   * ============================================================
    */
   async function createDraftFromPublished(courseId: number): Promise<MaterialDraft | null> {
     creatingDraft.value = true;
@@ -157,9 +280,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =========================
+   * ============================================================
    * Publish
-   * =========================
+   * ============================================================
    */
   async function publishDraft(courseId: number, draftId: number): Promise<boolean> {
     publishingDraftId.value = draftId;
@@ -169,6 +292,14 @@ export function useTeacherMaterialManagement() {
     try {
       await teacherMaterialApi.publish(draftId);
 
+      /*
+       * Draft 狀態會改變，
+       * 先重新取得 Draft。
+       *
+       * Published Topic
+       * 由 [courseId].vue
+       * 成功後另外 refresh。
+       */
       await fetchDrafts(courseId);
 
       return true;
@@ -182,12 +313,12 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =========================
+   * ============================================================
    * Replace Draft
-   * =========================
+   * ============================================================
    *
-   * Backend 每次 CRUD 都回傳
-   * 最新完整 Draft。
+   * Backend 每次 Draft CRUD
+   * 都回傳最新完整 Draft。
    */
   function replaceDraft(updatedDraft: MaterialDraft) {
     drafts.value = drafts.value.map((draft) =>
@@ -196,8 +327,17 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =========================
+   * ============================================================
    * Topic
+   * ============================================================
+   *
+   * 這三個是原本 Draft Topic CRUD。
+   * 先保留，避免其他地方仍有使用。
+   */
+
+  /*
+   * =========================
+   * Add Draft Topic
    * =========================
    */
   async function addTopic(
@@ -223,6 +363,11 @@ export function useTeacherMaterialManagement() {
     }
   }
 
+  /*
+   * =========================
+   * Update Draft Topic
+   * =========================
+   */
   async function updateTopic(
     draftId: number,
     nodeId: string,
@@ -247,6 +392,15 @@ export function useTeacherMaterialManagement() {
     }
   }
 
+  /*
+   * =========================
+   * Delete Draft Topic
+   * 舊版函式
+   * =========================
+   *
+   * 回傳 MaterialDraft，
+   * 先保留避免其他舊程式使用。
+   */
   async function deleteTopic(draftId: number, nodeId: string): Promise<MaterialDraft | null> {
     editing.value = true;
 
@@ -268,9 +422,86 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =========================
+   * ============================================================
+   * Delete Draft Topic
+   * ============================================================
+   *
+   * [courseId].vue 使用這一支。
+   *
+   * DELETE
+   * /teacher/material-drafts/{draftId}/topics/{nodeId}
+   *
+   * 成功 → true
+   * 失敗 → false
+   */
+  async function deleteDraftTopic(draftId: number, nodeId: string): Promise<boolean> {
+    editing.value = true;
+
+    errorMessage.value = '';
+
+    try {
+      const response = await teacherMaterialApi.deleteTopic(draftId, nodeId);
+
+      /*
+       * Backend 回傳更新後 Draft，
+       * 直接同步本地 drafts。
+       */
+      replaceDraft(response.data.draft);
+
+      return true;
+    } catch (error: unknown) {
+      errorMessage.value = getApiErrorMessage(error, '草稿主題刪除失敗');
+
+      return false;
+    } finally {
+      editing.value = false;
+    }
+  }
+
+  /*
+   * ============================================================
+   * Delete Published Topic
+   * ============================================================
+   *
+   * 正式教材 Topic。
+   *
+   * DELETE
+   * /teacher/topics/{topicId}
+   *
+   * 注意：
+   * 這裡的 topicId 是正式 topics.id，
+   * 不是 Draft tree nodeId。
+   */
+  async function deletePublishedTopic(topicId: number): Promise<boolean> {
+    editing.value = true;
+
+    errorMessage.value = '';
+
+    try {
+      await teacherMaterialApi.deletePublishedTopic(topicId);
+
+      /*
+       * 不在這裡自己修改 publishedTopics，
+       * [courseId].vue 成功後會呼叫：
+       *
+       * fetchPublishedTopics(courseId)
+       *
+       * 重新跟 Backend 同步。
+       */
+      return true;
+    } catch (error: unknown) {
+      errorMessage.value = getApiErrorMessage(error, '已發布主題刪除失敗');
+
+      return false;
+    } finally {
+      editing.value = false;
+    }
+  }
+
+  /*
+   * ============================================================
    * Chapter
-   * =========================
+   * ============================================================
    */
   async function addChapter(
     draftId: number,
@@ -341,9 +572,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =========================
+   * ============================================================
    * Unit
-   * =========================
+   * ============================================================
    */
   async function addUnit(
     draftId: number,
@@ -414,9 +645,9 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * =========================
+   * ============================================================
    * Knowledge Card
-   * =========================
+   * ============================================================
    */
   async function addKnowledgeCard(
     draftId: number,
@@ -489,55 +720,138 @@ export function useTeacherMaterialManagement() {
     }
   }
 
+  /*
+   * ============================================================
+   * Clear
+   * ============================================================
+   */
   function clearDrafts() {
     drafts.value = [];
+
+    /*
+     * 換課程 / 離開課程時，
+     * 正式 Topic 也一起清除。
+     */
+    publishedTopics.value = [];
 
     errorMessage.value = '';
   }
 
+  /*
+   * ============================================================
+   * Return
+   * ============================================================
+   */
   return {
+    /*
+     * Data
+     */
     drafts,
 
+    publishedTopics,
+
+    /*
+     * Loading
+     */
     loading,
+
     downloadingTemplate,
+
     importing,
+
     creatingDraft,
+
     publishingDraftId,
+
     editing,
 
+    /*
+     * Error
+     */
     errorMessage,
 
+    /*
+     * Fetch
+     */
     fetchDrafts,
+
+    fetchPublishedTopics,
+
+    fetchPublishedTopicTree,
+
+    /*
+     * Template / Import
+     */
     downloadTemplate,
+
     importMaterial,
+
+    /*
+     * Draft
+     */
     createDraftFromPublished,
+
     publishDraft,
 
+    /*
+     * Topic
+     */
     addTopic,
+
     updateTopic,
+
+    /*
+     * 舊版
+     */
     deleteTopic,
 
+    /*
+     * 目前 [courseId].vue 使用
+     */
+    deleteDraftTopic,
+
+    deletePublishedTopic,
+
+    /*
+     * Chapter
+     */
     addChapter,
+
     updateChapter,
+
     deleteChapter,
 
+    /*
+     * Unit
+     */
     addUnit,
+
     updateUnit,
+
     deleteUnit,
 
+    /*
+     * Knowledge Card
+     */
     addKnowledgeCard,
+
     updateKnowledgeCard,
+
     deleteKnowledgeCard,
 
+    /*
+     * Clear
+     */
     clearDrafts,
+
     clearErrorMessage,
   };
 }
 
 /*
- * =========================
+ * ============================================================
  * API Error
- * =========================
+ * ============================================================
  */
 function getApiErrorMessage(error: unknown, fallback: string): string {
   if (!axios.isAxiosError(error)) {

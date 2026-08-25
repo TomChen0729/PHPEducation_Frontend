@@ -72,7 +72,7 @@
 
   &__material-viewer-header {
     display: flex;
-    align-items: center;
+    align-items: end;
     justify-content: space-between;
 
     flex-shrink: 0;
@@ -236,56 +236,21 @@
  * =========================
  * Material
  * =========================
+ *
+ * 教材管理：
+ * Desktop → 左側「已發布」、右側「草稿」
+ * Tablet / Mobile → 改成上下排列
+ *
+ * archived 不應出現在主畫面。
+ * Vue 建議直接過濾；CSS 另外保留 archived class 隱藏作為保險。
  */
 
 .course-material-panel {
-  &__list {
-    display: grid;
-
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    gap: 16px;
-  }
-
-  &__card {
-    border-radius: 12px;
-  }
-
-  &__card-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-
-    gap: 16px;
-  }
-
-  &__updated {
-    margin-top: 14px;
-
-    color: #757575;
-
-    font-size: 13px;
-  }
-
-  &__actions {
-    display: flex;
-    justify-content: flex-end;
-
-    gap: 8px;
-
-    margin-top: 16px;
-  }
-
-  &__empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    min-height: 260px;
-
-    color: #757575;
-  }
-
+  /*
+   * =========================
+   * Header
+   * =========================
+   */
   &__header-actions {
     display: flex;
     align-items: center;
@@ -314,8 +279,245 @@
     color: #757575;
   }
 
+  /*
+   * =========================
+   * Published / Draft 分區
+   * =========================
+   */
+  &__groups {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    align-items: start;
+
+    gap: 20px;
+  }
+
+  &__group {
+    min-width: 0;
+
+    padding: 16px;
+
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+
+    /*
+     * 左邊：已發布
+     */
+    &--published {
+      background-color: #f6fff8;
+
+      border-color: #c8e6c9;
+    }
+
+    /*
+     * 右邊：草稿
+     */
+    &--draft {
+      background-color: #fffaf2;
+
+      border-color: #ffe0b2;
+    }
+  }
+
+  &__group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 14px;
+
+    padding-bottom: 12px;
+
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  &__group-title {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    color: #263238;
+  }
+
+  &__group-count {
+    flex-shrink: 0;
+  }
+
+  &__group-list {
+    display: flex;
+    flex-direction: column;
+
+    gap: 14px;
+  }
+
+  &__group-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    min-height: 180px;
+
+    padding: 24px 12px;
+
+    color: #9e9e9e;
+
+    text-align: center;
+
+    background-color: rgba(255, 255, 255, 0.7);
+
+    border: 1px dashed #cfd8dc;
+    border-radius: 10px;
+  }
+
+  /*
+   * =========================
+   * 舊版 List
+   * =========================
+   *
+   * 先保留，避免其他舊畫面還有使用。
+   * 新版左右分區應優先使用 __groups / __group-list。
+   */
+  &__list {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+  }
+
+  /*
+   * =========================
+   * Material Card
+   * =========================
+   */
+  &__card {
+    border-radius: 12px;
+
+    background-color: #ffffff;
+
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s,
+      transform 0.2s;
+
+    &:hover {
+      transform: translateY(-1px);
+
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    /*
+     * 已發布卡片
+     */
+    &--published {
+      border-color: #a5d6a7;
+    }
+
+    /*
+     * 草稿卡片
+     */
+    &--draft {
+      border-color: #ffcc80;
+    }
+
+    /*
+     * 已封存
+     *
+     * 主畫面不顯示。
+     * 最好仍由 Vue 直接 filter 掉 archived。
+     */
+    &--archived {
+      display: none;
+    }
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 16px;
+  }
+
+  &__card-title {
+    min-width: 0;
+
+    color: #111111;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    word-break: break-word;
+  }
+
+  &__card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    gap: 6px 12px;
+
+    margin-top: 6px;
+
+    color: #757575;
+
+    font-size: 13px;
+  }
+
+  &__updated {
+    margin-top: 14px;
+
+    color: #757575;
+
+    font-size: 13px;
+  }
+
+  /*
+   * =========================
+   * Actions
+   * =========================
+   */
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-top: 16px;
+  }
+
+  /*
+   * 草稿的刪除主題按鈕
+   */
+  &__delete-topic-btn {
+    color: q.$red-7;
+
+    &:hover {
+      background-color: q.$red-1;
+    }
+  }
+
+  /*
+   * =========================
+   * Dialog
+   * =========================
+   */
   &__dialog {
     width: 520px;
+
     max-width: 92vw;
 
     border-radius: 12px;
@@ -324,6 +526,14 @@
 
 @media (max-width: 899px) {
   .course-material-panel {
+    /*
+     * 平板以下：
+     * 已發布 / 草稿改成上下排列。
+     */
+    &__groups {
+      grid-template-columns: 1fr;
+    }
+
     &__list {
       grid-template-columns: 1fr;
     }
@@ -374,10 +584,69 @@
       }
     }
   }
+
+  .course-material-panel {
+    &__group {
+      padding: 12px;
+    }
+
+    &__group-header {
+      align-items: flex-start;
+    }
+
+    &__actions {
+      flex-direction: column;
+      align-items: stretch;
+
+      .q-btn {
+        width: 100%;
+      }
+    }
+  }
 }
 
 .material-tree-viewer {
   width: 100%;
+  /*
+   * =========================
+   * Topic Info
+   * =========================
+   *
+   * 查看教材時不再顯示 Topic 下拉選單，
+   * Topic 只顯示名稱，Chapter 直接作為第一層。
+   */
+  &__topic-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 14px;
+
+    padding: 4px 2px;
+  }
+
+  &__topic-name {
+    color: #263238;
+
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  &__topic-count {
+    color: #757575;
+
+    font-size: 13px;
+  }
+
+  &__chapters--root {
+    padding: 0;
+
+    background-color: transparent;
+
+    border-left: 0;
+  }
 
   /*
    * =========================
@@ -438,7 +707,7 @@
 
     gap: 10px;
 
-    padding: 14px 16px 16px 28px;
+    // padding: 14px 16px 16px 28px;
 
     background-color: #fafafa;
 
@@ -682,6 +951,10 @@
  * ============================================================
  * Material Draft Editor
  * ============================================================
+ *
+ * 現在 Topic 只由外層「新增教材」建立。
+ * 編輯器內不再顯示 Topic 階層，
+ * 直接從 Chapter → Unit → Knowledge Card 顯示。
  */
 
 .material-draft-editor {
@@ -690,6 +963,7 @@
   /*
    * =========================
    * Toolbar
+   * 章節內容 + 主題名稱 + 新增章節
    * =========================
    */
 
@@ -713,8 +987,11 @@
 
   &__empty {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+
+    gap: 8px;
 
     min-height: 260px;
 
@@ -732,19 +1009,43 @@
 
   /*
    * =========================
-   * Topic
+   * Chapter
    * 第一層
    * =========================
+   *
+   * Topic 已不在 Editor 內顯示，
+   * 所以 Chapter 直接作為最外層。
    */
 
-  &__topics {
+  &__chapters {
     display: flex;
     flex-direction: column;
 
-    gap: 14px;
+    gap: 12px;
+
+    padding: 0;
+
+    background-color: transparent;
+
+    border-left: 0;
   }
 
-  &__topic {
+  /*
+   * MaterialDraftEditor.vue
+   * 目前會加上：
+   * material-draft-editor__chapters--root
+   *
+   * 明確保證第一層不保留舊 Topic 縮排。
+   */
+  &__chapters--root {
+    padding: 0;
+
+    background-color: transparent;
+
+    border-left: 0;
+  }
+
+  &__chapter {
     overflow: hidden;
 
     background-color: #ffffff;
@@ -753,12 +1054,7 @@
     border-radius: 10px;
   }
 
-  /*
-   * 注意：
-   * 你的 SCSS 是全域 @use，
-   * 所以這裡直接使用 header-class 的 class。
-   */
-  &__topic-header {
+  &__chapter-header {
     min-height: 64px;
 
     background-color: #e3f2fd;
@@ -769,16 +1065,16 @@
 
   /*
    * =========================
-   * Chapter
+   * Unit
    * 第二層
    * =========================
    */
 
-  &__chapters {
+  &__units {
     display: flex;
     flex-direction: column;
 
-    gap: 10px;
+    gap: 8px;
 
     padding: 14px 16px 16px 28px;
 
@@ -787,7 +1083,7 @@
     border-left: 4px solid #42a5f5;
   }
 
-  &__chapter {
+  &__unit {
     overflow: hidden;
 
     background-color: #ffffff;
@@ -796,7 +1092,7 @@
     border-radius: 8px;
   }
 
-  &__chapter-header {
+  &__unit-header {
     min-height: 56px;
 
     background-color: #f3f8fc;
@@ -807,46 +1103,8 @@
 
   /*
    * =========================
-   * Unit
-   * 第三層
-   * =========================
-   */
-
-  &__units {
-    display: flex;
-    flex-direction: column;
-
-    gap: 8px;
-
-    padding: 12px 14px 14px 28px;
-
-    background-color: #fcfcfc;
-
-    border-left: 3px solid #90caf9;
-  }
-
-  &__unit {
-    overflow: hidden;
-
-    background-color: #ffffff;
-
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-  }
-
-  &__unit-header {
-    min-height: 50px;
-
-    background-color: #ffffff;
-
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  /*
-   * =========================
    * Knowledge Card
-   * 第四層
+   * 第三層
    * =========================
    */
 
@@ -856,11 +1114,11 @@
 
     gap: 10px;
 
-    padding: 14px 16px 16px 30px;
+    padding: 12px 14px 16px 28px;
 
-    background-color: #fafafa;
+    background-color: #fcfcfc;
 
-    border-left: 2px solid #b0bec5;
+    border-left: 3px solid #90caf9;
   }
 
   &__card {
@@ -872,7 +1130,7 @@
   }
 
   /*
-   * Card 標題 + 編輯刪除按鈕
+   * Card 標題 + 編輯 / 刪除按鈕
    */
   &__card-header {
     display: flex;
@@ -915,7 +1173,6 @@
   /*
    * =========================
    * Knowledge Card Example
-   * Backend 新增 example
    * =========================
    */
 
@@ -956,7 +1213,7 @@
 
   /*
    * =========================
-   * Topic / Chapter / Unit
+   * Chapter / Unit
    * 新增修改 Dialog
    * =========================
    */
@@ -975,14 +1232,6 @@
    * =========================
    * Knowledge Card Dialog
    * =========================
-   *
-   * 因為現在有：
-   *
-   * title
-   * content
-   * example
-   *
-   * 所以比一般名稱 Dialog 再寬一點。
    */
 
   &__card-dialog {
@@ -1004,9 +1253,6 @@
 
     gap: 16px;
 
-    /*
-     * Content / Example textarea
-     */
     textarea {
       min-height: 120px;
       max-height: 180px;
@@ -1015,6 +1261,13 @@
 
       resize: none;
     }
+  }
+
+  &__editBtn {
+    width: 10vw;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 }
 
@@ -1035,11 +1288,16 @@
 
   .material-draft-editor {
     /*
-     * 平板稍微減少階層縮排，
-     * 避免第四層空間太小。
+     * Chapter 現在是第一層，不需要額外縮排。
+     * 平板只縮小 Unit / Knowledge Card 的內縮。
      */
-    &__chapters {
-      padding-left: 20px;
+    &__chapters,
+    &__chapters--root {
+      padding: 0;
+
+      background-color: transparent;
+
+      border-left: 0;
     }
 
     &__units {
@@ -1094,10 +1352,13 @@
     /*
      * 手機減少階層縮排
      */
-    &__chapters {
-      padding: 10px 8px 12px 12px;
+    &__chapters,
+    &__chapters--root {
+      padding: 0;
 
-      border-left-width: 3px;
+      background-color: transparent;
+
+      border-left: 0;
     }
 
     &__units {
@@ -1140,6 +1401,10 @@
         max-height: 150px;
       }
     }
+
+    &__editBtn {
+      width: 20vw;
+    }
   }
 
   /*
@@ -1149,6 +1414,172 @@
   .material-tree-viewer {
     &__card-example {
       padding: 10px 12px;
+    }
+  }
+}
+
+/*
+ * ============================================================
+ * Material Import Dialog
+ * Topic + Excel
+ * ============================================================
+ */
+
+.course-material-panel {
+  /*
+   * Dialog
+   */
+  &__import-dialog {
+    display: flex;
+    flex-direction: column;
+
+    width: 680px;
+
+    max-width: 94vw;
+    max-height: 90vh;
+
+    overflow: hidden;
+
+    border-radius: 12px;
+  }
+
+  /*
+   * Dialog Content
+   */
+  &__import-content {
+    display: flex;
+    flex-direction: column;
+
+    gap: 18px;
+
+    overflow-y: auto;
+  }
+
+  /*
+   * Step
+   */
+  &__import-step {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  &__import-step-title {
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    color: #263238;
+
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /*
+   * 1 / 2 / 3 / 4
+   */
+  &__import-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    width: 26px;
+    height: 26px;
+
+    color: #ffffff;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    background-color: #1976d2;
+
+    border-radius: 50%;
+  }
+
+  &__import-step-description {
+    padding-left: 35px;
+
+    color: #757575;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+  }
+
+  /*
+   * Excel 欄位提示
+   */
+  &__import-hint {
+    padding: 12px 14px;
+
+    color: #546e7a;
+
+    font-size: 13px;
+
+    background-color: #f5f7f9;
+
+    border-radius: 8px;
+  }
+
+  &__import-fields {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 4px;
+
+    margin-top: 8px;
+  }
+
+  /*
+   * 最後確認
+   */
+  &__import-summary {
+    color: #455a64;
+
+    background-color: #e3f2fd;
+
+    strong {
+      color: #1565c0;
+    }
+  }
+
+  /*
+   * Footer
+   */
+  &__import-actions {
+    flex-shrink: 0;
+
+    padding: 12px 18px;
+  }
+}
+
+/*
+ * Mobile
+ */
+@media (max-width: 599px) {
+  .course-material-panel {
+    &__import-dialog {
+      width: 94vw;
+
+      max-height: 92vh;
+    }
+
+    &__import-content {
+      padding: 16px;
+    }
+
+    &__import-step-description {
+      padding-left: 0;
+    }
+
+    &__import-actions {
+      .q-btn {
+        min-width: 90px;
+      }
     }
   }
 }

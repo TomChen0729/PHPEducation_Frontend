@@ -14,8 +14,8 @@ export interface TeacherApplication {
 export interface TeacherApplicationRequest {
   name: string;
   email: string;
-
-  reason?: string | null;
+  account: string;
+  reason: string;
 }
 
 export interface TeacherApplicationResponse {

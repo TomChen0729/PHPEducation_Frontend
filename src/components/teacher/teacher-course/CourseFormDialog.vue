@@ -53,11 +53,12 @@
           <!-- 課程說明 -->
           <q-input
             v-model="form.description"
-            label="課程說明"
-            type="textarea"
             outlined
+            type="textarea"
+            label="課程說明 *"
             maxlength="2000"
-            class="course-form-dialog__description"
+            counter
+            :rules="[(value) => !!value?.trim() || '請輸入課程說明']"
           />
         </q-card-section>
 
@@ -206,9 +207,15 @@ function handleSubmit() {
    */
   const semester = `${form.schoolYear}-${form.term}`;
 
+  const description = form.description.trim();
+
+  if (!description) {
+    return;
+  }
+
   emit('submit', {
     name: form.name.trim(),
-    description: form.description.trim(),
+    description,
     semester,
   });
 }

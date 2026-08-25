@@ -13,7 +13,7 @@
     <!-- Header -->
     <div class="course-student-panel__header">
       <div>
-        <h5>學生管理</h5>
+        <h5 class="text-weight-bold">學生管理</h5>
 
         <p>
           共
