@@ -6,8 +6,6 @@ import { teacherCourseApi } from '../api/teacher-course.api';
 
 import type { Course, CourseRequest } from '../types/course';
 
-import type { CourseStudentMock } from '../types/teacher-course-workspace';
-
 export function useTeacherCourseWorkspace() {
   /*
    * =========================
@@ -23,73 +21,6 @@ export function useTeacherCourseWorkspace() {
   const courseSaving = ref(false);
 
   const courseErrorMessage = ref('');
-
-  /*
-   * =========================
-   * 學生
-   * =========================
-   *
-   * ⚠️ MOCK DATA
-   *
-   * 目前只有這一區是假資料。
-   */
-  const students = ref<CourseStudentMock[]>([
-    {
-      id: 1,
-
-      studentNo: '1411131001',
-
-      name: '王小明',
-
-      email: 's1411131001@nutc.edu.tw',
-
-      status: 'active',
-    },
-    {
-      id: 2,
-
-      studentNo: '1411131002',
-
-      name: '李小華',
-
-      email: 's1411131002@nutc.edu.tw',
-
-      status: 'active',
-    },
-    {
-      id: 3,
-
-      studentNo: '1411131003',
-
-      name: '陳小美',
-
-      email: 's1411131003@nutc.edu.tw',
-
-      status: 'pending',
-    },
-    {
-      id: 4,
-
-      studentNo: '1411131004',
-
-      name: '林冠宇',
-
-      email: 's1411131004@nutc.edu.tw',
-
-      status: 'pending',
-    },
-    {
-      id: 5,
-
-      studentNo: '1411131005',
-
-      name: '張雅婷',
-
-      email: 's1411131005@nutc.edu.tw',
-
-      status: 'active',
-    },
-  ]);
 
   /*
    * =========================
@@ -141,36 +72,6 @@ export function useTeacherCourseWorkspace() {
     }
   }
 
-  /*
-   * =========================
-   * MOCK：新增學生
-   * =========================
-   */
-  function addMockStudent(data: { studentNo: string; name: string; email: string }) {
-    const maxId = students.value.reduce((max, student) => Math.max(max, student.id), 0);
-
-    students.value.push({
-      id: maxId + 1,
-
-      studentNo: data.studentNo,
-
-      name: data.name,
-
-      email: data.email,
-
-      status: 'pending',
-    });
-  }
-
-  /*
-   * =========================
-   * MOCK：刪除學生
-   * =========================
-   */
-  function removeMockStudent(studentId: number) {
-    students.value = students.value.filter((student) => student.id !== studentId);
-  }
-
   return {
     /*
      * Course API
@@ -183,14 +84,6 @@ export function useTeacherCourseWorkspace() {
 
     fetchCourse,
     updateCourse,
-
-    /*
-     * Student MOCK
-     */
-    students,
-
-    addMockStudent,
-    removeMockStudent,
   };
 }
 

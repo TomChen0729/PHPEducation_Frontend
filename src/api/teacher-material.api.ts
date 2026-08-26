@@ -59,8 +59,10 @@ export const teacherMaterialApi = {
    * Published → Draft
    * =========================
    */
-  createDraftFromPublished(courseId: number) {
-    return api.post<MaterialDraftResponse>(`/teacher/courses/${courseId}/material-drafts`);
+  createDraftFromPublished(courseId: number, topicId: number) {
+    return api.post<MaterialDraftResponse>(`/teacher/courses/${courseId}/material-drafts`, {
+      topic_id: topicId,
+    });
   },
 
   /*

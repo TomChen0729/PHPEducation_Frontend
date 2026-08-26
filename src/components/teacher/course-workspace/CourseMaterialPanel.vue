@@ -96,6 +96,13 @@
                       {{ topic.item_count }}
                       個章節
                     </span>
+
+                    <span class="course-material-panel__updated-at">
+                      <q-icon name="schedule" size="15px" />
+
+                      最後更新：
+                      {{ formatDateTime(topic.updated_at) }}
+                    </span>
                   </div>
                 </div>
 
@@ -176,6 +183,13 @@
                     <span>
                       {{ item.topic.chapters.length }}
                       個章節
+                    </span>
+
+                    <span class="course-material-panel__updated-at">
+                      <q-icon name="schedule" size="15px" />
+
+                      最後更新：
+                      {{ formatDateTime(item.draft.updated_at) }}
                     </span>
                   </div>
                 </div>
@@ -531,8 +545,6 @@ const emit = defineEmits<{
   'view-published': [topic: PublishedTopic];
 
   'edit-published': [topic: PublishedTopic];
-
-  'create-draft': [];
 }>();
 
 const importDialog = ref(false);
@@ -552,13 +564,30 @@ const deleteTopicMode = ref<'published' | 'draft' | null>(null);
 
 const deleteTopicDraft = ref<MaterialDraft | null>(null);
 
-// function openDraftDeleteDialog(draft: MaterialDraft) {
-//   deleteTopicMode.value = 'draft';
+function formatDateTime(value: string | null | undefined) {
+  if (!value) {
+    return '—';
+  }
 
-//   deleteTopicDraft.value = draft;
+  const date = new Date(value);
 
-//   deleteTopicDialog.value = true;
-// }
+  if (Number.isNaN(date.getTime())) {
+    return '—';
+  }
+
+  return new Intl.DateTimeFormat('zh-TW', {
+    timeZone: 'Asia/Taipei',
+
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+
+    hour: '2-digit',
+    minute: '2-digit',
+
+    hour12: false,
+  }).format(date);
+}
 
 function closeDeleteTopicDialog() {
   deleteTopicDialog.value = false;
@@ -636,46 +665,9 @@ function closeImportDialog() {
   importDialog.value = false;
 }
 
-// function getChapterCount(draft: MaterialDraft): number {
-//   return draft.topics.reduce((total, topic) => {
-//     return total + topic.chapters.length;
-//   }, 0);
-// }
-
 defineExpose({
   closeImportDialog,
 
   closeDeleteTopicDialog,
 });
-
-/*
- * =========================
- * Status
- * =========================
- */
-// function statusLabel(status: MaterialDraftStatus) {
-//   switch (status) {
-//     case 'draft':
-//       return '草稿';
-
-//     case 'published':
-//       return '已發布';
-
-//     case 'archived':
-//       return '已封存';
-//   }
-// }
-
-// function statusColor(status: MaterialDraftStatus) {
-//   switch (status) {
-//     case 'draft':
-//       return 'orange';
-
-//     case 'published':
-//       return 'positive';
-
-//     case 'archived':
-//       return 'grey';
-//   }
-// }
 </script>

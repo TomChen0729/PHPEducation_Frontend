@@ -23,13 +23,6 @@
           {{ formatSemester(course.semester) }}
         </div>
       </div>
-
-      <q-badge
-        color="orange"
-        text-color="white"
-        label="學生管理目前為 MOCK"
-        class="course-workspace-page__mock-badge"
-      />
     </header>
 
     <!-- =========================
@@ -52,7 +45,7 @@
       >
         <q-tab name="info" label="課程資訊" />
 
-        <q-tab name="students" label="學生管理" />
+        <q-tab name="students" label="班級學生" />
 
         <q-tab name="materials" label="教材管理" />
       </q-tabs>
@@ -74,13 +67,13 @@
         </q-tab-panel>
 
         <!-- =========================
-             Student MOCK
+             Student
         ========================== -->
         <q-tab-panel name="students">
           <CourseStudentPanel
-            :students="students"
-            @add="handleAddStudent"
-            @remove="removeMockStudent"
+            v-if="courseId !== null"
+            :course-id="courseId"
+            :class-name="course?.class_name ?? ''"
           />
         </q-tab-panel>
 
@@ -106,7 +99,6 @@
             @delete-draft-topic="handleDeleteDraftTopic"
             @delete-published-topic="handleDeletePublishedTopic"
             @publish="requestPublish"
-            @create-draft="handleCreateDraft"
           />
         </q-tab-panel>
       </q-tab-panels>
@@ -120,7 +112,7 @@
         <q-card-section class="course-workspace-page__material-viewer-header">
           <div>
             <div class="text-h6">
-              {{ selectedDraft?.name }}
+              {{ selectedDraft?.topics[0]?.name ?? selectedDraft?.name }}
             </div>
 
             <div class="text-caption text-grey-7">教材內容</div>
@@ -144,7 +136,7 @@
         <q-card-section class="course-workspace-page__material-editor-header">
           <div>
             <div class="text-h6">
-              {{ editingTopicName ?? editingDraft?.name }}
+              {{ editingDraft?.topics[0]?.name ?? editingDraft?.name }}
             </div>
 
             <div class="text-caption text-grey-7">教材草稿編輯</div>
@@ -162,7 +154,6 @@
             :draft="editingDraft"
             :editing="editing"
             :error-message="materialErrorMessage"
-            :topic-name="editingTopicName"
             @add-chapter="handleAddChapter"
             @update-chapter="handleUpdateChapter"
             @delete-chapter="handleDeleteChapter"
@@ -200,7 +191,7 @@ import { useTeacherCourseWorkspace } from '../../../composables/useTeacherCourse
 
 import { useTeacherMaterialManagement } from '../../../composables/useTeacherMaterialManagement';
 
-import type { TeacherCourseRequest } from '../../../types/teacher-course-workspace';
+import type { CourseRequest } from '../../../types/course';
 
 import type { MaterialDraft, PublishedTopic } from '../../../types/material';
 
@@ -251,15 +242,6 @@ const {
   fetchCourse,
 
   updateCourse,
-
-  /*
-   * Student MOCK
-   */
-  students,
-
-  addMockStudent,
-
-  removeMockStudent,
 } = useTeacherCourseWorkspace();
 
 /*
@@ -269,13 +251,10 @@ const {
  */
 const {
   /*
-   * Draft
+   * Data
    */
   drafts,
 
-  /*
-   * 正式 Published Topics
-   */
   publishedTopics,
 
   /*
@@ -305,40 +284,31 @@ const {
 
   fetchPublishedTopics,
 
-  /*
-   * 取得一個正式 Topic
-   * 的完整 Chapter / Unit /
-   * Knowledge Card Tree。
-   */
   fetchPublishedTopicTree,
 
   /*
-   * Template / Import
+   * Import
    */
   downloadTemplate,
 
   importMaterial,
 
   /*
-   * Draft
+   * Draft / Publish
    */
   createDraftFromPublished,
 
   publishDraft,
 
   /*
-   * =========================
-   * Topic Delete
-   * =========================
+   * Topic
    */
   deleteDraftTopic,
 
   deletePublishedTopic,
 
   /*
-   * =========================
    * Chapter
-   * =========================
    */
   addChapter,
 
@@ -347,9 +317,7 @@ const {
   deleteChapter,
 
   /*
-   * =========================
    * Unit
-   * =========================
    */
   addUnit,
 
@@ -358,9 +326,7 @@ const {
   deleteUnit,
 
   /*
-   * =========================
    * Knowledge Card
-   * =========================
    */
   addKnowledgeCard,
 
@@ -405,8 +371,6 @@ const materialEditorOpen = ref(false);
 
 const editingDraft = ref<MaterialDraft | null>(null);
 
-const editingTopicName = ref<string | null>(null);
-
 /*
  * =========================
  * Page Error
@@ -431,13 +395,6 @@ watch(
       return;
     }
 
-    /*
-     * 進入課程時同時取得：
-     *
-     * 1. Course
-     * 2. Draft
-     * 3. 正式 Published Topics
-     */
     await Promise.all([fetchCourse(id), fetchDrafts(id), fetchPublishedTopics(id)]);
   },
 
@@ -451,7 +408,7 @@ watch(
  * Course Save
  * =========================
  */
-async function handleSaveCourse(data: TeacherCourseRequest) {
+async function handleSaveCourse(data: CourseRequest) {
   if (courseId.value === null) {
     return;
   }
@@ -474,31 +431,6 @@ async function handleSaveCourse(data: TeacherCourseRequest) {
     position: 'top',
 
     timeout: 1500,
-  });
-}
-
-/*
- * =========================
- * Student MOCK
- * =========================
- */
-function handleAddStudent(student: {
-  studentNo: string;
-
-  name: string;
-
-  email: string;
-}) {
-  addMockStudent(student);
-
-  Notify.create({
-    type: 'warning',
-
-    message: 'MOCK：學生僅加入前端畫面，尚未寫入資料庫',
-
-    position: 'top',
-
-    timeout: 1800,
   });
 }
 
@@ -557,9 +489,6 @@ async function handleImportMaterial(
 
   const draft = await importMaterial(courseId.value, topic, file);
 
-  /*
-   * Failed
-   */
   if (!draft) {
     Notify.create({
       type: 'negative',
@@ -579,7 +508,7 @@ async function handleImportMaterial(
   }
 
   /*
-   * Success
+   * API 成功後才關閉匯入 Dialog。
    */
   materialPanelRef.value?.closeImportDialog();
 
@@ -598,7 +527,7 @@ async function handleImportMaterial(
 
 /*
  * ============================================================
- * Draft Viewer
+ * Viewer
  * ============================================================
  */
 function openMaterialViewer(draft: MaterialDraft) {
@@ -608,24 +537,8 @@ function openMaterialViewer(draft: MaterialDraft) {
 }
 
 /*
- * ============================================================
- * Published Topic Viewer
- * ============================================================
- *
- * 正式教材不再讀 Published Draft.tree。
- *
- * 改成：
- *
- * Topic
- * ↓
- * Chapters
- * ↓
- * Units
- * ↓
- * Knowledge Cards
- *
- * 最後轉成 MaterialTreeViewer
- * 可以使用的格式。
+ * 已發布 Topic 需要先取得正式教材完整 Tree，
+ * 再交給共用 Viewer。
  */
 async function openPublishedMaterialViewer(topic: PublishedTopic) {
   const draft = await fetchPublishedTopicTree(topic);
@@ -648,24 +561,26 @@ async function openPublishedMaterialViewer(topic: PublishedTopic) {
     return;
   }
 
-  selectedDraft.value = draft;
-
-  materialViewerOpen.value = true;
+  /*
+   * 共用 Viewer。
+   */
+  openMaterialViewer(draft);
 }
 
 /*
  * ============================================================
- * Draft Editor
+ * Editor
  * ============================================================
  */
 function openMaterialEditor(draft: MaterialDraft) {
+  /*
+   * 只有 Draft 可以直接編輯。
+   */
   if (draft.status !== 'draft') {
     return;
   }
 
   clearMaterialErrorMessage();
-
-  editingTopicName.value = draft.topics[0]?.name ?? null;
 
   editingDraft.value = draft;
 
@@ -678,27 +593,22 @@ function closeMaterialEditor() {
   materialEditorOpen.value = false;
 
   editingDraft.value = null;
-
-  editingTopicName.value = null;
 }
 
 /*
  * ============================================================
- * Published Topic → Draft Editor
+ * Published Topic → Draft
  * ============================================================
  *
- * 點某一個正式 Topic：
- *
- * 1. 從正式教材建立 Draft
- * 2. 指定要編輯的 Topic name
- * 3. 打開 MaterialDraftEditor
+ * 每次只將點選的 Published Topic
+ * 建立成一份 Draft。
  */
 async function handleEditPublishedTopic(topic: PublishedTopic) {
   if (courseId.value === null) {
     return;
   }
 
-  const draft = await createDraftFromPublished(courseId.value);
+  const draft = await createDraftFromPublished(courseId.value, topic.id);
 
   if (!draft) {
     Notify.create({
@@ -719,18 +629,17 @@ async function handleEditPublishedTopic(topic: PublishedTopic) {
   }
 
   /*
-   * 確認建立出的 Draft
-   * 裡面真的有這個 Topic。
+   * 防呆：
+   * 正常情況一份 Draft
+   * 應只有目前選擇的 Topic。
    */
-  const targetTopic = draft.topics.find((item) => item.name === topic.name);
-
-  if (!targetTopic) {
+  if (draft.topics.length === 0) {
     Notify.create({
       type: 'negative',
 
       icon: 'error_outline',
 
-      message: `建立草稿成功，但找不到主題「${topic.name}」`,
+      message: '建立草稿成功，但草稿中沒有教材主題',
 
       position: 'top',
 
@@ -740,11 +649,10 @@ async function handleEditPublishedTopic(topic: PublishedTopic) {
     return;
   }
 
-  editingTopicName.value = targetTopic.name;
-
-  editingDraft.value = draft;
-
-  materialEditorOpen.value = true;
+  /*
+   * 使用共用 Editor。
+   */
+  openMaterialEditor(draft);
 
   Notify.create({
     type: 'positive',
@@ -767,6 +675,11 @@ async function handleEditPublishedTopic(topic: PublishedTopic) {
 function applyUpdatedDraft(draft: MaterialDraft) {
   editingDraft.value = draft;
 
+  /*
+   * API 成功後才關閉
+   * Chapter / Unit / Card
+   * 新增或修改 Dialog。
+   */
   materialEditorRef.value?.closeEditDialogs();
 }
 
@@ -1024,8 +937,6 @@ async function performDeleteDraftTopic(
 
   await fetchDrafts(courseId.value);
 
-  materialPanelRef.value?.closeDeleteTopicDialog();
-
   Notify.create({
     type: 'positive',
 
@@ -1122,15 +1033,15 @@ async function performDeletePublishedTopic(
 }
 
 /*
- * =========================
+ * ============================================================
  * Publish
- * =========================
+ * ============================================================
  */
 function requestPublish(draft: MaterialDraft) {
   Dialog.create({
     title: '發布教材',
 
-    message: `確定要將「${draft.name}」發布為正式教材嗎？`,
+    message: `確定要將「${draft.topics[0]?.name ?? draft.name}」發布為正式教材嗎？`,
 
     cancel: {
       label: '取消',
@@ -1176,11 +1087,10 @@ async function handlePublish(draft: MaterialDraft) {
   }
 
   /*
-   * 發布後同時刷新：
+   * 發布後刷新：
    *
-   * Draft
-   * +
-   * 正式 Topic
+   * 1. Draft
+   * 2. Published Topic
    */
   await Promise.all([fetchDrafts(courseId.value), fetchPublishedTopics(courseId.value)]);
 
@@ -1189,62 +1099,7 @@ async function handlePublish(draft: MaterialDraft) {
 
     icon: 'check_circle',
 
-    message: `「${draft.name}」已發布`,
-
-    position: 'top',
-
-    timeout: 1500,
-  });
-}
-
-/*
- * =========================
- * Published → Draft
- * =========================
- *
- * 保留原本整份正式教材
- * 建立 Draft 的功能。
- */
-async function handleCreateDraft() {
-  if (courseId.value === null) {
-    return;
-  }
-
-  const draft = await createDraftFromPublished(courseId.value);
-
-  if (!draft) {
-    Notify.create({
-      type: 'negative',
-
-      icon: 'error_outline',
-
-      message: materialErrorMessage.value || '建立編輯草稿失敗',
-
-      position: 'top',
-
-      timeout: 2500,
-    });
-
-    clearMaterialErrorMessage();
-
-    return;
-  }
-
-  /*
-   * 預設打開第一個 Topic。
-   */
-  editingTopicName.value = draft.topics[0]?.name ?? null;
-
-  editingDraft.value = draft;
-
-  materialEditorOpen.value = true;
-
-  Notify.create({
-    type: 'positive',
-
-    icon: 'check_circle',
-
-    message: `「${draft.name}」已建立新的編輯草稿`,
+    message: `「${draft.topics[0]?.name ?? draft.name}」已發布`,
 
     position: 'top',
 

@@ -95,9 +95,7 @@
                     <div v-if="card.example" class="material-tree-viewer__card-example">
                       <div class="material-tree-viewer__card-label">範例</div>
 
-                      <div>
-                        {{ card.example }}
-                      </div>
+                      <CodeExampleViewer :code="card.example" />
                     </div>
                   </q-card-section>
                 </q-card>
@@ -127,6 +125,7 @@
 import { computed } from 'vue';
 
 import type { MaterialDraft } from '../../../types/material';
+import CodeExampleViewer from '../../common/CodeExampleViewer.vue';
 
 const props = defineProps<{
   draft: MaterialDraft;

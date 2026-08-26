@@ -259,17 +259,19 @@ export function useTeacherMaterialManagement() {
    * Published → Draft
    * ============================================================
    */
-  async function createDraftFromPublished(courseId: number): Promise<MaterialDraft | null> {
+  async function createDraftFromPublished(courseId: number, topicId: number) {
     creatingDraft.value = true;
 
     errorMessage.value = '';
 
     try {
-      const response = await teacherMaterialApi.createDraftFromPublished(courseId);
+      const response = await teacherMaterialApi.createDraftFromPublished(courseId, topicId);
+
+      const draft = response.data.draft;
 
       await fetchDrafts(courseId);
 
-      return response.data.draft;
+      return draft;
     } catch (error: unknown) {
       errorMessage.value = getApiErrorMessage(error, '建立編輯草稿失敗');
 
@@ -278,7 +280,6 @@ export function useTeacherMaterialManagement() {
       creatingDraft.value = false;
     }
   }
-
   /*
    * ============================================================
    * Publish

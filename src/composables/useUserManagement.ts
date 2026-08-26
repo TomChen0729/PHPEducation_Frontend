@@ -59,6 +59,21 @@ export function useUserManagement() {
   const selectedCourseId = ref<number | null>(null);
 
   /*
+   * 有 Pending 學生的 Course ID
+   */
+  const pendingCourseIds = ref<number[]>([]);
+
+  /*
+   * 學生帳號開通區只顯示
+   * 有 Pending Student 的課程。
+   */
+  const pendingCourses = computed(() => {
+    const idSet = new Set(pendingCourseIds.value);
+
+    return courses.value.filter((course) => idSet.has(course.id));
+  });
+
+  /*
    * ============================================================
    * Student Applications
    * ============================================================
@@ -120,7 +135,7 @@ export function useUserManagement() {
     errorMessage.value = '';
 
     /*
-     * 第一批可以平行載入。
+     * 第一批資料平行取得。
      */
     await Promise.all([
       fetchStats(),
@@ -133,14 +148,22 @@ export function useUserManagement() {
     ]);
 
     /*
-     * 預設選第一門課。
+     * 學生帳號開通：
+     * 只從有 Pending Student
+     * 的課程中選擇。
      */
-    if (courses.value.length > 0) {
-      const firstCourse = courses.value[0];
+    if (pendingCourses.value.length > 0) {
+      const firstCourse = pendingCourses.value[0];
 
       if (firstCourse) {
         await selectCourse(firstCourse.id);
       }
+    } else {
+      selectedCourseId.value = null;
+
+      pendingStudents.value = [];
+
+      selectedStudentIds.value = [];
     }
   }
 
@@ -242,7 +265,9 @@ export function useUserManagement() {
 
         semester: course.semester,
 
-        teacherId: course.teacher_id,
+        class_name: course.class_name,
+
+        teacherId: course.teacherId,
       }));
     } catch (error: unknown) {
       setError(error, '課程資料取得失敗');
@@ -314,7 +339,15 @@ export function useUserManagement() {
   }
 
   /*
-   * 全站 pending student 數量。
+   * ============================================================
+   * Pending Student Overview
+   * ============================================================
+   *
+   * 一次取得所有 Pending Student，
+   * 用來：
+   *
+   * 1. 計算全站待開通學生數量
+   * 2. 找出哪些課程目前有待開通學生
    */
   async function fetchPendingStudentTotal(): Promise<void> {
     try {
@@ -322,9 +355,26 @@ export function useUserManagement() {
         status: 'pending',
       });
 
-      pendingStudentTotal.value = response.data.items.length;
+      const items = response.data.items;
+
+      /*
+       * 全站 Pending Student 數量
+       */
+      pendingStudentTotal.value = items.length;
+
+      /*
+       * 找出所有有 Pending Student
+       * 的 Course ID。
+       */
+      pendingCourseIds.value = [
+        ...new Set(
+          items
+            .map((item) => item.course_id)
+            .filter((courseId): courseId is number => courseId !== null),
+        ),
+      ];
     } catch (error: unknown) {
-      setError(error, '待開通學生數量取得失敗');
+      setError(error, '待開通學生資料取得失敗');
     }
   }
 
@@ -369,19 +419,51 @@ export function useUserManagement() {
       });
 
       /*
-       * 開通後重新取得：
+       * 先重新取得：
        *
-       * 1. 此課程 pending 學生
-       * 2. 全站 pending 數量
-       * 3. Stats（可能建立了新學生帳號）
+       * 1. 全站 Pending
+       * 2. Stats
        */
-      await Promise.all([
-        fetchStudentsForCourse(studentSearchKeyword.value),
+      await Promise.all([fetchPendingStudentTotal(), fetchStats()]);
 
-        fetchPendingStudentTotal(),
+      /*
+       * 檢查目前課程
+       * 是否還有 Pending Student。
+       */
+      const currentCourseStillPending = pendingCourses.value.some(
+        (course) => course.id === selectedCourseId.value,
+      );
 
-        fetchStats(),
-      ]);
+      if (currentCourseStillPending) {
+        /*
+         * 目前課程還有 Pending，
+         * 重新取得這門課學生。
+         */
+        await fetchStudentsForCourse(studentSearchKeyword.value);
+      } else {
+        /*
+         * 目前課程已經全部處理完。
+         *
+         * 自動切到下一門
+         * 有 Pending Student 的課程。
+         */
+        const nextCourse = pendingCourses.value[0];
+
+        if (nextCourse) {
+          await selectCourse(nextCourse.id);
+        } else {
+          /*
+           * 全部 Pending 都處理完。
+           */
+          selectedCourseId.value = null;
+
+          pendingStudents.value = [];
+
+          selectedStudentIds.value = [];
+
+          studentSearchKeyword.value = '';
+        }
+      }
 
       return {
         activatedCount: response.data.activated_count,
@@ -427,6 +509,60 @@ export function useUserManagement() {
     errorMessage.value = getApiErrorMessage(error, fallback);
   }
 
+  /*
+   * ============================================================
+   * Backend Student → Frontend Student
+   * ============================================================
+   */
+  function mapPendingStudent(item: PendingStudentApiItem): PendingStudentItem {
+    return {
+      id: item.id,
+
+      studentNo: item.student_no,
+
+      name: item.name,
+
+      email: item.email,
+
+      applicationId: item.application_id,
+
+      className: item.class_name,
+
+      status: item.status,
+
+      courseId: item.course_id,
+
+      providerTeacherName: item.provider_teacher_name,
+
+      hasAccount: item.has_account,
+    };
+  }
+
+  /*
+   * ============================================================
+   * API Error
+   * ============================================================
+   */
+  function getApiErrorMessage(error: unknown, fallback: string): string {
+    if (!axios.isAxiosError(error)) {
+      return fallback;
+    }
+
+    const data = error.response?.data as
+      | {
+          message?: string;
+
+          errors?: Record<string, string[]>;
+        }
+      | undefined;
+
+    const validationMessage = data?.errors
+      ? Object.values(data.errors).flat().find(Boolean)
+      : undefined;
+
+    return validationMessage ?? data?.message ?? fallback;
+  }
+
   return {
     /*
      * Stats
@@ -462,16 +598,16 @@ export function useUserManagement() {
     selectedStudentIds,
     studentSearchKeyword,
     pendingStudentTotal,
+    pendingCourseIds,
     approvingStudents,
+    pendingCourses,
 
     fetchStudentsForCourse,
     fetchPendingStudentTotal,
     searchStudents,
     clearStudentSearch,
-
     setSelectedStudentIds,
     clearStudentSelection,
-
     approveSelectedStudents,
 
     /*
@@ -483,58 +619,4 @@ export function useUserManagement() {
 
     initialize,
   };
-}
-
-/*
- * ============================================================
- * Backend Student → Frontend Student
- * ============================================================
- */
-function mapPendingStudent(item: PendingStudentApiItem): PendingStudentItem {
-  return {
-    id: item.id,
-
-    studentNo: item.student_no,
-
-    name: item.name,
-
-    email: item.email,
-
-    applicationId: item.application_id,
-
-    className: item.class_name,
-
-    status: item.status,
-
-    courseId: item.course_id,
-
-    providerTeacherName: item.provider_teacher_name,
-
-    hasAccount: item.has_account,
-  };
-}
-
-/*
- * ============================================================
- * API Error
- * ============================================================
- */
-function getApiErrorMessage(error: unknown, fallback: string): string {
-  if (!axios.isAxiosError(error)) {
-    return fallback;
-  }
-
-  const data = error.response?.data as
-    | {
-        message?: string;
-
-        errors?: Record<string, string[]>;
-      }
-    | undefined;
-
-  const validationMessage = data?.errors
-    ? Object.values(data.errors).flat().find(Boolean)
-    : undefined;
-
-  return validationMessage ?? data?.message ?? fallback;
 }

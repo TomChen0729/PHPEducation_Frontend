@@ -1,0 +1,322 @@
+.course-student-panel {
+  width: 100%;
+
+  /*
+   * =========================
+   * Header
+   * =========================
+   */
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    margin-bottom: 20px;
+  }
+
+  &__title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  &__description {
+    margin-top: 4px;
+
+    color: #78909c;
+    font-size: 13px;
+  }
+
+  &__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /*
+   * =========================
+   * Toolbar
+   * =========================
+   */
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    margin-bottom: 16px;
+  }
+
+  &__toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    flex: 1;
+  }
+
+  &__search {
+    width: 360px;
+    max-width: 100%;
+  }
+
+  &__filter {
+    width: 160px;
+    flex-shrink: 0;
+  }
+
+  &__count {
+    flex-shrink: 0;
+
+    color: #607d8b;
+    font-size: 13px;
+  }
+
+  /*
+   * =========================
+   * Pending
+   * =========================
+   */
+  &__pending-banner {
+    margin-bottom: 16px;
+
+    background: #fff8e1;
+    color: #795548;
+
+    font-size: 13px;
+  }
+
+  /*
+   * =========================
+   * Table
+   * =========================
+   */
+  &__table {
+    width: 100%;
+  }
+
+  &__email {
+    word-break: break-all;
+  }
+
+  &__row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-height: 180px;
+
+    gap: 12px;
+
+    color: #90a4ae;
+  }
+
+  /*
+   * =========================
+   * Dialog
+   * =========================
+   */
+  &__dialog {
+    width: 520px;
+    max-width: 92vw;
+
+    &--large {
+      width: 760px;
+    }
+  }
+
+  &__dialog-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  &__dialog-content {
+    max-height: 65vh;
+    overflow-y: auto;
+  }
+
+  /*
+   * =========================
+   * Import
+   * =========================
+   */
+  &__import-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    padding: 8px 0 20px;
+
+    + .course-student-panel__import-section {
+      padding-top: 20px;
+    }
+  }
+
+  &__field-label {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  &__field-description {
+    color: #78909c;
+    font-size: 13px;
+  }
+
+  &__hint {
+    margin-top: 8px;
+
+    color: #78909c;
+    font-size: 12px;
+  }
+
+  /*
+   * =========================
+   * Multiple Student Input
+   * =========================
+   */
+  &__student-row-header {
+    display: grid;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr)
+      40px;
+
+    gap: 12px;
+
+    margin-bottom: 8px;
+    padding: 0 4px;
+
+    color: #607d8b;
+
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  &__student-row {
+    display: grid;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr)
+      40px;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 12px;
+  }
+
+  &__add-row {
+    margin-top: 4px;
+  }
+
+  &__row-count {
+    margin-top: 8px;
+
+    color: #90a4ae;
+    font-size: 12px;
+  }
+
+  &__form-error {
+    margin-top: 12px;
+
+    color: #c10015;
+    font-size: 13px;
+  }
+}
+
+/*
+ * =========================
+ * Tablet
+ * =========================
+ */
+@media (max-width: 900px) {
+  .course-student-panel {
+    &__toolbar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__toolbar-left {
+      width: 100%;
+    }
+
+    &__count {
+      align-self: flex-end;
+    }
+  }
+}
+
+/*
+ * =========================
+ * Mobile
+ * =========================
+ */
+@media (max-width: 600px) {
+  .course-student-panel {
+    &__header {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__header-actions {
+      width: 100%;
+
+      > * {
+        flex: 1;
+      }
+    }
+
+    &__toolbar-left {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__search,
+    &__filter {
+      width: 100%;
+    }
+
+    &__count {
+      align-self: flex-start;
+    }
+
+    &__student-row-header {
+      display: none;
+    }
+
+    &__student-row {
+      grid-template-columns:
+        minmax(0, 1fr)
+        40px;
+
+      padding: 12px;
+
+      border: 1px solid #eceff1;
+      border-radius: 8px;
+
+      > :first-child,
+      > :nth-child(2) {
+        grid-column: 1;
+      }
+
+      > :last-child {
+        grid-column: 2;
+        grid-row: 1 / 3;
+      }
+    }
+  }
+}

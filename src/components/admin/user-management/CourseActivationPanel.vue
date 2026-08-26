@@ -17,10 +17,13 @@
       outlined
       emit-value
       map-options
+      behavior="menu"
+      options-dense
       :options="courseOptions"
       label="選擇課程"
       :loading="coursesLoading"
       :disable="approvingStudents"
+      popup-content-class="course-activation-panel__course-menu"
       class="course-activation-panel__course-select"
       @update:model-value="handleCourseChange"
     >
@@ -30,7 +33,7 @@
 
       <template #no-option>
         <q-item>
-          <q-item-section class="text-grey"> 目前沒有課程 </q-item-section>
+          <q-item-section class="text-grey"> 目前沒有待開通學生的課程 </q-item-section>
         </q-item>
       </template>
     </q-select>
@@ -99,7 +102,7 @@
     <div v-if="selectedCourseId === null && !coursesLoading" class="course-activation-panel__empty">
       <q-icon name="menu_book" size="44px" color="grey-5" />
 
-      <div>請先選擇課程</div>
+      <div>目前沒有待開通學生</div>
     </div>
 
     <!-- Loading -->
@@ -231,7 +234,7 @@ watch(
 
 const courseOptions = computed(() => {
   return props.courses.map((course) => ({
-    label: `${formatSemester(course.semester)}｜${course.name}`,
+    label: `${formatSemester(course.semester)}｜${course.name}｜${course.class_name}`,
 
     value: course.id,
   }));

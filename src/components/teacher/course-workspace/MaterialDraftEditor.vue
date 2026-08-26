@@ -189,7 +189,7 @@
 
                   <div v-if="card.example" class="material-draft-editor__card-example">
                     <div class="material-draft-editor__card-label">範例</div>
-                    <div>{{ card.example }}</div>
+                    <CodeExampleViewer :code="card.example" />
                   </div>
                 </q-card-section>
               </q-card>
@@ -294,6 +294,7 @@
 import { computed, reactive } from 'vue';
 
 import { Dialog } from 'quasar';
+import CodeExampleViewer from '../../common/CodeExampleViewer.vue';
 
 import type {
   MaterialChapterNode,
@@ -331,12 +332,8 @@ interface CardDialogState {
 
 const props = defineProps<{
   draft: MaterialDraft;
-
   editing: boolean;
-
   errorMessage: string;
-
-  topicName?: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -370,10 +367,6 @@ const emit = defineEmits<{
 }>();
 
 const currentTopic = computed(() => {
-  if (props.topicName) {
-    return props.draft.topics.find((topic) => topic.name === props.topicName) ?? null;
-  }
-
   return props.draft.topics[0] ?? null;
 });
 

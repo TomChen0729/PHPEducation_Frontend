@@ -53,7 +53,7 @@
 
       <!-- Student -->
       <CourseActivationPanel
-        :courses="courses"
+        :courses="pendingCourses"
         :selected-course-id="selectedCourseId"
         :selected-course="selectedCourse"
         :students="pendingStudents"
@@ -122,7 +122,6 @@ const {
   /*
    * Courses
    */
-  courses,
   coursesLoading,
   selectedCourseId,
   selectedCourse,
@@ -136,6 +135,7 @@ const {
   selectedStudentIds,
   studentSearchKeyword,
   approvingStudents,
+  pendingCourses,
 
   searchStudents,
   clearStudentSearch,

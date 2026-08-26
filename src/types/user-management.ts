@@ -44,23 +44,13 @@ export interface AdminCourse {
 
   semester: string;
 
+  class_name: string;
+
   teacherId: number;
 }
 
-export interface AdminCourseApiItem {
-  id: number;
-
-  name: string;
-
-  description: string;
-
-  semester: string;
-
-  teacher_id: number;
-}
-
 export interface AdminCourseListResponse {
-  courses: AdminCourseApiItem[];
+  courses: AdminCourse[];
 }
 
 /*

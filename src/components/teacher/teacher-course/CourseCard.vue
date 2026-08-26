@@ -7,7 +7,21 @@
             {{ course.name }}
           </div>
 
-          <div class="text-caption text-grey-7">開課學期：{{ course.semester }}</div>
+          <div class="course-card__meta">
+            <div>
+              <q-icon name="groups" size="16px" />
+
+              課程班級：
+              {{ course.class_name }}
+            </div>
+
+            <div>
+              <q-icon name="calendar_month" size="16px" />
+
+              開課學期：
+              {{ formatSemester(course.semester) }}
+            </div>
+          </div>
         </div>
 
         <q-icon name="school" size="32px" color="light-blue-7" />
@@ -17,7 +31,9 @@
     <q-separator />
 
     <q-card-section class="course-card__description">
-      {{ course.description || '目前尚未填寫課程說明' }}
+      <dev class="course-card__description-value">
+        {{ course.description || '目前尚未填寫課程說明' }}
+      </dev>
     </q-card-section>
 
     <q-card-actions align="right">
@@ -48,4 +64,12 @@ defineEmits<{
   delete: [course: Course];
   enter: [course: Course];
 }>();
+
+function formatSemester(semester: string) {
+  const [year, term] = semester.split('-');
+
+  const termText = term === '1' ? '上學期' : term === '2' ? '下學期' : '';
+
+  return `${year} 學年度・${termText}`;
+}
 </script>

@@ -41,6 +41,15 @@
           </strong>
         </div>
 
+        <!-- Class Name -->
+        <div class="course-info-panel__field">
+          <span> 課程班級 </span>
+
+          <strong>
+            {{ course.class_name }}
+          </strong>
+        </div>
+
         <!-- Semester -->
         <div class="course-info-panel__field">
           <span> 開課學期 </span>
@@ -55,7 +64,9 @@
           <span> 課程介紹 </span>
 
           <strong>
-            {{ course.description || '尚未填寫課程介紹' }}
+            <dev class="course-info-panel__description-value">
+              {{ course.description || '尚未填寫課程介紹' }}
+            </dev>
           </strong>
         </div>
       </q-card-section>
@@ -80,6 +91,15 @@
             label="課程名稱"
             lazy-rules="ondemand"
             :rules="[(value) => !!value || '請輸入課程名稱']"
+          />
+
+          <!-- Class Name -->
+          <q-input
+            v-model="form.className"
+            outlined
+            label="課程班級"
+            lazy-rules="ondemand"
+            :rules="[(value) => !!value?.trim() || '請輸入課程班級']"
           />
 
           <!-- Semester -->
@@ -149,6 +169,8 @@ const editDialog = ref(false);
 const form = reactive({
   name: '',
 
+  className: '',
+
   description: '',
 
   schoolYear: null as number | null,
@@ -204,6 +226,8 @@ function openEditDialog() {
 
   form.name = props.course.name;
 
+  form.className = props.course.class_name;
+
   form.description = props.course.description;
 
   form.schoolYear = Number(year);
@@ -221,6 +245,7 @@ function openEditDialog() {
 function submit() {
   if (
     !form.name.trim() ||
+    !form.className.trim() ||
     !form.description.trim() ||
     form.schoolYear === null ||
     form.term === null
@@ -230,6 +255,8 @@ function submit() {
 
   emit('save', {
     name: form.name.trim(),
+
+    class_name: form.className.trim(),
 
     description: form.description.trim(),
 

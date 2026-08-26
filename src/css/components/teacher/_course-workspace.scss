@@ -207,6 +207,12 @@
       resize: none;
     }
   }
+
+  &__description-value {
+    white-space: pre-line;
+    word-break: break-word;
+    line-height: 1.7;
+  }
 }
 
 /*
@@ -319,6 +325,26 @@
 
       border-color: #ffe0b2;
     }
+  }
+
+  &__topic-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    margin-top: 8px;
+
+    color: #607d8b;
+    font-size: 13px;
+  }
+
+  &__updated-at {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    color: #90a4ae;
+    font-size: 12px;
   }
 
   &__group-header {

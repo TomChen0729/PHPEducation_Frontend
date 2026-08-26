@@ -7,6 +7,8 @@ export interface Course {
 
   semester: string;
 
+  class_name: string;
+
   teacher_id: number;
 }
 
@@ -16,6 +18,8 @@ export interface CourseRequest {
   description: string;
 
   semester: string;
+
+  class_name: string;
 }
 
 export interface CourseResponse {

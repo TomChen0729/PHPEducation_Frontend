@@ -25,6 +25,16 @@
             :rules="[(value) => !!value || '請輸入課程名稱']"
           />
 
+          <!-- 課程班級 -->
+          <q-input
+            v-model="form.className"
+            label="課程班級 *"
+            outlined
+            maxlength="255"
+            hint="例如：資應二甲"
+            :rules="[(value) => !!value?.trim() || '請輸入課程班級']"
+          />
+
           <!-- 開課學期 -->
           <div class="course-form-dialog__semester">
             <!-- 學年度 -->
@@ -87,8 +97,13 @@ type TermValue = 1 | 2;
 
 interface CourseForm {
   name: string;
+
+  className: string;
+
   schoolYear: number | null;
+
   term: TermValue | null;
+
   description: string;
 }
 
@@ -106,8 +121,13 @@ const emit = defineEmits<{
 
 const form = reactive<CourseForm>({
   name: '',
+
+  className: '',
+
   schoolYear: null,
+
   term: null,
+
   description: '',
 });
 
@@ -175,6 +195,8 @@ watch(
 
     form.name = props.course?.name ?? '';
 
+    form.className = props.course?.class_name ?? '';
+
     form.description = props.course?.description ?? '';
 
     if (props.course?.semester) {
@@ -198,25 +220,24 @@ function handleSubmit() {
     return;
   }
 
-  /*
-   * 將兩個選擇框合併成 Backend 格式
-   *
-   * 115 + 上學期
-   * ↓
-   * 115-1
-   */
-  const semester = `${form.schoolYear}-${form.term}`;
+  const name = form.name.trim();
+
+  const className = form.className.trim();
 
   const description = form.description.trim();
 
-  if (!description) {
+  if (!name || !className || !description) {
     return;
   }
 
   emit('submit', {
-    name: form.name.trim(),
+    name,
+
+    class_name: className,
+
     description,
-    semester,
+
+    semester: `${form.schoolYear}-${form.term}`,
   });
 }
 

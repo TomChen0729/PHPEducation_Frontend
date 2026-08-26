@@ -75,14 +75,13 @@ export interface MaterialTopicNode {
  */
 export interface MaterialDraft {
   id: number;
-
   course_id: number;
-
   name: string;
-
   status: MaterialDraftStatus;
-
   topics: MaterialTopicNode[];
+
+  created_at?: string;
+  updated_at?: string;
 }
 
 /*
@@ -136,10 +135,10 @@ export interface KnowledgeCardPayload {
 
 export interface PublishedTopic {
   id: number;
-
   name: string;
-
   sort_order: number;
-
   item_count: number;
+
+  created_at?: string;
+  updated_at?: string;
 }
