@@ -3,7 +3,7 @@
 PHPEducation 教學網站前端專案。
 
 本專案使用 **Vue 3 + Quasar + TypeScript** 開發，採前後端分離架構。  
-此 README 主要記錄截至 **2026-08-25** 的前端架構、已完成功能、正式 API 串接狀態，以及目前仍待確認或開發中的功能。
+此 README 主要記錄截至 **2026-08-27** 的前端架構、已完成功能、正式 API 串接狀態，以及目前仍待確認或開發中的功能。
 
 ---
 
@@ -19,6 +19,7 @@ PHPEducation 教學網站前端專案。
 - SCSS
 - ESLint
 - Prettier
+- CodeMirror 6（教材程式碼範例唯讀顯示）
 
 ---
 
@@ -96,7 +97,7 @@ Authorization: Bearer {token}
 Content-Type: application/json
 ```
 
-教材 Excel 使用 `FormData` 上傳時，交由 Axios / Browser 自動設定正確的 multipart boundary，避免上傳時發生 422。
+教材 Excel 與學生名冊 Excel 使用 `FormData` 上傳時，交由 Axios / Browser 自動設定正確的 multipart boundary，避免上傳時發生 422。
 
 ---
 
@@ -392,7 +393,7 @@ POST /api/v1/teacher-applications/{id}/approve
 
 ### 9.3 學生帳號與課程開通
 
-目前前端已有一版正式 API 串接：
+目前已正式串接學生 Pending 名單與批次開通流程：
 
 ```text
 GET  /api/v1/courses
@@ -405,19 +406,23 @@ GET  /api/v1/student-applications
 POST /api/v1/student-applications/approve
 ```
 
-目前 UI / 流程已做到：
+目前流程：
 
 ```text
-取得課程
-   ↓
+取得所有課程
++
+取得全站 Pending Student
+        ↓
+只保留「有待開通學生」的課程
+        ↓
 管理員選擇課程
-   ↓
-取得該課程 Pending 學生
-   ↓
-搜尋學生
-   ↓
+        ↓
+取得該課 Pending 學生
+        ↓
+搜尋學號 / 姓名
+        ↓
 單選 / 全選
-   ↓
+        ↓
 批次開通
 ```
 
@@ -430,23 +435,24 @@ POST /api/v1/student-applications/approve
 }
 ```
 
-前端已具備：
+目前 Frontend 已完成：
 
-- 課程選擇
+- 課程下拉只顯示有 Pending Student 的課程
+- 課程選項顯示學期、課程名稱與 `class_name`
+- `QSelect` 使用 `behavior="menu"`，選項直接於欄位下方展開
 - Pending 學生列表
 - 學號 / 姓名 / Email / 班級 / 申請教師
-- 已有帳號狀態
+- 顯示「已有帳號 / 需建立帳號」
+- 搜尋學號 / 姓名
 - 單選 / 全選
-- 搜尋
 - 已選數量
 - ConfirmDialog
-- 開通 Loading
-- 成功後重新取得 Pending 清單
-- 成功後重新取得統計資料
+- 批次開通 Loading
+- 開通成功後更新統計與 Pending 數量
+- 若目前課程已無 Pending Student，自動從下拉移除並切換下一門待處理課程
+- 若全站已無 Pending Student，顯示空狀態
 
-> **目前狀態：此區前端程式已完成一版，但學生帳號申請 / 開通的最終流程仍需與 Backend 再確認，因此暫不視為最終定案功能。**
-
----
+目前管理員採「勾選指定學生後批次開通」流程。Backend 另有整張申請單一次核准 API，但目前 Frontend 未提供該按鈕。
 
 ## 10. 教師－課程管理
 
@@ -480,12 +486,13 @@ Axios
 Backend
 ```
 
-主要功能：
+目前功能：
 
 - 顯示教師自己的課程
 - 新增課程
 - 修改課程
 - 刪除課程
+- 新增 / 修改課程班級 `class_name`
 - ConfirmDialog
 - Notify
 - Loading / Error 狀態
@@ -516,20 +523,32 @@ Frontend 使用兩個 Select：
 → 115-2
 ```
 
+### 課程班級
+
+新增與編輯課程時 `class_name` 為必填：
+
+```json
+{
+  "name": "PHP 程式設計",
+  "class_name": "資應二甲",
+  "description": "從基礎語法到實作練習",
+  "semester": "115-1"
+}
+```
+
 ### Course Card
 
-`CourseCard.vue` 顯示：
+`CourseCard.vue` 目前顯示：
 
 - 課程名稱
+- 課程班級
 - 學年度 / 學期
 - 課程說明
 - 編輯
 - 刪除
 - 進入課程
 
-課程說明區塊固定高度，內容過長使用多行省略，避免不同課程說明長度造成卡片高度不一致。
-
----
+課程說明保留使用者輸入的換行，並維持 Card 版面一致。
 
 ## 11. 教師－單一課程工作區
 
@@ -544,7 +563,7 @@ Frontend 使用兩個 Select：
 ```text
 課程工作區
 ├─ 課程資訊
-├─ 學生管理
+├─ 班級學生
 └─ 教材管理
 ```
 
@@ -571,33 +590,84 @@ PUT /api/v1/teacher/courses/{courseId}
 支援：
 
 - 顯示課程名稱
+- 顯示課程班級
 - 顯示課程說明
 - 顯示學期
-- 修改課程
+- 修改課程名稱
+- 修改課程班級
+- 修改學期
+- 修改課程說明
+- 課程說明保留換行
 - API 成功後自動關閉 Dialog
 - Loading
 - Notify
 
-### 11.2 學生管理
+### 11.2 班級學生
 
-教師端課程工作區的學生管理目前仍為 **Mock**。
+原本 Mock 的學生管理已移除，目前已正式串接 Backend。
 
-目前用途：
-
-- 測試課程工作區版面
-- 測試學生列表
-- 測試新增 / 移除互動
-
-目前畫面明確標示：
+前端架構：
 
 ```text
-此區學生資料目前為 MOCK，
-新增或刪除不會寫入資料庫。
+CourseStudentPanel.vue
+        ↓
+useTeacherCourseStudents.ts
+        ↓
+teacher-course-student.api.ts
+        ↓
+Backend
 ```
 
-此功能待學生帳號 / 課程加入流程與 Backend 確認後再正式串接。
+正式 API：
 
----
+```text
+GET    /api/v1/teacher/courses/{courseId}/student-applications?status=approved
+GET    /api/v1/teacher/courses/{courseId}/student-applications?status=pending
+
+POST   /api/v1/teacher/courses/{courseId}/student-applications
+DELETE /api/v1/teacher/courses/{courseId}/student-applications/{itemId}
+
+GET    /api/v1/teacher/student-applications/template
+POST   /api/v1/teacher/student-applications
+```
+
+目前 UI：
+
+```text
+班級學生
+├─ 已開通（預設）
+│  ├─ 學號
+│  ├─ 姓名
+│  ├─ Email
+│  ├─ 搜尋
+│  └─ 從課程移除
+│
+└─ 待審核
+   ├─ 學號
+   ├─ 姓名
+   ├─ Email
+   ├─ 搜尋
+   └─ 取消申請
+```
+
+目前已完成：
+
+- 預設顯示 `approved` 已開通學生
+- `approved / pending` 名單篩選
+- 學號 / 姓名 / Email 前端搜尋
+- 手動一次新增多位學生（最多 100 位）
+- 學號自動去除 `s` 前綴並限制數字
+- 同批重複學號前端檢查
+- 新增成功後自動切至待審核名單
+- 學生名冊 Excel 範本下載
+- Excel 批次匯入
+- 匯入成功後自動切至待審核名單
+- 待審核學生可取消申請
+- 已開通學生可由教師直接移出課程
+- 已開通學生移除時只取消該課 Enrollment，學生帳號保留
+- 已開通學生不提供編輯功能
+- ConfirmDialog / Loading / Notify / Error 狀態
+- RWD
 
 ## 12. 教師－教材管理
 
@@ -771,6 +841,7 @@ MaterialTreeViewer.vue
 
 ```text
 MaterialTreeViewer.vue
+CodeExampleViewer.vue
 ```
 
 支援顯示：
@@ -783,13 +854,21 @@ Chapter
 
 Knowledge Card 顯示：
 
-- title
-- content
-- example
+- `title`
+- `content`
+- `example`
+
+`example` 已改用 **CodeMirror 6** 唯讀模式內嵌顯示：
+
+- 行號
+- 等寬字體
+- Syntax Highlight
+- 可選取 / 複製
+- 唯讀，不允許學生或 Viewer 直接修改
+
+目前 `CodeExampleViewer.vue` 先以 PHP language extension 顯示；若未來教材要依 PHP / HTML / CSS / JavaScript 自動切換語法，仍需增加語言欄位或語言判斷。
 
 Viewer 可同時顯示 Draft 與由正式教材 API 組出的 Published Topic tree。
-
----
 
 ### 12.6 MaterialDraftEditor
 
@@ -850,7 +929,7 @@ DELETE /api/v1/teacher/material-drafts/{draftId}/knowledge-cards/{nodeId}
 
 ### 12.7 已發布主題加入草稿編輯
 
-目前已實作：
+目前已實作「單一 Published Topic → 單一 Draft」流程：
 
 ```text
 已發布 Topic
@@ -858,17 +937,14 @@ DELETE /api/v1/teacher/material-drafts/{draftId}/knowledge-cards/{nodeId}
 加入草稿編輯
    ↓
 POST /api/v1/teacher/courses/{courseId}/material-drafts
+Body: { topic_id: topicId }
    ↓
-Backend 從目前正式教材建立 Draft
+Backend 只複製被選取的 Topic
    ↓
-Frontend 找到被選擇的 Topic
-   ↓
-開啟 MaterialDraftEditor
+Frontend 開啟 MaterialDraftEditor
 ```
 
-Editor 透過 `topicName` 指定目前要編輯的 Topic，避免一份 Draft 內有多個 Topic 時固定只編輯第一個 Topic。
-
----
+目前 `createDraftFromPublished(courseId, topicId)` 已直接傳 `topic_id`，不再使用舊的「整份 Published 教材建立 Draft」按鈕流程。
 
 ### 12.8 發布教材
 
@@ -894,31 +970,41 @@ Publish
 Notify
 ```
 
-目前 Frontend 已將「草稿資料」與「正式 Topic 資料」分開取得。
+Backend 目前已確認發布規則：
 
----
+- 發布只同步目前這份 Draft 中的 Topic
+- 同名或對應正式 Topic 會更新
+- 新 Topic 會新增
+- 其他已發布 Topic 保留，不會因發布單一 Topic 而被刪除
+- 舊 `published` MaterialDraft 會轉為 `archived`
+- 已被題目引用的 Knowledge Card 不會因上層教材更新而破壞題目關聯
 
-### 12.9 教材管理目前仍待確認事項
+因此先前「單一 Topic Draft 發布可能刪掉其他 Topic」的問題已由 Backend 修正。
 
-目前仍需與 Backend 確認 / 調整的部分：
+### 12.9 教材管理目前狀態與待辦
 
-1. **新增教材同名判斷**
-   - 已刪除的正式 Topic 再次使用相同名稱時，Backend 仍可能因舊 `material_drafts` / archived 歷史資料判定名稱已存在。
-   - 此問題屬 Backend 匯入重複名稱規則，不是 Frontend 顯示問題。
+先前與 Backend 對齊的兩個主要問題目前已確認：
 
-2. **發布版本行為**
-   - Backend 目前文件描述為以 Draft tree 整棵覆寫正式教材。
-   - 需要持續確認多 Topic 發布時是否符合「保留既有正式 Topic」的需求。
+1. **教材同名重用規則已調整**
+   - 只與該課「未發布 Draft」重名時阻擋。
+   - 已發布 / archived / 已刪空 Draft 的名稱可以再次使用。
 
-3. **建立 / 更新時間**
-   - Backend 資料表有 `created_at / updated_at`。
-   - Frontend 目前 `MaterialDraft` / `PublishedTopic` Type 尚未正式加入時間欄位，Card 也尚未顯示最後更新時間。
+2. **多 Topic 發布規則已調整**
+   - 發布單一 Draft 不會清掉其他正式 Topic。
 
----
+3. **建立 / 更新時間已完成**
+   - `MaterialDraft` / `PublishedTopic` 已加入 `created_at / updated_at`。
+   - Published / Draft Topic Card 已顯示「最後更新」。
+
+目前教材端主要剩下：
+
+- 完整回歸測試 Published → Draft → Edit → Publish
+- CodeMirror 目前固定使用 PHP Syntax Highlight；多語言自動切換尚未做
+- Backend 的正式 Topic / Chapter / Unit / Knowledge Card `POST / PUT` API 尚未直接做成 Frontend UI；目前設計刻意以 Draft 編輯流程為主
 
 ## 13. Dashboard
 
-目前已建立：
+目前已建立共用資料層：
 
 ```text
 dashboard.api.ts
@@ -928,21 +1014,28 @@ useDashboard.ts
 GET /api/v1/dashboard
 ```
 
-Backend 依角色回傳 Dashboard 資料。
+目前教師首頁已有基礎版：
 
-另外管理員統計使用：
+- 取得教師名稱
+- 取得教師課程
+- 顯示課程名稱與學期
+
+但 Dashboard UI 尚未完整：
+
+- Teacher Dashboard 仍為簡易文字列表
+- Student Dashboard / 我的課程正式畫面尚未建立
+- Backend 已回傳課程 `class_name`，但 `DashboardCourse` Type / UI 尚未完整使用
+- Backend `/auth/me` 對 Student 會回 `student_no / class_name`，目前共用 `User` Type 尚未加入學生專屬欄位
+
+管理員統計目前獨立使用：
 
 ```text
 GET /api/v1/stats
 ```
 
-Dashboard 頁面仍可再依 Admin / Teacher / Student 角色持續擴充。
-
----
-
 ## 14. 目前正式 API 串接狀態
 
-### Authentication
+### Authentication－已串接
 
 ```text
 POST /api/v1/auth/login
@@ -950,13 +1043,15 @@ POST /api/v1/auth/logout
 GET  /api/v1/auth/me
 ```
 
-### Teacher Application
+### Teacher Application－已串接
 
 ```text
 POST /api/v1/teacher-applications
+GET  /api/v1/teacher-applications?status=pending
+POST /api/v1/teacher-applications/{id}/approve
 ```
 
-### Admin
+### Admin－已串接
 
 ```text
 GET  /api/v1/stats
@@ -969,9 +1064,7 @@ GET  /api/v1/student-applications
 POST /api/v1/student-applications/approve
 ```
 
-> 學生帳號開通相關 API 已接一版，但流程仍待與 Backend 確認。
-
-### Teacher Course
+### Teacher Course－已串接
 
 ```text
 GET    /api/v1/teacher/courses
@@ -981,11 +1074,21 @@ PUT    /api/v1/teacher/courses/{courseId}
 DELETE /api/v1/teacher/courses/{courseId}
 ```
 
-### Teacher Material－Import / Draft
+### Teacher Class Students－已串接
+
+```text
+GET    /api/v1/teacher/courses/{courseId}/student-applications
+POST   /api/v1/teacher/courses/{courseId}/student-applications
+DELETE /api/v1/teacher/courses/{courseId}/student-applications/{itemId}
+
+GET    /api/v1/teacher/student-applications/template
+POST   /api/v1/teacher/student-applications
+```
+
+### Teacher Material－Import / Draft－已串接
 
 ```text
 GET  /api/v1/teacher/materials/template
-
 POST /api/v1/teacher/courses/{courseId}/materials/import
 
 GET  /api/v1/teacher/courses/{courseId}/material-drafts
@@ -1010,7 +1113,9 @@ DELETE /api/v1/teacher/material-drafts/{draftId}/knowledge-cards/{nodeId}
 POST /api/v1/teacher/material-drafts/{draftId}/publish
 ```
 
-### Teacher Material－Published
+### Teacher Material－Published－部分串接
+
+目前 Frontend 使用：
 
 ```text
 GET    /api/v1/teacher/courses/{courseId}/topics
@@ -1021,9 +1126,9 @@ GET /api/v1/teacher/chapters/{chapterId}/units
 GET /api/v1/teacher/units/{unitId}/knowledge-cards
 ```
 
-### Student Material
+Backend 另外提供正式教材 Topic / Chapter / Unit / Knowledge Card 的 `POST / PUT`，目前 Frontend 沒有直接使用，正式教材修改以 Draft 流程為主。
 
-Backend 已提供：
+### Student Material－Backend 已有，Frontend 尚未串接
 
 ```text
 GET /api/v1/student/courses/{courseId}/topics
@@ -1032,9 +1137,24 @@ GET /api/v1/student/chapters/{chapterId}/units
 GET /api/v1/student/units/{unitId}/knowledge-cards
 ```
 
-學生端教材 UI 目前尚未正式完成。
+### Student Questions－Backend 已有，Frontend 尚未串接
 
----
+```text
+GET  /api/v1/student/courses/{courseId}/questions
+GET  /api/v1/student/questions/{questionId}
+POST /api/v1/student/questions/{questionId}/submit
+```
+
+Backend 已支援 `choice / debug / coding` 三種題型的取得與提交流程。
+
+### Teacher Question Records－Backend 已有，Frontend 尚未串接
+
+```text
+GET /api/v1/teacher/courses/{courseId}/question-records
+PUT /api/v1/teacher/question-records/{recordId}
+```
+
+Backend 可讓教師查看自己課程的學生作答並覆核 `teacher_status`。
 
 ## 15. 目前完成度摘要
 
@@ -1046,50 +1166,104 @@ GET /api/v1/student/units/{unitId}/knowledge-cards
 | 教師帳號申請 | ✅ 已串接 |
 | 管理員統計 | ✅ 已串接 |
 | 管理員教師核准 | ✅ 已串接 |
-| 管理員學生帳號開通 | 🟡 已有前端一版，流程待 Backend 確認 |
+| 管理員學生帳號開通 | ✅ 已串接主要流程 |
+| 管理員只顯示有 Pending Student 的課程 | ✅ 已完成 |
 | 教師課程 CRUD | ✅ 已串接 |
+| 課程班級 `class_name` | ✅ 新增 / 編輯 / Card / 課程資訊已完成 |
 | 教師課程工作區－課程資訊 | ✅ 已串接 |
-| 教師課程工作區－學生管理 | ⚪ MOCK |
+| 教師課程工作區－班級學生 | ✅ 已移除 Mock、正式串接 |
+| 班級學生 approved / pending 篩選 | ✅ 已完成 |
+| 班級學生手動多筆新增 | ✅ 已串接 |
+| 班級學生 Excel 匯入 | ✅ 已串接 |
+| 教師直接移除課程學生 | ✅ 已串接 |
 | Excel 教材匯入 | ✅ 已串接 |
 | Draft Topic Card | ✅ 已完成 |
 | Published Topic Card | ✅ 已改用正式 Topic API |
+| 教材 Card 最後更新時間 | ✅ 已完成 |
 | 查看 Draft 教材 | ✅ 已完成 |
 | 查看 Published 教材 | ✅ 已串接正式鑽層 API |
-| Published → Draft 編輯 | ✅ 已建立前端流程 |
-| Chapter / Unit / Knowledge Card 編輯 | ✅ 已串接 |
+| Knowledge Card example CodeMirror | ✅ 已完成唯讀版 |
+| Published → 單 Topic Draft 編輯 | ✅ 已完成 |
+| Chapter / Unit / Knowledge Card Draft 編輯 | ✅ 已串接 |
 | Draft Topic 刪除 | ✅ 已串接 |
 | Published Topic 刪除 | ✅ 已串接 |
-| 教材發布 | 🟡 已串接，版本行為持續測試 |
-| 教材 Card 最後更新時間 | ⚪ 尚未完成 |
-| Student 教材頁 | ⚪ 尚未完成 |
-| Dashboard 完整角色內容 | 🟡 持續開發 |
-
----
+| 教材發布 | ✅ Backend 規則已對齊、Frontend 已串接 |
+| Student 教材頁 | ⚪ Backend 已有，Frontend 尚未完成 |
+| Student 題目 / 作答 | ⚪ Backend 已有，Frontend 尚未完成 |
+| Teacher 作答覆核 | ⚪ Backend 已有，Frontend 尚未完成 |
+| Dashboard 完整角色內容 | 🟡 基礎資料層已完成，UI 持續開發 |
 
 ## 16. 目前優先待辦
 
 ```text
-1. 學生帳號流程
-   → 與 Backend 確認最終申請 / 開通 / 課程加入方式
-   → 確認後再完成 Admin 與 Teacher 學生管理
-
-2. 教材管理
-   → 確認多 Topic 發布行為
-   → 確認已刪除 Topic 後同名教材可再次匯入
-   → 完整測試 Published → Draft → Edit → Publish
-   → 補上 created_at / updated_at 並顯示 Card 最後更新時間
-
-3. Student 教材頁
+1. Student 教材頁
    → 串接正式 Published 教材
-   → 建立 Topic / Chapter / Unit / Knowledge Card 瀏覽介面
+   → Course → Topic → Chapter → Unit → Knowledge Card
+   → 共用 CodeExampleViewer 顯示範例程式碼
+
+2. Student 題目 / 作答
+   → 課程題目列表
+   → 單題頁
+   → choice / debug / coding 作答 UI
+   → Submit API
+   → 顯示系統批改結果 / pending 狀態
+
+3. Teacher 作答覆核
+   → 課程學生作答列表
+   → 查看作答內容
+   → correct / wrong 覆核
 
 4. Dashboard
-   → 依 Admin / Teacher / Student 角色完成內容
+   → Teacher 首頁正式版
+   → Student 首頁 / 我的課程
+   → 補上 class_name、student_no 等角色資料
+
+5. 教材管理回歸測試
+   → Published → Draft → Edit → Publish
+   → 同名教材重用
+   → 多 Topic 保留
+   → CodeMirror 未來多語言切換
 ```
 
----
+## 17. Backend 已完成，但 Frontend 尚未做到的功能
 
-## 17. 資料庫同步注意事項
+以下是依目前 Backend README 與 Frontend `src` 對照後，Backend 已有 API / 資料，但 Frontend 尚未完整實作的部分。
+
+| Backend 已完成 | Frontend 現況 | 優先度 |
+|---|---|---|
+| Student Published Material APIs | 尚無 Student 教材瀏覽頁與 API layer | 高 |
+| Student Question List / Detail / Submit | 尚無題目列表、單題與作答 UI | 高 |
+| Choice / Debug / Coding Submit 流程 | 尚未串接 | 高 |
+| Teacher Question Records List / Review | 尚無教師作答覆核頁 | 高 |
+| Student Dashboard 已修課程 | Student 首頁 / 我的課程 UI 尚未建立 | 高 |
+| Dashboard 課程 `class_name` | `DashboardCourse` 尚未完整加入 / 顯示 | 中 |
+| `/auth/me` Student `student_no / class_name` | 共用 `User` Type 尚未加入學生專屬欄位 | 中 |
+| 整張 Student Application 一鍵 Approve | Admin 目前採勾選 item 批次開通，未提供整單按鈕 | 低 / 可選 |
+| Teacher Application `status=approved` 查詢 | Admin UI 只顯示 Pending，尚無已核准歷史列表 | 低 / 可選 |
+| 正式教材 Topic / Chapter / Unit / Card POST / PUT | Frontend 刻意走 Draft 編輯流程，沒有直接正式表編輯 UI | 低 / 目前不需要 |
+
+### 最值得先做的三塊
+
+```text
+Student 教材
+→ Student 題目 / 作答
+→ Teacher 作答覆核
+```
+
+這三塊 Backend 都已有可用 API，而目前 Frontend 幾乎尚未開始，因此是目前最大的前後端完成度差距。
+
+### 目前另外發現的前後端型別小問題
+
+管理員課程 API 的 Backend 欄位為：
+
+```text
+teacher_id
+class_name
+```
+
+目前 `user-management.ts / useUserManagement.ts` 已使用 `class_name`，但 `teacherId` 的 Backend mapping 仍應再確認是否要由 `teacher_id` 轉換。此欄位目前未影響課程下拉顯示，但建議之後統一 snake_case API response 與 camelCase Frontend model 的轉換方式。
+
+## 18. 資料庫同步注意事項
 
 Backend 更新資料表結構後，本機資料庫也需要同步。
 
@@ -1113,7 +1287,7 @@ Unknown column 'course_id' in 'where clause'
 
 ---
 
-## 18. 前端開發原則
+## 19. 前端開發原則
 
 ```text
 pages
