@@ -1,9 +1,9 @@
 <template>
-  <div ref="editorElement" class="code-example-viewer" />
+  <div ref="editorElement" class="code-example-viewer" :class="themeClass" />
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { basicSetup } from 'codemirror';
 
@@ -13,15 +13,40 @@ import { EditorView } from '@codemirror/view';
 
 import { php } from '@codemirror/lang-php';
 
+/*
+ * =========================
+ * Props
+ * =========================
+ */
 const props = withDefaults(
   defineProps<{
     code: string | null | undefined;
+
+    theme?: 'teacher' | 'student';
   }>(),
   {
     code: '',
+
+    theme: 'teacher',
   },
 );
 
+/*
+ * =========================
+ * Theme
+ * =========================
+ */
+const themeClass = computed(() => {
+  return props.theme === 'student'
+    ? 'code-example-viewer--student'
+    : 'code-example-viewer--teacher';
+});
+
+/*
+ * =========================
+ * Editor
+ * =========================
+ */
 const editorElement = ref<HTMLElement | null>(null);
 
 let editorView: EditorView | null = null;
@@ -42,11 +67,6 @@ function createEditor() {
     extensions: [
       /*
        * CodeMirror 基本功能
-       *
-       * - line numbers
-       * - selection
-       * - syntax support
-       * - bracket matching
        */
       basicSetup,
 
@@ -68,19 +88,19 @@ function createEditor() {
       EditorView.lineWrapping,
 
       /*
-       * 外觀
+       * CodeMirror 基本排版。
+       *
+       * 顏色不寫在 TypeScript，
+       * 交由 SCSS 根據 Teacher / Student
+       * theme 控制。
        */
       EditorView.theme({
         '&': {
           width: '100%',
 
-          border: '1px solid #dce3e8',
-
           borderRadius: '8px',
 
           overflow: 'hidden',
-
-          backgroundColor: '#f8fafc',
         },
 
         '.cm-scroller': {
@@ -95,14 +115,6 @@ function createEditor() {
           padding: '12px 0',
 
           minHeight: '100px',
-        },
-
-        '.cm-gutters': {
-          backgroundColor: '#f1f5f9',
-
-          borderRight: '1px solid #e2e8f0',
-
-          color: '#94a3b8',
         },
 
         '.cm-lineNumbers .cm-gutterElement': {
@@ -144,9 +156,6 @@ onMounted(() => {
  * =========================
  * Update Code
  * =========================
- *
- * 如果 API 後來更新 card.example，
- * CodeMirror 內容也一起更新。
  */
 watch(
   () => props.code,
@@ -192,12 +201,70 @@ onBeforeUnmount(() => {
 .code-example-viewer {
   width: 100%;
 
+  /*
+   * =========================
+   * Base
+   * =========================
+   */
   :deep(.cm-editor) {
     width: 100%;
+
+    border-radius: 8px;
+    overflow: hidden;
   }
 
   :deep(.cm-scroller) {
     overflow: auto;
+  }
+
+  /*
+   * ==========================================================
+   * Teacher Theme
+   * ==========================================================
+   */
+  &--teacher {
+    :deep(.cm-editor) {
+      // background-color: $blue-1;
+
+      border: 1px solid $blue-2;
+    }
+
+    :deep(.cm-gutters) {
+      // background-color: $blue-1;
+
+      border-right: 1px solid $blue-2;
+
+      color: $blue-7;
+    }
+  }
+
+  /*
+   * ==========================================================
+   * Student Theme
+   * ==========================================================
+   */
+  &--student {
+    :deep(.cm-editor) {
+      // background-color: $teal-1;
+
+      border: 1px solid $teal-3;
+    }
+
+    :deep(.cm-gutters) {
+      // background-color: $teal-2;
+
+      border-right: 1px solid $teal-3;
+
+      color: $teal-8;
+    }
+
+    :deep(.cm-selectionBackground) {
+      background-color: $teal-3 !important;
+    }
+
+    :deep(.cm-cursor) {
+      border-left-color: $teal-10;
+    }
   }
 }
 </style>

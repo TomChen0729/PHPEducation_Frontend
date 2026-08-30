@@ -71,6 +71,21 @@ declare module 'vue-router/auto-routes' {
       '/student',
       Record<never, never>,
       Record<never, never>,
+      | '/student/course/[courseId]'
+      | '/student/courses'
+    >,
+    '/student/course/[courseId]': RouteRecordInfo<
+      '/student/course/[courseId]',
+      '/student/course/:courseId',
+      { courseId: ParamValue<true> },
+      { courseId: ParamValue<false> },
+      | never
+    >,
+    '/student/courses': RouteRecordInfo<
+      '/student/courses',
+      '/student/courses',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/teacher': RouteRecordInfo<
@@ -167,6 +182,24 @@ declare module 'vue-router/auto-routes' {
     'src/pages/student.vue': {
       routes:
         | '/student'
+        | '/student/course/[courseId]'
+        | '/student/courses'
+      views:
+        | 'default'
+      pathParamNames:
+        | never
+    }
+    'src/pages/student/course/[courseId].vue': {
+      routes:
+        | '/student/course/[courseId]'
+      views:
+        | never
+      pathParamNames:
+        | 'courseId'
+    }
+    'src/pages/student/courses.vue': {
+      routes:
+        | '/student/courses'
       views:
         | never
       pathParamNames:

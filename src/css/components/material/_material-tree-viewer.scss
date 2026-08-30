@@ -1,0 +1,484 @@
+@use 'quasar/src/css/variables' as q;
+
+.material-tree-viewer {
+  width: 100%;
+
+  /*
+   * ==========================================================
+   * Empty
+   * ==========================================================
+   */
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    min-height: 260px;
+
+    font-size: 14px;
+  }
+
+  /*
+   * ==========================================================
+   * Chapter
+   * ==========================================================
+   */
+  &__chapters {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+  }
+
+  &__chapter {
+    overflow: hidden;
+
+    border-radius: 10px;
+  }
+
+  &__chapter-header {
+    min-height: 58px;
+
+    transition: background-color 0.2s ease;
+  }
+
+  &__chapter-icon {
+    font-size: 22px;
+  }
+
+  &__chapter-title {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  /*
+   * ==========================================================
+   * Unit
+   * ==========================================================
+   */
+  &__units {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+
+    padding: 14px 16px 16px 28px;
+  }
+
+  &__unit {
+    overflow: hidden;
+
+    border-radius: 9px;
+  }
+
+  &__unit-header {
+    min-height: 52px;
+
+    transition: background-color 0.2s ease;
+  }
+
+  &__unit-icon {
+    font-size: 20px;
+  }
+
+  &__unit-title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /*
+   * ==========================================================
+   * Knowledge Card
+   * ==========================================================
+   */
+  &__cards {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+
+    padding: 14px 16px 18px 28px;
+  }
+
+  &__card {
+    overflow: hidden;
+
+    border-radius: 9px;
+
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  &__card-title {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom: 12px;
+
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  &__card-icon {
+    font-size: 19px;
+  }
+
+  &__card-block {
+    margin-top: 8px;
+  }
+
+  &__card-label {
+    margin-bottom: 6px;
+
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  &__card-content {
+    line-height: 1.8;
+
+    white-space: pre-wrap;
+
+    word-break: break-word;
+  }
+
+  &__card-example {
+    margin-top: 18px;
+
+    padding: 0;
+
+    background: transparent;
+
+    border: 0;
+  }
+
+  /*
+   * ==========================================================
+   * Empty Level
+   * ==========================================================
+   */
+  &__level-empty {
+    padding: 18px;
+
+    text-align: center;
+
+    font-size: 13px;
+  }
+
+  /*
+ * ==========================================================
+ * Teacher Theme
+ * ==========================================================
+ */
+  &--teacher {
+    color: q.$blue-10;
+
+    .material-tree-viewer__empty {
+      color: q.$blue-7;
+    }
+
+    .material-tree-viewer__empty-icon {
+      color: q.$blue-5;
+    }
+
+    /*
+   * Chapter
+   */
+    .material-tree-viewer__chapter {
+      background-color: #fff;
+
+      border: 1px solid q.$blue-3;
+    }
+
+    .material-tree-viewer__chapter-icon {
+      color: q.$blue-8;
+    }
+
+    /*
+   * Unit
+   */
+    .material-tree-viewer__units {
+      background-color: q.$blue-1;
+
+      border-left: 3px solid q.$blue-4;
+    }
+
+    .material-tree-viewer__unit {
+      background-color: #fff;
+
+      border: 1px solid q.$blue-2;
+    }
+
+    .material-tree-viewer__unit-header {
+      background-color: #fff;
+    }
+
+    .material-tree-viewer__unit-icon {
+      color: q.$blue-7;
+    }
+
+    /*
+   * Knowledge Card
+   */
+    .material-tree-viewer__cards {
+      background-color: q.$blue-1;
+
+      border-left: 2px solid q.$blue-3;
+    }
+
+    .material-tree-viewer__card {
+      background-color: #fff;
+
+      border-color: q.$blue-2;
+
+      &:hover {
+        border-color: q.$blue-4;
+
+        box-shadow: 0 2px 8px rgba(q.$blue-8, 0.08);
+      }
+    }
+
+    .material-tree-viewer__card-title {
+      // color: q.$blue-11;
+    }
+
+    .material-tree-viewer__card-icon {
+      color: q.$blue-7;
+    }
+
+    .material-tree-viewer__card-label {
+      // color: q.$blue-8;
+    }
+
+    .material-tree-viewer__card-content {
+      // color: q.$blue-12;
+      color: black;
+    }
+
+    .material-tree-viewer__level-empty {
+      // color: q.$blue-6;
+    }
+  }
+
+  /*
+ * ==========================================================
+ * Student Theme
+ * ==========================================================
+ */
+  &--student {
+    color: q.$teal-10;
+
+    .material-tree-viewer__empty {
+      color: q.$teal-7;
+    }
+
+    .material-tree-viewer__empty-icon {
+      color: q.$teal-5;
+    }
+
+    /*
+   * Chapter
+   */
+    .material-tree-viewer__chapter {
+      background-color: #fff;
+
+      border: 1px solid q.$teal-3;
+    }
+
+    .material-tree-viewer__chapter-icon {
+      color: q.$teal-8;
+    }
+
+    /*
+   * Unit
+   */
+    .material-tree-viewer__units {
+      background-color: q.$teal-1;
+
+      border-left: 3px solid q.$teal-4;
+    }
+
+    .material-tree-viewer__unit {
+      background-color: #fff;
+
+      border: 1px solid q.$teal-2;
+    }
+
+    .material-tree-viewer__unit-header {
+      background-color: #fff;
+    }
+
+    .material-tree-viewer__unit-icon {
+      color: q.$teal-7;
+    }
+
+    /*
+   * Knowledge Card
+   */
+    .material-tree-viewer__cards {
+      background-color: q.$teal-1;
+
+      border-left: 2px solid q.$teal-3;
+    }
+
+    .material-tree-viewer__card {
+      background-color: #fff;
+
+      border-color: q.$teal-2;
+
+      &:hover {
+        border-color: q.$teal-4;
+
+        box-shadow: 0 2px 8px rgba(q.$teal-8, 0.08);
+      }
+    }
+
+    .material-tree-viewer__card-title {
+      // color: q.$teal-11;
+    }
+
+    .material-tree-viewer__card-icon {
+      color: q.$teal-7;
+    }
+
+    .material-tree-viewer__card-label {
+      // color: q.$teal-8;
+    }
+
+    .material-tree-viewer__card-content {
+      // color: q.$teal-12;
+      color: black;
+    }
+
+    .material-tree-viewer__level-empty {
+      // color: q.$teal-6;
+    }
+  }
+
+  /*
+ * ==========================================================
+ * Student Theme
+ * ==========================================================
+ */
+  &--student {
+    color: q.$teal-10;
+
+    .material-tree-viewer__empty {
+      color: q.$teal-7;
+    }
+
+    .material-tree-viewer__empty-icon {
+      color: q.$teal-5;
+    }
+
+    /*
+   * Chapter
+   */
+    .material-tree-viewer__chapter {
+      background-color: #fff;
+
+      border: 1px solid q.$teal-3;
+    }
+
+    .material-tree-viewer__chapter-icon {
+      color: q.$teal-8;
+    }
+
+    /*
+   * Unit
+   */
+    .material-tree-viewer__units {
+      background-color: q.$teal-1;
+
+      border-left: 3px solid q.$teal-4;
+    }
+
+    .material-tree-viewer__unit {
+      background-color: #fff;
+
+      border: 1px solid q.$teal-2;
+    }
+
+    .material-tree-viewer__unit-header {
+      background-color: #fff;
+    }
+
+    .material-tree-viewer__unit-icon {
+      color: q.$teal-7;
+    }
+
+    /*
+   * Knowledge Card
+   */
+    .material-tree-viewer__cards {
+      background-color: q.$teal-1;
+
+      border-left: 2px solid q.$teal-3;
+    }
+
+    .material-tree-viewer__card {
+      background-color: #fff;
+
+      border-color: q.$teal-2;
+
+      &:hover {
+        border-color: q.$teal-4;
+
+        box-shadow: 0 2px 8px rgba(q.$teal-8, 0.08);
+      }
+    }
+
+    .material-tree-viewer__card-title {
+      // color: q.$teal-11;
+    }
+
+    .material-tree-viewer__card-icon {
+      color: q.$teal-7;
+    }
+
+    .material-tree-viewer__card-label {
+      // color: q.$teal-8;
+    }
+
+    .material-tree-viewer__card-content {
+      // color: q.$teal-12;
+      color: black;
+    }
+
+    .material-tree-viewer__level-empty {
+      // color: q.$teal-6;
+    }
+  }
+}
+
+/*
+ * ============================================================
+ * Mobile
+ * ============================================================
+ */
+@media (max-width: 600px) {
+  .material-tree-viewer {
+    &__units {
+      padding: 10px 10px 12px 16px;
+    }
+
+    &__cards {
+      padding: 10px 10px 14px 16px;
+    }
+
+    &__card-title {
+      font-size: 14px;
+    }
+
+    &__card-content {
+      font-size: 13px;
+    }
+  }
+}

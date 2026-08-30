@@ -15,9 +15,9 @@
           class="course-workspace-page__back"
         />
 
-        <h3 class="course-workspace-page__title text-weight-bold">
+        <h5 class="course-workspace-page__title text-weight-bold">
           {{ course?.name ?? '課程' }}
-        </h3>
+        </h5>
 
         <div v-if="course" class="course-workspace-page__semester">
           {{ formatSemester(course.semester) }}
@@ -122,7 +122,7 @@
         </q-card-section>
 
         <q-card-section v-if="selectedDraft" class="course-workspace-page__material-viewer-content">
-          <MaterialTreeViewer :draft="selectedDraft" />
+          <MaterialTreeViewer :topic="selectedDraft.topics[0] ?? null" theme="teacher" />
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -185,7 +185,7 @@ import CourseMaterialPanel from '../../../components/teacher/course-workspace/Co
 
 import MaterialDraftEditor from '../../../components/teacher/course-workspace/MaterialDraftEditor.vue';
 
-import MaterialTreeViewer from '../../../components/teacher/course-workspace/MaterialTreeViewer.vue';
+import MaterialTreeViewer from '../../../components/material/MaterialTreeViewer.vue';
 
 import { useTeacherCourseWorkspace } from '../../../composables/useTeacherCourseWorkspace';
 

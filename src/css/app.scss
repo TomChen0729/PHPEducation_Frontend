@@ -1,10 +1,13 @@
-// app global css
+// common css
 @use './components/navbar';
-@use './components/login';
-@use './components/teacherApplication';
 @use './components/confirmDialog';
 
 // login page css
+@use './components/login';
+@use './components/teacherApplication';
+
+// material css
+@use './components/material/material-tree-viewer';
 
 // admin page css
 @use './components/admin/course-activation-panel';
@@ -20,3 +23,4 @@
 @use './components/teacher/course-student-panel';
 
 // student page css
+@use './components/student/student-material';

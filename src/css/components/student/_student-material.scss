@@ -1,0 +1,171 @@
+.student-courses-page,
+.student-material-page {
+  padding: 28px;
+}
+
+.student-courses-page {
+  &__header {
+    margin-bottom: 24px;
+  }
+
+  &__grid {
+    display: grid;
+
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+
+    gap: 18px;
+  }
+
+  &__card {
+    border-radius: 12px;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+
+    margin-top: 10px;
+
+    color: #607d8b;
+
+    font-size: 13px;
+  }
+
+  &__description {
+    margin-top: 16px;
+
+    color: #546e7a;
+
+    line-height: 1.7;
+
+    white-space: pre-line;
+  }
+
+  &__loading,
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 12px;
+
+    min-height: 300px;
+
+    color: #90a4ae;
+  }
+
+  &__title {
+    margin: 10px 0 10px 0;
+    font-weight: bold;
+  }
+
+  &__course-name {
+  }
+}
+
+.student-material-page {
+  &__header {
+    margin-bottom: 22px;
+  }
+
+  &__course-meta {
+    margin-top: 6px;
+
+    color: #78909c;
+  }
+
+  &__layout {
+    display: grid;
+
+    grid-template-columns:
+      300px
+      minmax(0, 1fr);
+
+    gap: 18px;
+
+    align-items: start;
+  }
+
+  &__topics,
+  &__content {
+    border-radius: 12px;
+  }
+
+  &__topics {
+    position: sticky;
+
+    top: 90px;
+
+    overflow: hidden;
+  }
+
+  &__topic--active {
+    background-color: #e8f5e9;
+
+    color: #2e7d32;
+  }
+
+  &__topic-loading,
+  &__topic-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 140px;
+
+    padding: 20px;
+
+    color: #90a4ae;
+  }
+
+  &__content {
+    min-width: 0;
+  }
+
+  &__content-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__content-loading,
+  &__content-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 12px;
+
+    min-height: 420px;
+
+    color: #90a4ae;
+  }
+
+  &__course-title {
+    margin: 10px 0 10px 0;
+    font-weight: bold;
+  }
+}
+
+@media (max-width: 900px) {
+  .student-material-page {
+    &__layout {
+      grid-template-columns: 1fr;
+    }
+
+    &__topics {
+      position: static;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .student-courses-page,
+  .student-material-page {
+    padding: 16px;
+  }
+}
