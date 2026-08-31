@@ -101,9 +101,7 @@
                     <div class="material-tree-viewer__card-block">
                       <div class="material-tree-viewer__card-label">內容</div>
 
-                      <div class="material-tree-viewer__card-content">
-                        {{ card.content }}
-                      </div>
+                      <RichContentViewer :content="card.content" />
                     </div>
 
                     <!-- Example -->
@@ -140,6 +138,8 @@
 import { computed } from 'vue';
 
 import CodeExampleViewer from '../common/CodeExampleViewer.vue';
+
+import RichContentViewer from '../common/RichContentViewer.vue';
 
 import type { MaterialTopicNode } from '../../types/material';
 

@@ -1,0 +1,169 @@
+.course-question-panel {
+  width: 100%;
+
+  /*
+   * =========================
+   * Header
+   * =========================
+   */
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 20px;
+
+    h5 {
+      margin: 0 0 4px;
+    }
+
+    p {
+      margin: 0;
+
+      color: #757575;
+    }
+  }
+
+  /*
+   * =========================
+   * Toolbar
+   * =========================
+   */
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 16px;
+  }
+
+  &__search {
+    width: 380px;
+
+    max-width: 100%;
+  }
+
+  &__type-filter {
+    width: 160px;
+
+    flex-shrink: 0;
+  }
+
+  &__count {
+    margin-left: auto;
+
+    color: #607d8b;
+
+    font-size: 13px;
+  }
+
+  /*
+   * =========================
+   * Table
+   * =========================
+   */
+
+  &__table {
+    width: 100%;
+  }
+
+  &__knowledge-cards {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 4px;
+
+    width: 100%;
+    // max-width: 600px;
+
+    /*
+   * 避免內容把 Table 撐太寬
+   */
+    overflow: hidden;
+
+    .q-chip {
+      max-width: 150px;
+    }
+
+    .q-chip__content {
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+
+      white-space: nowrap;
+    }
+  }
+
+  /*
+ * =========================
+ * Actions
+ * =========================
+ */
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /*
+   * =========================
+   * Empty
+   * =========================
+   */
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 12px;
+
+    width: 100%;
+
+    min-height: 220px;
+
+    color: #90a4ae;
+  }
+}
+
+/*
+ * ============================================================
+ * Tablet / Mobile
+ * ============================================================
+ */
+
+@media (max-width: 700px) {
+  .course-question-panel {
+    &__header {
+      align-items: stretch;
+      flex-direction: column;
+
+      .q-btn {
+        width: 100%;
+      }
+    }
+
+    &__toolbar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__search,
+    &__type-filter {
+      width: 100%;
+    }
+
+    &__count {
+      margin-left: 0;
+
+      align-self: flex-end;
+    }
+  }
+}

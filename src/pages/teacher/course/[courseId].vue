@@ -48,6 +48,8 @@
         <q-tab name="students" label="班級學生" />
 
         <q-tab name="materials" label="教材管理" />
+
+        <q-tab name="questions" label="題庫管理" />
       </q-tabs>
 
       <q-separator />
@@ -101,6 +103,10 @@
             @publish="requestPublish"
           />
         </q-tab-panel>
+
+        <q-tab-panel name="questions">
+          <CourseQuestionPanel v-if="courseId !== null" :course-id="courseId" />
+        </q-tab-panel>
       </q-tab-panels>
     </q-card>
 
@@ -130,10 +136,15 @@
     <!-- =========================
          Material Editor
     ========================== -->
-    <q-dialog v-model="materialEditorOpen" persistent>
+    <q-dialog
+      v-model="materialEditorOpen"
+      transition-show="slide-up"
+      transition-hide="slide-down"
+      persistent
+    >
       <q-card class="course-workspace-page__material-editor">
         <!-- Header -->
-        <q-card-section class="course-workspace-page__material-editor-header">
+        <q-card-section class="course-workspace-page__material-editor-header flex justify-between">
           <div>
             <div class="text-h6">
               {{ editingDraft?.topics[0]?.name ?? editingDraft?.name }}
@@ -186,6 +197,8 @@ import CourseMaterialPanel from '../../../components/teacher/course-workspace/Co
 import MaterialDraftEditor from '../../../components/teacher/course-workspace/MaterialDraftEditor.vue';
 
 import MaterialTreeViewer from '../../../components/material/MaterialTreeViewer.vue';
+
+import CourseQuestionPanel from '../../../components/teacher/course-workspace/CourseQuestionPanel.vue';
 
 import { useTeacherCourseWorkspace } from '../../../composables/useTeacherCourseWorkspace';
 

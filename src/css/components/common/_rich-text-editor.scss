@@ -1,0 +1,342 @@
+.rich-text-editor {
+  width: 100%;
+
+  overflow: hidden;
+
+  background-color: #f5f6f8;
+
+  border: 1px solid #cfd8dc;
+  border-radius: 10px;
+
+  /*
+   * =========================
+   * Toolbar
+   * =========================
+   */
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 4px;
+
+    min-height: 52px;
+
+    padding: 7px 10px;
+
+    background-color: #fff;
+
+    border-bottom: 1px solid #dce3e7;
+
+    /*
+     * Word 工具列固定在 Editor 上方。
+     */
+    position: sticky;
+
+    top: 0;
+
+    z-index: 5;
+  }
+
+  &__toolbar-group {
+    display: flex;
+    align-items: center;
+
+    gap: 2px;
+  }
+
+  &__toolbar-button--active {
+    color: #1565c0;
+
+    background-color: #e3f2fd;
+  }
+
+  /*
+   * =========================
+   * Paper Area
+   * =========================
+   */
+  &__paper {
+    padding: 28px 24px;
+
+    overflow-x: auto;
+  }
+
+  /*
+   * 模擬 Word 白色紙張。
+   */
+  &__content {
+    width: 100%;
+
+    max-width: 850px;
+
+    min-height: 480px;
+
+    margin: 0 auto;
+
+    padding: 42px 52px;
+
+    background-color: #fff;
+
+    border: 1px solid #e0e0e0;
+
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+
+    border-radius: 2px;
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    min-height: 480px;
+
+    color: #78909c;
+
+    background-color: #fff;
+
+    font-size: 14px;
+  }
+
+  /*
+   * =========================
+   * ProseMirror
+   * =========================
+   */
+  .ProseMirror {
+    min-height: 390px;
+
+    outline: none;
+
+    color: #263238;
+
+    font-size: 15px;
+
+    line-height: 1.85;
+
+    /*
+     * Paragraph
+     */
+    p {
+      margin: 0 0 12px;
+    }
+
+    /*
+     * Heading
+     */
+    h1 {
+      margin: 26px 0 14px;
+
+      font-size: 28px;
+      font-weight: 700;
+
+      line-height: 1.4;
+    }
+
+    h2 {
+      margin: 22px 0 12px;
+
+      font-size: 23px;
+      font-weight: 700;
+
+      line-height: 1.45;
+    }
+
+    h3 {
+      margin: 18px 0 10px;
+
+      font-size: 19px;
+      font-weight: 700;
+
+      line-height: 1.5;
+    }
+
+    /*
+     * Lists
+     */
+    ul,
+    ol {
+      margin: 10px 0;
+
+      padding-left: 28px;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    /*
+     * Quote
+     */
+    blockquote {
+      margin: 14px 0;
+
+      padding: 10px 16px;
+
+      color: #546e7a;
+
+      background-color: #f5f7f8;
+
+      border-left: 4px solid #90a4ae;
+    }
+
+    /*
+     * Inline Code
+     */
+    code {
+      padding: 2px 5px;
+
+      background-color: #eceff1;
+
+      border-radius: 4px;
+
+      font-family: Consolas, Monaco, monospace;
+
+      font-size: 0.92em;
+    }
+
+    /*
+     * Code Block
+     */
+    pre {
+      margin: 14px 0;
+
+      padding: 16px;
+
+      overflow-x: auto;
+
+      color: #eceff1;
+
+      background-color: #263238;
+
+      border-radius: 8px;
+
+      code {
+        padding: 0;
+
+        color: inherit;
+
+        background-color: transparent;
+      }
+    }
+
+    /*
+     * Link
+     */
+    a {
+      color: #1565c0;
+
+      text-decoration: underline;
+
+      cursor: pointer;
+    }
+
+    /*
+     * Divider
+     */
+    hr {
+      margin: 24px 0;
+
+      border: 0;
+      border-top: 1px solid #cfd8dc;
+    }
+
+    /*
+     * Table
+     */
+    table {
+      width: 100%;
+
+      margin: 16px 0;
+
+      border-collapse: collapse;
+
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      min-width: 80px;
+
+      padding: 8px 10px;
+
+      vertical-align: top;
+
+      border: 1px solid #b0bec5;
+    }
+
+    th {
+      font-weight: 700;
+
+      background-color: #eceff1;
+    }
+
+    .selectedCell {
+      background-color: #e3f2fd;
+    }
+  }
+
+  /*
+   * =========================
+   * Disabled
+   * =========================
+   */
+  &--disabled {
+    opacity: 0.75;
+
+    .ProseMirror {
+      cursor: default;
+    }
+  }
+}
+
+/*
+ * ============================================================
+ * Tablet
+ * ============================================================
+ */
+@media (max-width: 900px) {
+  .rich-text-editor {
+    &__paper {
+      padding: 18px 14px;
+    }
+
+    &__content {
+      min-height: 420px;
+
+      padding: 30px 32px;
+    }
+  }
+}
+
+/*
+ * ============================================================
+ * Mobile
+ * ============================================================
+ */
+@media (max-width: 600px) {
+  .rich-text-editor {
+    &__toolbar {
+      align-items: flex-start;
+
+      overflow-x: auto;
+
+      flex-wrap: nowrap;
+    }
+
+    &__paper {
+      padding: 10px;
+    }
+
+    &__content {
+      min-height: 360px;
+
+      padding: 22px 18px;
+
+      box-shadow: none;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 // common css
 @use './components/navbar';
 @use './components/confirmDialog';
+@use './components/common/rich-text-editor';
 
 // login page css
 @use './components/login';
@@ -21,6 +22,9 @@
 @use './components/teacher/course-form-dialog';
 @use './components/teacher/course-workspace';
 @use './components/teacher/course-student-panel';
+@use './components/teacher/course-question-panel';
+@use './components/teacher/question-form-dialog';
+@use './components/teacher/material-draft-editor';
 
 // student page css
 @use './components/student/student-material';

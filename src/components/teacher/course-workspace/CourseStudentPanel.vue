@@ -5,7 +5,7 @@
     ========================== -->
     <div class="course-student-panel__header">
       <div>
-        <div class="course-student-panel__title">班級學生</div>
+        <h5 class="text-weight-bold course-student-panel__title">班級學生</h5>
 
         <div class="course-student-panel__description">
           <template v-if="className"> 管理 {{ className }} 的學生名單與待審核申請 </template>
