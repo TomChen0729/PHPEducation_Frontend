@@ -7,7 +7,7 @@
       <div>
         <h5 class="text-weight-bold">題庫管理</h5>
 
-        <p>管理此課程的題目、Bloom 層級與關聯知識點</p>
+        <p>管理此課程的題目、Bloom 層級與關聯知識卡</p>
       </div>
 
       <q-btn
@@ -30,7 +30,7 @@
         dense
         clearable
         debounce="200"
-        placeholder="搜尋題目、內容、Bloom 或知識點"
+        placeholder="搜尋題目、內容、Bloom 或知識卡"
         class="course-question-panel__search"
         @update:model-value="handleSearchUpdate"
       >
@@ -164,7 +164,7 @@
         <div class="course-question-panel__empty">
           <q-icon name="quiz" size="52px" color="grey-5" />
 
-          <div>此課程目前沒有題目</div>
+          <div>目前沒有題目</div>
 
           <q-btn flat color="blue" icon="add" label="建立第一題" @click="openCreateDialog" />
         </div>
@@ -608,7 +608,7 @@ const columns: QTableColumn<TeacherQuestion>[] = [
   {
     name: 'knowledge_cards',
 
-    label: '關聯知識點',
+    label: '關聯知識卡',
 
     field: (row) => row.knowledge_cards.length,
 

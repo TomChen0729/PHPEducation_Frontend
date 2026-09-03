@@ -1,0 +1,436 @@
+.student-question-answer-page {
+  width: 100%;
+
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  padding: 28px;
+
+  /*
+   * ==========================================================
+   * Header
+   * ==========================================================
+   */
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 22px;
+  }
+
+  &__header-main {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+  }
+
+  &__page-title {
+    color: #263238;
+
+    font-size: 26px;
+    font-weight: 700;
+  }
+
+  &__page-subtitle {
+    margin-top: 3px;
+
+    color: #78909c;
+
+    font-size: 14px;
+  }
+
+  /*
+   * ==========================================================
+   * State
+   * ==========================================================
+   */
+
+  &__state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 360px;
+
+    gap: 12px;
+
+    color: #78909c;
+
+    text-align: center;
+  }
+
+  &__state-title {
+    color: #455a64;
+
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  /*
+   * ==========================================================
+   * Error
+   * ==========================================================
+   */
+
+  &__error {
+    margin-top: 18px;
+  }
+
+  /*
+   * ==========================================================
+   * Question Card
+   * ==========================================================
+   */
+
+  &__question-card,
+  &__answer-card {
+    border-radius: 14px;
+  }
+
+  &__question-card {
+    margin-bottom: 20px;
+  }
+
+  /*
+   * ==========================================================
+   * Badges
+   * ==========================================================
+   */
+
+  &__badges {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-bottom: 14px;
+  }
+
+  /*
+   * ==========================================================
+   * Question
+   * ==========================================================
+   */
+
+  &__question-title {
+    margin: 0 0 14px;
+
+    color: #263238;
+
+    font-size: 24px;
+    font-weight: 700;
+
+    line-height: 1.5;
+
+    word-break: break-word;
+  }
+
+  &__question-content {
+    color: #37474f;
+
+    font-size: 17px;
+
+    line-height: 1.85;
+
+    white-space: pre-line;
+
+    word-break: break-word;
+  }
+
+  /*
+   * ==========================================================
+   * Description
+   * ==========================================================
+   */
+
+  &__description {
+    margin-top: 20px;
+
+    padding: 14px 16px;
+
+    color: #546e7a;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+
+    background-color: #f5f7f8;
+
+    border-radius: 8px;
+  }
+
+  &__description-label {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    margin-bottom: 6px;
+
+    color: #455a64;
+
+    font-weight: 600;
+  }
+
+  /*
+ * ==========================================================
+ * Knowledge Card Examples
+ * ==========================================================
+ */
+
+  &__examples {
+    margin-top: 22px;
+
+    padding-top: 18px;
+
+    border-top: 1px solid #eceff1;
+  }
+
+  &__examples-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+  }
+
+  &__examples-title {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    color: #37474f;
+
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  &__examples-caption {
+    margin-top: 4px;
+
+    color: #78909c;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+  }
+
+  &__examples-content {
+    display: flex;
+    flex-direction: column;
+
+    gap: 18px;
+
+    margin-top: 16px;
+  }
+
+  &__example {
+    width: 100%;
+  }
+
+  &__example-label {
+    margin-bottom: 7px;
+
+    color: #607d8b;
+
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /*
+   * ==========================================================
+   * Knowledge
+   * ==========================================================
+   */
+
+  &__knowledge {
+    margin-top: 22px;
+
+    padding-top: 16px;
+
+    border-top: 1px solid #eceff1;
+  }
+
+  &__knowledge-label {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    margin-bottom: 9px;
+
+    color: #607d8b;
+
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  &__knowledge-chips {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 6px;
+  }
+
+  /*
+   * ==========================================================
+   * Answer
+   * ==========================================================
+   */
+
+  &__answer-card {
+    overflow: hidden;
+  }
+
+  &__answer-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 16px;
+  }
+
+  &__answer-title {
+    color: #263238;
+
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  &__answer-caption {
+    margin-top: 4px;
+
+    color: #78909c;
+
+    font-size: 14px;
+  }
+
+  /*
+   * ==========================================================
+   * Temporary Placeholder
+   * ==========================================================
+   */
+
+  &__answer-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 220px;
+
+    gap: 8px;
+
+    color: #546e7a;
+
+    text-align: center;
+
+    background-color: #fafafa;
+
+    border: 1px dashed #cfd8dc;
+
+    border-radius: 10px;
+
+    > div {
+      color: #37474f;
+
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    small {
+      color: #90a4ae;
+
+      font-size: 13px;
+    }
+  }
+
+  &__result {
+    margin-bottom: 18px;
+
+    border: 1px solid transparent;
+
+    &--correct {
+      color: #1b5e20;
+
+      background-color: #e8f5e9;
+
+      border-color: #a5d6a7;
+    }
+
+    &--wrong {
+      color: #b71c1c;
+
+      background-color: #ffebee;
+
+      border-color: #ef9a9a;
+    }
+
+    &--pending {
+      color: #e65100;
+
+      background-color: #fff3e0;
+
+      border-color: #ffcc80;
+    }
+  }
+
+  &__result-title {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  &__result-description {
+    margin-top: 4px;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+  }
+}
+
+/*
+ * ============================================================
+ * Mobile
+ * ============================================================
+ */
+
+@media (max-width: 600px) {
+  .student-question-answer-page {
+    padding: 16px;
+
+    &__page-title {
+      font-size: 22px;
+    }
+
+    &__question-title {
+      font-size: 20px;
+    }
+
+    &__question-content {
+      font-size: 15px;
+    }
+
+    &__question-card,
+    &__answer-card {
+      border-radius: 10px;
+    }
+
+    &__examples-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    &__examples-header .q-btn {
+      align-self: flex-start;
+    }
+  }
+}

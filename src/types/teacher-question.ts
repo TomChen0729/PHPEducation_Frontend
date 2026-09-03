@@ -144,6 +144,8 @@ export interface TeacherQuestion {
 
   description: string | null;
 
+  show_example: boolean;
+
   knowledge_card_ids: number[];
 
   knowledge_cards: TeacherQuestionKnowledgeCard[];
@@ -173,6 +175,8 @@ export interface TeacherQuestionRequest {
   bloom_id: string;
 
   description: string | null;
+
+  show_example: boolean;
 
   knowledge_card_ids: number[];
 

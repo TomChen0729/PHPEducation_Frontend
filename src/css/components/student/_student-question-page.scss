@@ -1,0 +1,135 @@
+.student-question-page {
+  width: 100%;
+
+  max-width: 1400px;
+
+  margin: 0 auto;
+
+  padding: 28px;
+
+  /*
+   * ==========================================================
+   * Header
+   * ==========================================================
+   */
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 18px;
+
+    margin-bottom: 22px;
+  }
+
+  &__header-main {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+  }
+
+  /*
+   * ==========================================================
+   * Title
+   * ==========================================================
+   */
+
+  &__title {
+    color: #263238;
+
+    font-size: 26px;
+    font-weight: 700;
+
+    line-height: 1.4;
+  }
+
+  &__subtitle {
+    margin-top: 4px;
+
+    color: #78909c;
+
+    font-size: 14px;
+  }
+
+  /*
+   * ==========================================================
+   * Count
+   * ==========================================================
+   */
+
+  &__count {
+    padding: 6px 10px;
+
+    font-size: 13px;
+  }
+
+  /*
+   * ==========================================================
+   * Content
+   * ==========================================================
+   */
+
+  &__content {
+    width: 100%;
+
+    overflow: hidden;
+
+    border-radius: 12px;
+
+    background-color: #ffffff;
+  }
+
+  /*
+   * ==========================================================
+   * Error
+   * ==========================================================
+   */
+
+  &__error {
+    margin-top: 20px;
+  }
+}
+
+/*
+ * ============================================================
+ * Tablet
+ * ============================================================
+ */
+
+@media (max-width: 900px) {
+  .student-question-page {
+    padding: 22px;
+  }
+}
+
+/*
+ * ============================================================
+ * Mobile
+ * ============================================================
+ */
+
+@media (max-width: 600px) {
+  .student-question-page {
+    padding: 16px;
+
+    &__header {
+      align-items: flex-start;
+    }
+
+    &__title {
+      font-size: 22px;
+    }
+
+    &__count {
+      flex-shrink: 0;
+    }
+
+    &__content {
+      .q-card__section {
+        padding: 14px;
+      }
+    }
+  }
+}

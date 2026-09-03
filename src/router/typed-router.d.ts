@@ -71,12 +71,21 @@ declare module 'vue-router/auto-routes' {
       '/student',
       Record<never, never>,
       Record<never, never>,
-      | '/student/course/[courseId]'
+      | '/student/course/[courseId]/'
+      | '/student/course/[courseId]/questions'
       | '/student/courses'
+      | '/student/question/[questionId]'
     >,
-    '/student/course/[courseId]': RouteRecordInfo<
-      '/student/course/[courseId]',
+    '/student/course/[courseId]/': RouteRecordInfo<
+      '/student/course/[courseId]/',
       '/student/course/:courseId',
+      { courseId: ParamValue<true> },
+      { courseId: ParamValue<false> },
+      | never
+    >,
+    '/student/course/[courseId]/questions': RouteRecordInfo<
+      '/student/course/[courseId]/questions',
+      '/student/course/:courseId/questions',
       { courseId: ParamValue<true> },
       { courseId: ParamValue<false> },
       | never
@@ -86,6 +95,13 @@ declare module 'vue-router/auto-routes' {
       '/student/courses',
       Record<never, never>,
       Record<never, never>,
+      | never
+    >,
+    '/student/question/[questionId]': RouteRecordInfo<
+      '/student/question/[questionId]',
+      '/student/question/:questionId',
+      { questionId: ParamValue<true> },
+      { questionId: ParamValue<false> },
       | never
     >,
     '/teacher': RouteRecordInfo<
@@ -182,20 +198,30 @@ declare module 'vue-router/auto-routes' {
     'src/pages/student.vue': {
       routes:
         | '/student'
-        | '/student/course/[courseId]'
+        | '/student/course/[courseId]/'
+        | '/student/course/[courseId]/questions'
         | '/student/courses'
+        | '/student/question/[questionId]'
       views:
         | 'default'
       pathParamNames:
         | never
     }
-    'src/pages/student/course/[courseId].vue': {
+    'src/pages/student/course/[courseId]/index.vue': {
       routes:
-        | '/student/course/[courseId]'
+        | '/student/course/[courseId]/'
       views:
         | never
       pathParamNames:
-        | 'courseId'
+        | never
+    }
+    'src/pages/student/course/[courseId]/questions.vue': {
+      routes:
+        | '/student/course/[courseId]/questions'
+      views:
+        | never
+      pathParamNames:
+        | never
     }
     'src/pages/student/courses.vue': {
       routes:
@@ -204,6 +230,14 @@ declare module 'vue-router/auto-routes' {
         | never
       pathParamNames:
         | never
+    }
+    'src/pages/student/question/[questionId].vue': {
+      routes:
+        | '/student/question/[questionId]'
+      views:
+        | never
+      pathParamNames:
+        | 'questionId'
     }
     'src/pages/teacher.vue': {
       routes:

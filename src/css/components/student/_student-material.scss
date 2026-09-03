@@ -77,6 +77,12 @@
     color: #78909c;
   }
 
+  &__course-subtitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   &__layout {
     display: grid;
 

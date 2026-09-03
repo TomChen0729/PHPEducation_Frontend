@@ -19,19 +19,30 @@
           {{ course.name }}
         </h5>
 
-        <div class="student-material-page__course-meta">
-          <span>
-            <q-icon name="groups" color="teal-7" />
-            &nbsp;
-            {{ course.class_name }}
-            &nbsp;
-          </span>
+        <div class="student-material-page__course-subtitle">
+          <div class="student-material-page__course-meta">
+            <span>
+              <q-icon name="groups" color="teal-7" />
+              &nbsp;
+              {{ course.class_name }}
+              &nbsp;
+            </span>
 
-          <span>
-            <q-icon name="calendar_month" color="teal-7" />
-            &nbsp;
-            {{ formatSemester(course.semester) }}
-          </span>
+            <span>
+              <q-icon name="calendar_month" color="teal-7" />
+              &nbsp;
+              {{ formatSemester(course.semester) }}
+            </span>
+          </div>
+
+          <q-btn
+            unelevated
+            color="teal"
+            icon="quiz"
+            label="題目練習"
+            no-caps
+            :to="`/student/course/${courseId}/questions`"
+          />
         </div>
       </div>
     </div>
@@ -164,13 +175,13 @@ import { computed, watch } from 'vue';
 
 import { useRoute } from 'vue-router';
 
-import MaterialTreeViewer from '../../../components/material/MaterialTreeViewer.vue';
+import MaterialTreeViewer from '../../../../components/material/MaterialTreeViewer.vue';
 
-import { useDashboard } from '../../../composables/useDashboard';
+import { useDashboard } from '../../../../composables/useDashboard';
 
-import { useStudentMaterial } from '../../../composables/useStudentMaterial';
+import { useStudentMaterial } from '../../../../composables/useStudentMaterial';
 
-import type { StudentMaterialTopic } from '../../../types/student-material';
+import type { StudentMaterialTopic } from '../../../../types/student-material';
 
 /*
  * =========================

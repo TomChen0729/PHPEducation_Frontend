@@ -28,3 +28,7 @@
 
 // student page css
 @use './components/student/student-material';
+@use './components/student/student-question-list';
+@use './components/student/student-question-page';
+@use './components/student/student-question-answer-page';
+@use './components/student/student-question-answer';

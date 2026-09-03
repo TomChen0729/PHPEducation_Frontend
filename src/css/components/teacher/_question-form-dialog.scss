@@ -2,20 +2,14 @@
   display: flex;
   flex-direction: column;
 
-  width: 1000px;
-
+  width: 920px;
   max-width: 94vw !important;
-
-  /*
-   * 給 Dialog 一個明確高度，
-   * Header / Footer 固定，
-   * 中間 Content 才真正可以 Scroll。
-   */
-  height: 850px;
 
   max-height: 92vh;
 
   overflow: hidden;
+
+  background-color: #ffffff;
 
   border-radius: 12px;
 
@@ -24,6 +18,7 @@
    * Header
    * =========================
    */
+
   &__header {
     display: flex;
     align-items: flex-start;
@@ -31,68 +26,51 @@
 
     flex-shrink: 0;
 
-    gap: 16px;
+    gap: 20px;
 
-    padding: 18px 22px;
+    padding: 20px 24px;
+  }
+
+  &__title {
+    color: #263238;
+
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  &__subtitle {
+    margin-top: 4px;
+
+    color: #78909c;
+
+    font-size: 13px;
+
+    line-height: 1.5;
   }
 
   /*
    * =========================
-   * Form
+   * Content
    * =========================
    */
+
+  &__content {
+    flex: 1;
+
+    min-height: 0;
+
+    padding: 22px 24px;
+
+    overflow-y: auto;
+
+    background-color: #f7f9fb;
+  }
+
   &__form {
     display: flex;
     flex-direction: column;
 
-    /*
-     * Header 以下剩餘空間全部交給 Form。
-     */
-    flex: 1;
-
-    min-height: 0;
-
-    /*
-     * Form 自己不要 Scroll。
-     *
-     * 真正 Scroll 的是 __content。
-     */
-    overflow: hidden;
-  }
-
-  /*
-   * =========================
-   * Scrollable Content
-   * =========================
-   */
-  &__content {
-    display: flex;
-    flex-direction: column;
-
-    /*
-     * Actions 以外的空間
-     * 全部交給 Content。
-     */
-    flex: 1;
-
-    min-height: 0;
-
-    gap: 22px;
-
-    padding: 22px;
-
-    /*
-     * 這裡才是真正負責 Scroll。
-     */
-    overflow-x: hidden;
-    overflow-y: auto;
-
-    scroll-behavior: smooth;
-
-    /*
-     * 防止最後一個欄位緊貼 Footer。
-     */
-    scroll-padding: 20px 0;
+    gap: 18px;
   }
 
   /*
@@ -100,13 +78,14 @@
    * Section
    * =========================
    */
+
   &__section {
-    display: flex;
-    flex-direction: column;
+    padding: 20px;
 
-    flex-shrink: 0;
+    background-color: #ffffff;
 
-    gap: 16px;
+    border: 1px solid #e3e8ec;
+    border-radius: 10px;
   }
 
   &__section-header {
@@ -115,6 +94,8 @@
     justify-content: space-between;
 
     gap: 16px;
+
+    margin-bottom: 18px;
   }
 
   &__section-title {
@@ -124,23 +105,106 @@
     font-weight: 700;
   }
 
-  &__section-title2 {
-    margin-bottom: 10px;
-  }
-
   &__section-description {
-    margin-top: -8px;
+    margin-top: 4px;
 
-    color: #78909c;
+    color: #90a4ae;
 
-    font-size: 13px;
+    font-size: 12px;
+
+    line-height: 1.6;
   }
 
   /*
    * =========================
-   * Option
+   * Grid
    * =========================
    */
+
+  &__grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+  }
+
+  &__full {
+    grid-column: 1 / -1;
+  }
+
+  /*
+   * =========================
+   * Textarea
+   * =========================
+   */
+
+  textarea {
+    min-height: 90px;
+
+    resize: vertical;
+  }
+
+  /*
+   * =========================
+   * show_example
+   * =========================
+   */
+
+  &__example-setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 24px;
+
+    margin-top: 16px;
+
+    padding: 14px 16px;
+
+    background-color: #f8fbff;
+
+    border: 1px solid #bbdefb;
+    border-radius: 8px;
+  }
+
+  &__example-setting-content {
+    flex: 1;
+
+    min-width: 0;
+  }
+
+  &__example-setting-title {
+    color: #37474f;
+
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__example-setting-description {
+    margin-top: 4px;
+
+    color: #78909c;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+  }
+
+  &__example-setting-hint {
+    margin-top: 5px;
+
+    color: #1976d2;
+
+    font-size: 12px;
+  }
+
+  /*
+   * =========================
+   * Choice Option
+   * =========================
+   */
+
   &__option-list {
     display: flex;
     flex-direction: column;
@@ -148,38 +212,47 @@
     gap: 12px;
   }
 
-  &__option-row {
+  &__option {
     display: grid;
 
     grid-template-columns:
-      82px
+      auto
       minmax(0, 1fr)
-      minmax(0, 1fr)
-      40px;
+      auto;
 
-    align-items: start;
+    align-items: flex-start;
 
-    gap: 10px;
+    gap: 12px;
 
-    padding: 12px;
+    padding: 14px;
 
-    background-color: #fafafa;
+    background-color: #fafcfd;
 
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e0e6ea;
     border-radius: 8px;
   }
 
-  &__correct-radio {
+  &__option-answer {
     display: flex;
     align-items: center;
 
     min-height: 40px;
 
-    gap: 2px;
-
-    color: #455a64;
+    color: #546e7a;
 
     font-size: 12px;
+
+    white-space: nowrap;
+  }
+
+  &__option-fields {
+    display: grid;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr);
+
+    gap: 12px;
   }
 
   /*
@@ -187,66 +260,78 @@
    * Sub Answer
    * =========================
    */
-  &__sub-list {
+
+  &__sub-answer-list {
     display: flex;
     flex-direction: column;
 
     gap: 12px;
   }
 
-  &__sub-row {
+  &__sub-answer {
     display: grid;
 
     grid-template-columns:
-      135px
+      34px
       minmax(0, 1fr)
-      minmax(0, 1fr)
-      40px;
+      auto;
 
-    align-items: start;
+    align-items: flex-start;
 
-    gap: 10px;
+    gap: 12px;
 
-    padding: 12px;
+    padding: 14px;
 
-    background-color: #fafafa;
+    background-color: #fafcfd;
 
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e0e6ea;
     border-radius: 8px;
   }
 
-  /*
-   * =========================
-   * Error
-   * =========================
-   */
-  &__form-error {
-    padding: 10px 12px;
+  &__sub-answer-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    color: #c10015;
+    width: 30px;
+    height: 30px;
+
+    margin-top: 5px;
+
+    color: #ffffff;
 
     font-size: 13px;
+    font-weight: 700;
 
-    background-color: #fff2f2;
+    background-color: #1976d2;
 
-    border-radius: 6px;
+    border-radius: 50%;
+  }
+
+  &__sub-answer-fields {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+
+    min-width: 0;
   }
 
   /*
    * =========================
-   * Actions
+   * Footer
    * =========================
    */
+
   &__actions {
+    display: flex;
+    justify-content: flex-end;
+
     flex-shrink: 0;
 
-    padding: 12px 18px;
+    gap: 8px;
 
-    /*
-     * Footer 固定為白色，
-     * Content 從它上面滑過。
-     */
-    background-color: #fff;
+    padding: 14px 20px;
   }
 }
 
@@ -255,48 +340,21 @@
  * Tablet
  * ============================================================
  */
+
 @media (max-width: 800px) {
   .question-form-dialog {
     width: 94vw;
 
-    height: 88vh;
-
-    &__option-row {
-      grid-template-columns:
-        80px
-        minmax(0, 1fr)
-        40px;
-
-      /*
-       * Description 換到第二列。
-       */
-      > :nth-child(3) {
-        grid-column: 2;
-      }
-
-      /*
-       * Delete 跨兩列。
-       */
-      > :last-child {
-        grid-column: 3;
-        grid-row: 1 / 3;
-      }
+    &__grid {
+      grid-template-columns: 1fr;
     }
 
-    &__sub-row {
-      grid-template-columns:
-        120px
-        minmax(0, 1fr)
-        40px;
+    &__full {
+      grid-column: auto;
+    }
 
-      .question-form-dialog__sub-description {
-        grid-column: 2;
-      }
-
-      > :last-child {
-        grid-column: 3;
-        grid-row: 1 / 3;
-      }
+    &__option-fields {
+      grid-template-columns: 1fr;
     }
   }
 }
@@ -306,53 +364,55 @@
  * Mobile
  * ============================================================
  */
-@media (max-width: 600px) {
+
+@media (max-width: 599px) {
   .question-form-dialog {
     width: 96vw;
-    height: 92vh;
 
     max-width: 96vw !important;
-    max-height: 92vh;
+    max-height: 94vh;
 
     &__header {
       padding: 16px;
     }
 
     &__content {
-      padding: 16px;
+      padding: 14px;
     }
 
-    /*
-     * Section Header
-     */
+    &__section {
+      padding: 14px;
+    }
+
     &__section-header {
       flex-direction: column;
-      align-items: stretch;
 
-      .q-btn {
-        width: 100%;
-      }
-    }
-
-    /*
-     * Option / Answer
-     */
-    &__option-row,
-    &__sub-row {
-      display: flex;
-      flex-direction: column;
       align-items: stretch;
     }
 
-    &__correct-radio {
-      align-self: flex-start;
+    &__example-setting {
+      align-items: flex-start;
+
+      gap: 12px;
     }
 
-    /*
-     * Footer
-     */
+    &__option {
+      grid-template-columns: 1fr;
+    }
+
+    &__option-answer {
+      min-height: auto;
+    }
+
+    &__sub-answer {
+      grid-template-columns:
+        30px
+        minmax(0, 1fr)
+        auto;
+    }
+
     &__actions {
-      padding: 10px 12px;
+      padding: 12px 14px;
     }
   }
 }

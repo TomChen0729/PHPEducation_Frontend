@@ -698,6 +698,22 @@ function applyUpdatedDraft(draft: MaterialDraft) {
 
 /*
  * =========================
+ * Material Save Notify
+ * =========================
+ */
+
+function showMaterialSaveSuccess(message = '教材內容儲存成功') {
+  Notify.create({
+    type: 'positive',
+    icon: 'check_circle',
+    message,
+    position: 'top',
+    timeout: 1800,
+  });
+}
+
+/*
+ * =========================
  * Chapter CRUD
  * =========================
  */
@@ -721,11 +737,7 @@ async function handleAddChapter(
   applyUpdatedDraft(draft);
 }
 
-async function handleUpdateChapter(
-  nodeId: string,
-
-  name: string,
-) {
+async function handleUpdateChapter(nodeId: string, name: string) {
   if (!editingDraft.value) {
     return;
   }
@@ -739,6 +751,8 @@ async function handleUpdateChapter(
   }
 
   applyUpdatedDraft(draft);
+
+  showMaterialSaveSuccess('章節儲存成功');
 }
 
 async function handleDeleteChapter(nodeId: string) {
@@ -780,11 +794,7 @@ async function handleAddUnit(
   applyUpdatedDraft(draft);
 }
 
-async function handleUpdateUnit(
-  nodeId: string,
-
-  name: string,
-) {
+async function handleUpdateUnit(nodeId: string, name: string) {
   if (!editingDraft.value) {
     return;
   }
@@ -798,6 +808,8 @@ async function handleUpdateUnit(
   }
 
   applyUpdatedDraft(draft);
+
+  showMaterialSaveSuccess('單元儲存成功');
 }
 
 async function handleDeleteUnit(nodeId: string) {
@@ -845,12 +857,9 @@ async function handleAddCard(
 
 async function handleUpdateCard(
   nodeId: string,
-
   data: {
     title: string;
-
     content: string;
-
     example: string | null;
   },
 ) {
@@ -860,11 +869,19 @@ async function handleUpdateCard(
 
   const draft = await updateKnowledgeCard(editingDraft.value.id, nodeId, data);
 
+  /*
+   * API Failed
+   */
   if (!draft) {
     return;
   }
 
+  /*
+   * API Success
+   */
   applyUpdatedDraft(draft);
+
+  showMaterialSaveSuccess('知識卡儲存成功');
 }
 
 async function handleDeleteCard(nodeId: string) {
