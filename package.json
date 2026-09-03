@@ -17,6 +17,7 @@
   "dependencies": {
     "@codemirror/lang-php": "^6.0.2",
     "@quasar/extras": "^2.0.3",
+    "@tiptap/extension-image": "^3.30.5",
     "@tiptap/extension-table": "^3.30.5",
     "@tiptap/extension-text-align": "^3.30.5",
     "@tiptap/pm": "^3.30.5",
@@ -27,6 +28,8 @@
     "dompurify": "^3.4.14",
     "pinia": "^4.0.2",
     "quasar": "^2.24.0",
+    "vis-data": "^8.0.5",
+    "vis-network": "^10.1.2",
     "vue": "^3.5.22",
     "vue-router": "^5.0.6"
   },

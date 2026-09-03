@@ -71,74 +71,75 @@
     margin-bottom: 22px;
   }
 
-  &__course-meta {
-    margin-top: 6px;
+  &__course-title {
+    margin: 10px 0;
 
-    color: #78909c;
+    font-weight: 700;
   }
 
   &__course-subtitle {
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    gap: 16px;
   }
 
-  &__layout {
-    display: grid;
+  &__course-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
 
-    grid-template-columns:
-      300px
-      minmax(0, 1fr);
+    gap: 16px;
 
-    gap: 18px;
+    color: #78909c;
 
-    align-items: start;
+    span {
+      display: flex;
+      align-items: center;
+
+      gap: 5px;
+    }
   }
 
-  &__topics,
-  &__content {
+  &__material {
+    overflow: hidden;
+
     border-radius: 12px;
   }
 
-  &__topics {
-    position: sticky;
-
-    top: 90px;
-
-    overflow: hidden;
-  }
-
-  &__topic--active {
-    background-color: #e8f5e9;
-
-    color: #2e7d32;
-  }
-
-  &__topic-loading,
-  &__topic-empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    min-height: 140px;
-
-    padding: 20px;
-
-    color: #90a4ae;
-  }
-
-  &__content {
-    min-width: 0;
-  }
-
-  &__content-header {
+  &__material-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    gap: 18px;
+
+    padding: 18px 20px;
   }
 
-  &__content-loading,
-  &__content-empty {
+  &__material-title {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    color: #37474f;
+
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  &__material-caption {
+    margin-top: 4px;
+
+    color: #90a4ae;
+
+    font-size: 12px;
+  }
+
+  &__loading,
+  &__empty {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -151,9 +152,34 @@
     color: #90a4ae;
   }
 
-  &__course-title {
-    margin: 10px 0 10px 0;
-    font-weight: bold;
+  &__viewer,
+  &__graph {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 700px) {
+  .student-material-page {
+    padding: 16px;
+
+    &__course-subtitle {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__course-subtitle > .q-btn {
+      align-self: flex-start;
+    }
+
+    &__material-header {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__viewer,
+    &__graph {
+      padding: 12px;
+    }
   }
 }
 
@@ -161,10 +187,6 @@
   .student-material-page {
     &__layout {
       grid-template-columns: 1fr;
-    }
-
-    &__topics {
-      position: static;
     }
   }
 }

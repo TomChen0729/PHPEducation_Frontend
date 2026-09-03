@@ -1,200 +1,70 @@
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import axios from 'axios';
 
 import { studentMaterialApi } from '../api/student-material.api';
 
-import type { MaterialTopicNode } from '../types/material';
-
-import type { StudentMaterialTopic } from '../types/student-material';
+import type { MaterialCourseTree } from '../types/material';
 
 export function useStudentMaterial() {
-  /*
-   * =========================
-   * Data
-   * =========================
-   */
-  const topics = ref<StudentMaterialTopic[]>([]);
+  const courseTree = ref<MaterialCourseTree | null>(null);
 
-  const selectedTopic = ref<StudentMaterialTopic | null>(null);
+  const loading = ref(false);
 
-  /*
-   * 組合完成後交給
-   * MaterialTreeViewer。
-   */
-  const topicTree = ref<MaterialTopicNode | null>(null);
-
-  /*
-   * =========================
-   * Loading
-   * =========================
-   */
-  const topicsLoading = ref(false);
-
-  const contentLoading = ref(false);
-
-  /*
-   * =========================
-   * Error
-   * =========================
-   */
   const errorMessage = ref('');
 
-  /*
-   * ============================================================
-   * Topics
-   * ============================================================
-   */
-  async function fetchTopics(courseId: number): Promise<boolean> {
-    topicsLoading.value = true;
+  const hasMaterial = computed(() => {
+    return Boolean(courseTree.value && courseTree.value.chapters.length > 0);
+  });
+
+  async function fetchMaterial(courseId: number): Promise<boolean> {
+    loading.value = true;
 
     errorMessage.value = '';
 
     try {
-      const response = await studentMaterialApi.getTopics(courseId);
+      const response = await studentMaterialApi.getGraph(courseId);
 
-      topics.value = response.data.topics;
-
-      return true;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '教材主題取得失敗');
-
-      topics.value = [];
-
-      return false;
-    } finally {
-      topicsLoading.value = false;
-    }
-  }
-
-  /*
-   * ============================================================
-   * Topic Tree
-   * ============================================================
-   *
-   * Topic
-   * ↓
-   * Chapter
-   * ↓
-   * Unit
-   * ↓
-   * Knowledge Card
-   */
-  async function fetchTopicTree(topic: StudentMaterialTopic): Promise<boolean> {
-    selectedTopic.value = topic;
-
-    topicTree.value = null;
-
-    contentLoading.value = true;
-
-    errorMessage.value = '';
-
-    try {
-      /*
-       * Chapter
-       */
-      const chapterResponse = await studentMaterialApi.getChapters(topic.id);
-
-      const chapters = await Promise.all(
-        chapterResponse.data.chapters.map(async (chapter) => {
-          /*
-           * Unit
-           */
-          const unitResponse = await studentMaterialApi.getUnits(chapter.id);
-
-          const units = await Promise.all(
-            unitResponse.data.units.map(async (unit) => {
-              /*
-               * Knowledge Card
-               */
-              const cardResponse = await studentMaterialApi.getKnowledgeCards(unit.id);
-
-              return {
-                id: String(unit.id),
-
-                name: unit.name,
-
-                sort_order: unit.sort_order,
-
-                knowledge_cards: cardResponse.data.knowledge_cards.map((card) => ({
-                  id: String(card.id),
-
-                  title: card.title,
-
-                  content: card.content,
-
-                  example: card.example,
-
-                  sort_order: card.sort_order,
-                })),
-              };
-            }),
-          );
-
-          return {
-            id: String(chapter.id),
-
-            name: chapter.name,
-
-            sort_order: chapter.sort_order,
-
-            units,
-          };
-        }),
-      );
-
-      topicTree.value = {
-        id: String(topic.id),
-
-        name: topic.name,
-
-        sort_order: topic.sort_order,
-
-        chapters,
-      };
+      courseTree.value = response.data.graph;
 
       return true;
     } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '教材內容取得失敗');
+      courseTree.value = null;
+
+      errorMessage.value = getApiErrorMessage(error, '教材取得失敗');
 
       return false;
     } finally {
-      contentLoading.value = false;
+      loading.value = false;
     }
   }
 
   function clearMaterial() {
-    topics.value = [];
-
-    selectedTopic.value = null;
-
-    topicTree.value = null;
+    courseTree.value = null;
 
     errorMessage.value = '';
   }
 
   return {
-    topics,
+    courseTree,
 
-    selectedTopic,
+    loading,
 
-    topicTree,
-
-    topicsLoading,
-
-    contentLoading,
+    hasMaterial,
 
     errorMessage,
 
-    fetchTopics,
-
-    fetchTopicTree,
+    fetchMaterial,
 
     clearMaterial,
   };
 }
 
-function getApiErrorMessage(error: unknown, fallback: string): string {
+function getApiErrorMessage(
+  error: unknown,
+
+  fallback: string,
+): string {
   if (!axios.isAxiosError(error)) {
     return fallback;
   }

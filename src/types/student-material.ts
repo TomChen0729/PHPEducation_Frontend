@@ -1,24 +1,4 @@
-/*
- * =========================
- * Topic
- * =========================
- */
-export interface StudentMaterialTopic {
-  id: number;
-
-  name: string;
-
-  sort_order: number;
-
-  /*
-   * 章節數量
-   */
-  item_count: number;
-
-  created_at?: string;
-
-  updated_at?: string;
-}
+import type { MaterialCourseTree } from './material';
 
 /*
  * =========================
@@ -90,10 +70,6 @@ export interface StudentMaterialKnowledgeCard {
  * Responses
  * =========================
  */
-export interface StudentTopicListResponse {
-  topics: StudentMaterialTopic[];
-}
-
 export interface StudentChapterListResponse {
   chapters: StudentMaterialChapter[];
 }
@@ -104,4 +80,8 @@ export interface StudentUnitListResponse {
 
 export interface StudentKnowledgeCardListResponse {
   knowledge_cards: StudentMaterialKnowledgeCard[];
+}
+
+export interface StudentMaterialGraphResponse {
+  graph: MaterialCourseTree;
 }

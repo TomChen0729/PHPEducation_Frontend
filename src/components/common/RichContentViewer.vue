@@ -47,7 +47,6 @@ const safeContent = computed(() => {
       'i',
 
       'u',
-
       's',
 
       'ul',
@@ -61,6 +60,8 @@ const safeContent = computed(() => {
 
       'a',
 
+      'img',
+
       'hr',
 
       'table',
@@ -73,7 +74,22 @@ const safeContent = computed(() => {
       'br',
     ],
 
-    ALLOWED_ATTR: ['href', 'target', 'rel', 'style', 'colspan', 'rowspan'],
+    ALLOWED_ATTR: [
+      'href',
+      'target',
+      'rel',
+
+      'src',
+      'alt',
+      'title',
+      'width',
+      'height',
+
+      'style',
+
+      'colspan',
+      'rowspan',
+    ],
   });
 });
 

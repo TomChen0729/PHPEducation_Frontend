@@ -730,7 +730,7 @@ const bloomSelectOptions = computed<BloomSelectOption[]>(() => {
  */
 const knowledgeCardSelectOptions = computed<KnowledgeCardSelectOption[]>(() => {
   return props.knowledgeCards.map((card) => {
-    const path = [card.topic_name, card.chapter_name, card.unit_name].filter(Boolean).join(' / ');
+    const path = [card.chapter_name, card.unit_name].filter(Boolean).join(' / ');
 
     return {
       ...card,

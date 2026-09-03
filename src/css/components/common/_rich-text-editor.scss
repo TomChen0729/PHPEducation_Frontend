@@ -51,6 +51,10 @@
     background-color: #e3f2fd;
   }
 
+  &__image-input {
+    display: none;
+  }
+
   /*
    * =========================
    * Paper Area
@@ -116,6 +120,24 @@
     font-size: 15px;
 
     line-height: 1.85;
+
+    img {
+      display: block;
+
+      max-width: 100%;
+      height: auto;
+
+      margin: 18px auto;
+
+      border-radius: 6px;
+
+      cursor: pointer;
+    }
+
+    img.ProseMirror-selectednode {
+      outline: 3px solid #90caf9;
+      outline-offset: 3px;
+    }
 
     /*
      * Paragraph

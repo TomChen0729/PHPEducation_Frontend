@@ -2,19 +2,36 @@ import { api } from '../boot/axios';
 
 import type {
   KnowledgeCardPayload,
-  MaterialDraftListResponse,
-  MaterialDraftResponse,
+  MaterialChapterListResponse,
+  MaterialChapterResponse,
+  MaterialCourseTreeResponse,
+  MaterialDeleteResponse,
+  MaterialEditorImageUploadResponse,
+  MaterialImportPayload,
+  MaterialImportResponse,
+  MaterialKnowledgeCardListResponse,
+  MaterialKnowledgeCardResponse,
   MaterialNamePayload,
-  MaterialPublishResponse,
-  PublishedTopic,
+  MaterialUnitListResponse,
+  MaterialUnitResponse,
 } from '../types/material';
+
+/*
+ * ============================================================
+ * Teacher Material API
+ * ============================================================
+ */
 
 export const teacherMaterialApi = {
   /*
-   * =========================
+   * ==========================================================
    * Excel Template
-   * =========================
+   * ==========================================================
+   *
+   * GET
+   * /teacher/materials/template
    */
+
   downloadTemplate() {
     return api.get<Blob>('/teacher/materials/template', {
       responseType: 'blob',
@@ -22,210 +39,149 @@ export const teacherMaterialApi = {
   },
 
   /*
-   * =========================
-   * Material Import
-   * =========================
+   * ==========================================================
+   * Import Material
+   * ==========================================================
    */
-  importMaterial(courseId: number, topic: string, file: File) {
+
+  importMaterial(
+    courseId: number,
+
+    data: MaterialImportPayload,
+  ) {
     const formData = new FormData();
 
-    /*
-     * 主題名稱
-     */
-    formData.append('topic', topic.trim());
+    formData.append('file', data.file, data.file.name);
 
-    /*
-     * Excel
-     */
-    formData.append('file', file, file.name);
+    if (data.overwrite === true) {
+      formData.append('overwrite', '1');
+    }
 
-    return api.post<MaterialDraftResponse>(
+    return api.post<MaterialImportResponse>(
       `/teacher/courses/${courseId}/materials/import`,
       formData,
     );
   },
 
   /*
-   * =========================
-   * Draft List
-   * =========================
+   * ==========================================================
+   * Course Tree
+   * ==========================================================
    */
-  listDrafts(courseId: number) {
-    return api.get<MaterialDraftListResponse>(`/teacher/courses/${courseId}/material-drafts`);
+
+  getCourseTree(courseId: number) {
+    return api.get<MaterialCourseTreeResponse>(`/teacher/courses/${courseId}/tree`);
   },
 
   /*
-   * =========================
-   * Published → Draft
-   * =========================
-   */
-  createDraftFromPublished(courseId: number, topicId: number) {
-    return api.post<MaterialDraftResponse>(`/teacher/courses/${courseId}/material-drafts`, {
-      topic_id: topicId,
-    });
-  },
-
-  /*
-   * =========================
-   * Topic
-   * =========================
-   */
-  addTopic(draftId: number, data: MaterialNamePayload) {
-    return api.post<MaterialDraftResponse>(`/teacher/material-drafts/${draftId}/topics`, data);
-  },
-
-  updateTopic(draftId: number, nodeId: string, data: MaterialNamePayload) {
-    return api.put<MaterialDraftResponse>(
-      `/teacher/material-drafts/${draftId}/topics/${nodeId}`,
-      data,
-    );
-  },
-
-  deleteTopic(draftId: number, nodeId: string) {
-    return api.delete<MaterialDraftResponse>(
-      `/teacher/material-drafts/${draftId}/topics/${nodeId}`,
-    );
-  },
-
-  /*
-   * =========================
+   * ==========================================================
    * Chapter
-   * =========================
+   * ==========================================================
    */
-  addChapter(draftId: number, topicId: string, data: MaterialNamePayload) {
-    return api.post<MaterialDraftResponse>(
-      `/teacher/material-drafts/${draftId}/topics/${topicId}/chapters`,
-      data,
-    );
+
+  listChapters(courseId: number) {
+    return api.get<MaterialChapterListResponse>(`/teacher/courses/${courseId}/chapters`);
   },
 
-  updateChapter(draftId: number, nodeId: string, data: MaterialNamePayload) {
-    return api.put<MaterialDraftResponse>(
-      `/teacher/material-drafts/${draftId}/chapters/${nodeId}`,
-      data,
-    );
+  createChapter(courseId: number, data: MaterialNamePayload) {
+    return api.post<MaterialChapterResponse>(`/teacher/courses/${courseId}/chapters`, data);
   },
 
-  deleteChapter(draftId: number, nodeId: string) {
-    return api.delete<MaterialDraftResponse>(
-      `/teacher/material-drafts/${draftId}/chapters/${nodeId}`,
-    );
+  updateChapter(
+    chapterId: number,
+
+    data: MaterialNamePayload,
+  ) {
+    return api.put<MaterialChapterResponse>(`/teacher/chapters/${chapterId}`, data);
   },
 
-  getPublishedChapters(topicId: number) {
-    return api.get<{
-      chapters: Array<{
-        id: number;
-        name: string;
-        sort_order: number;
-        item_count: number;
-      }>;
-    }>(`/teacher/topics/${topicId}/chapters`);
-  },
-
-  getPublishedUnits(chapterId: number) {
-    return api.get<{
-      units: Array<{
-        id: number;
-        name: string;
-        sort_order: number;
-        item_count: number;
-      }>;
-    }>(`/teacher/chapters/${chapterId}/units`);
-  },
-
-  getPublishedKnowledgeCards(unitId: number) {
-    return api.get<{
-      knowledge_cards: Array<{
-        id: number;
-        title: string;
-        content: string;
-        example: string | null;
-        sort_order: number;
-      }>;
-    }>(`/teacher/units/${unitId}/knowledge-cards`);
+  deleteChapter(chapterId: number) {
+    return api.delete<MaterialDeleteResponse>(`/teacher/chapters/${chapterId}`);
   },
 
   /*
-   * =========================
+   * ==========================================================
    * Unit
-   * =========================
+   * ==========================================================
    */
-  addUnit(draftId: number, chapterId: string, data: MaterialNamePayload) {
-    return api.post<MaterialDraftResponse>(
-      `/teacher/material-drafts/${draftId}/chapters/${chapterId}/units`,
-      data,
-    );
+
+  listUnits(chapterId: number) {
+    return api.get<MaterialUnitListResponse>(`/teacher/chapters/${chapterId}/units`);
   },
 
-  updateUnit(draftId: number, nodeId: string, data: MaterialNamePayload) {
-    return api.put<MaterialDraftResponse>(
-      `/teacher/material-drafts/${draftId}/units/${nodeId}`,
-      data,
-    );
+  createUnit(
+    chapterId: number,
+
+    data: MaterialNamePayload,
+  ) {
+    return api.post<MaterialUnitResponse>(`/teacher/chapters/${chapterId}/units`, data);
   },
 
-  deleteUnit(draftId: number, nodeId: string) {
-    return api.delete<MaterialDraftResponse>(`/teacher/material-drafts/${draftId}/units/${nodeId}`);
+  updateUnit(
+    unitId: number,
+
+    data: MaterialNamePayload,
+  ) {
+    return api.put<MaterialUnitResponse>(`/teacher/units/${unitId}`, data);
+  },
+
+  deleteUnit(unitId: number) {
+    return api.delete<MaterialDeleteResponse>(`/teacher/units/${unitId}`);
   },
 
   /*
-   * =========================
+   * ==========================================================
    * Knowledge Card
-   * =========================
+   * ==========================================================
    */
-  addKnowledgeCard(draftId: number, unitId: string, data: KnowledgeCardPayload) {
-    return api.post<MaterialDraftResponse>(
-      `/teacher/material-drafts/${draftId}/units/${unitId}/knowledge-cards`,
+
+  listKnowledgeCards(unitId: number) {
+    return api.get<MaterialKnowledgeCardListResponse>(`/teacher/units/${unitId}/knowledge-cards`);
+  },
+
+  createKnowledgeCard(
+    unitId: number,
+
+    data: KnowledgeCardPayload,
+  ) {
+    return api.post<MaterialKnowledgeCardResponse>(
+      `/teacher/units/${unitId}/knowledge-cards`,
       data,
     );
   },
 
-  updateKnowledgeCard(draftId: number, nodeId: string, data: KnowledgeCardPayload) {
-    return api.put<MaterialDraftResponse>(
-      `/teacher/material-drafts/${draftId}/knowledge-cards/${nodeId}`,
-      data,
-    );
+  updateKnowledgeCard(
+    cardId: number,
+
+    data: KnowledgeCardPayload,
+  ) {
+    return api.put<MaterialKnowledgeCardResponse>(`/teacher/knowledge-cards/${cardId}`, data);
   },
 
-  deleteKnowledgeCard(draftId: number, nodeId: string) {
-    return api.delete<MaterialDraftResponse>(
-      `/teacher/material-drafts/${draftId}/knowledge-cards/${nodeId}`,
-    );
-  },
-
-  /*
-   * =========================
-   * Publish
-   * =========================
-   */
-  publish(draftId: number) {
-    return api.post<MaterialPublishResponse>(`/teacher/material-drafts/${draftId}/publish`);
+  deleteKnowledgeCard(cardId: number) {
+    return api.delete<MaterialDeleteResponse>(`/teacher/knowledge-cards/${cardId}`);
   },
 
   /*
-   * =========================
-   * Draft Topic
-   * =========================
+   * ==========================================================
+   * Editor Image
+   * ==========================================================
+   *
+   * POST
+   * /teacher/upload-image
+   *
+   * multipart：
+   *
+   * image
+   *
+   * 最大 5MB。
    */
-  deleteDraftTopic(draftId: number, nodeId: string) {
-    return api.delete(`/teacher/material-drafts/${draftId}/topics/${nodeId}`);
-  },
 
-  /*
-   * =========================
-   * Published Topic
-   * =========================
-   */
-  deletePublishedTopic(topicId: number) {
-    return api.delete<{
-      message: string;
-    }>(`/teacher/topics/${topicId}`);
-  },
+  uploadEditorImage(image: File) {
+    const formData = new FormData();
 
-  getPublishedTopics(courseId: number) {
-    return api.get<{
-      topics: PublishedTopic[];
-    }>(`/teacher/courses/${courseId}/topics`);
+    formData.append('image', image, image.name);
+
+    return api.post<MaterialEditorImageUploadResponse>('/teacher/upload-image', formData);
   },
 };

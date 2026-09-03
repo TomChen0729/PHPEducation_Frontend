@@ -278,6 +278,29 @@
 
       <q-separator vertical />
 
+      <!-- Image -->
+      <div class="rich-text-editor__toolbar-group">
+        <q-btn
+          flat
+          round
+          dense
+          icon="image"
+          :loading="imageUploading"
+          :disable="disabled || imageUploading || !props.uploadImage"
+          @click="openImagePicker"
+        >
+          <q-tooltip> 插入圖片 </q-tooltip>
+        </q-btn>
+      </div>
+
+      <input
+        ref="imageInput"
+        type="file"
+        accept="image/*"
+        class="rich-text-editor__image-input"
+        @change="handleImageSelected"
+      />
+
       <!-- Table -->
       <div class="rich-text-editor__toolbar-group">
         <q-btn-dropdown flat dense icon="table_chart" :disable="disabled">
@@ -351,13 +374,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { EditorContent, useEditor } from '@tiptap/vue-3';
 
 import StarterKit from '@tiptap/starter-kit';
 
 import TextAlign from '@tiptap/extension-text-align';
+
+import Image from '@tiptap/extension-image';
 
 import { TableKit } from '@tiptap/extension-table';
 
@@ -372,6 +397,8 @@ const props = withDefaults(
     modelValue: string;
 
     disabled?: boolean;
+
+    uploadImage?: (file: File) => Promise<string | null>;
   }>(),
   {
     disabled: false,
@@ -414,6 +441,11 @@ const editor = useEditor({
       types: ['heading', 'paragraph'],
     }),
 
+    Image.configure({
+      inline: false,
+      allowBase64: false,
+    }),
+
     TableKit.configure({
       table: {
         resizable: true,
@@ -433,6 +465,55 @@ const editor = useEditor({
     );
   },
 });
+
+const imageInput = ref<HTMLInputElement | null>(null);
+
+const imageUploading = ref(false);
+
+function openImagePicker() {
+  if (props.disabled || imageUploading.value || !props.uploadImage) {
+    return;
+  }
+
+  if (imageInput.value) {
+    imageInput.value.value = '';
+
+    imageInput.value.click();
+  }
+}
+
+async function handleImageSelected(event: Event) {
+  const input = event.target as HTMLInputElement;
+
+  const file = input.files?.[0];
+
+  if (!file || !props.uploadImage) {
+    return;
+  }
+
+  imageUploading.value = true;
+
+  try {
+    const url = await props.uploadImage(file);
+
+    if (!url || !editor.value) {
+      return;
+    }
+
+    editor.value
+      .chain()
+      .focus()
+      .setImage({
+        src: url,
+        alt: file.name,
+      })
+      .run();
+  } finally {
+    imageUploading.value = false;
+
+    input.value = '';
+  }
+}
 
 /*
  * ============================================================

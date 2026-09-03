@@ -1,219 +1,365 @@
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 
 import { teacherMaterialApi } from '../api/teacher-material.api';
 
 import type {
   KnowledgeCardPayload,
-  MaterialDraft,
+  MaterialCourseTree,
+  MaterialKnowledgeCardNode,
   MaterialNamePayload,
-  PublishedTopic,
 } from '../types/material';
+
+/*
+ * ============================================================
+ * API Error
+ * ============================================================
+ */
+
+interface ApiErrorResponse {
+  message?: string;
+
+  errors?: Record<string, string[] | string>;
+}
+
+/*
+ * ============================================================
+ * Teacher Material Management
+ * ============================================================
+ */
 
 export function useTeacherMaterialManagement() {
   /*
-   * =========================
-   * Draft
-   * =========================
+   * ==========================================================
+   * Course
+   * ==========================================================
+   *
+   * 記錄目前正在管理哪一門 Course。
+   *
+   * CRUD 完成後需要利用它重新取得整棵 Tree。
    */
-  const drafts = ref<MaterialDraft[]>([]);
+
+  const currentCourseId = ref<number | null>(null);
 
   /*
-   * =========================
-   * Published Topics
-   * =========================
+   * ==========================================================
+   * Course Tree
+   * ==========================================================
    */
-  const publishedTopics = ref<PublishedTopic[]>([]);
+
+  const courseTree = ref<MaterialCourseTree | null>(null);
 
   /*
-   * =========================
+   * ==========================================================
    * Loading
-   * =========================
+   * ==========================================================
+   */
+
+  /*
+   * 取得整棵教材。
    */
   const loading = ref(false);
 
+  /*
+   * 下載 Excel 範本。
+   */
   const downloadingTemplate = ref(false);
 
+  /*
+   * Excel 匯入教材。
+   */
   const importing = ref(false);
 
-  const creatingDraft = ref(false);
-
-  const publishingDraftId = ref<number | null>(null);
-
   /*
-   * Topic / Chapter / Unit /
-   * Knowledge Card CRUD
+   * Chapter / Unit / Card
+   * 新增、修改、刪除。
    */
   const editing = ref(false);
 
   /*
-   * =========================
-   * Error
-   * =========================
+   * RichTextEditor 圖片上傳。
    */
+  const uploadingImage = ref(false);
+
+  /*
+   * ==========================================================
+   * Error
+   * ==========================================================
+   */
+
   const errorMessage = ref('');
+
+  /*
+   * 保留 HTTP Status，
+   * 下一階段 Dialog 可以依需要處理：
+   *
+   * 404
+   * 422
+   * ...
+   */
+  const errorStatus = ref<number | null>(null);
+
+  /*
+   * ==========================================================
+   * Chapters
+   * ==========================================================
+   */
+
+  const chapters = computed(() => {
+    return courseTree.value?.chapters ?? [];
+  });
+
+  /*
+   * ==========================================================
+   * Material Status
+   * ==========================================================
+   */
+
+  const hasMaterial = computed(() => {
+    return chapters.value.length > 0;
+  });
+
+  /*
+   * ==========================================================
+   * Statistics
+   * ==========================================================
+   */
+
+  const chapterCount = computed(() => {
+    return chapters.value.length;
+  });
+
+  const unitCount = computed(() => {
+    return chapters.value.reduce((total, chapter) => {
+      return total + chapter.units.length;
+    }, 0);
+  });
+
+  /*
+   * 同一張 Knowledge Card
+   * 可能掛在多個 Unit。
+   *
+   * 所以不能直接：
+   *
+   * sum(unit.knowledge_cards.length)
+   *
+   * 否則同一張 Card
+   * 可能被算兩次。
+   *
+   * 使用 card.id 去重。
+   */
+  const knowledgeCardCount = computed(() => {
+    const ids = new Set<number>();
+
+    chapters.value.forEach((chapter) => {
+      chapter.units.forEach((unit) => {
+        unit.knowledge_cards.forEach((card) => {
+          ids.add(card.id);
+        });
+      });
+    });
+
+    return ids.size;
+  });
+
+  /*
+   * ==========================================================
+   * Busy
+   * ==========================================================
+   */
+
+  const isBusy = computed(() => {
+    return (
+      loading.value ||
+      downloadingTemplate.value ||
+      importing.value ||
+      editing.value ||
+      uploadingImage.value
+    );
+  });
+
+  /*
+   * ==========================================================
+   * Error Helpers
+   * ==========================================================
+   */
 
   function clearErrorMessage() {
     errorMessage.value = '';
+
+    errorStatus.value = null;
+  }
+
+  function getValidationMessage(data: ApiErrorResponse): string | null {
+    if (!data.errors) {
+      return null;
+    }
+
+    const values = Object.values(data.errors);
+
+    for (const value of values) {
+      if (Array.isArray(value)) {
+        const message = value[0];
+
+        if (message) {
+          return message;
+        }
+
+        continue;
+      }
+
+      if (typeof value === 'string' && value.trim()) {
+        return value;
+      }
+    }
+
+    return null;
+  }
+
+  function setError(
+    error: unknown,
+
+    fallbackMessage: string,
+  ) {
+    if (isAxiosError(error)) {
+      errorStatus.value = error.response?.status ?? null;
+
+      const data = error.response?.data as ApiErrorResponse | undefined;
+
+      if (data) {
+        /*
+         * Laravel Validation errors
+         * 優先顯示。
+         */
+        const validationMessage = getValidationMessage(data);
+
+        if (validationMessage) {
+          errorMessage.value = validationMessage;
+
+          return;
+        }
+
+        /*
+         * Backend 自訂 message。
+         */
+        if (data.message?.trim()) {
+          errorMessage.value = data.message;
+
+          return;
+        }
+      }
+    }
+
+    errorMessage.value = fallbackMessage;
   }
 
   /*
-   * ============================================================
-   * GET Draft List
-   * ============================================================
+   * ==========================================================
+   * Course Tree
+   * ==========================================================
    */
-  async function fetchDrafts(courseId: number): Promise<void> {
+
+  async function fetchCourseTree(courseId: number): Promise<boolean> {
+    currentCourseId.value = courseId;
+
     loading.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
-      const response = await teacherMaterialApi.listDrafts(courseId);
+      const response = await teacherMaterialApi.getCourseTree(courseId);
 
-      drafts.value = response.data.drafts;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '教材資料取得失敗');
+      courseTree.value = response.data.course;
+
+      return true;
+    } catch (error) {
+      /*
+       * 取得失敗時，
+       * 不保留上一門 Course 的 Tree。
+       */
+      courseTree.value = null;
+
+      setError(error, '取得教材失敗');
+
+      return false;
     } finally {
       loading.value = false;
     }
   }
 
   /*
-   * ============================================================
-   * GET Published Topics
-   * ============================================================
+   * CRUD 後重新抓整棵 Tree。
    *
-   * GET
-   * /teacher/courses/{courseId}/topics
+   * 不使用前端手動 splice / push，
+   * 原因：
    *
-   * 這裡取得的是正式教材 topics table，
-   * 不是 MaterialDraft.tree。
+   * Knowledge Card 現在可能同時
+   * 關聯多個 Unit。
+   *
+   * 直接重新讀 Backend Tree
+   * 比較不容易發生前後端狀態不同步。
    */
-  async function fetchPublishedTopics(courseId: number): Promise<void> {
-    errorMessage.value = '';
-
-    try {
-      const response = await teacherMaterialApi.getPublishedTopics(courseId);
-
-      publishedTopics.value = response.data.topics;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '已發布主題取得失敗');
+  async function refreshCourseTree(): Promise<boolean> {
+    if (currentCourseId.value === null) {
+      return false;
     }
-  }
-
-  async function fetchPublishedTopicTree(topic: PublishedTopic): Promise<MaterialDraft | null> {
-    errorMessage.value = '';
 
     try {
-      const chapterResponse = await teacherMaterialApi.getPublishedChapters(topic.id);
+      const response = await teacherMaterialApi.getCourseTree(currentCourseId.value);
 
-      const chapters = await Promise.all(
-        chapterResponse.data.chapters.map(async (chapter) => {
-          const unitResponse = await teacherMaterialApi.getPublishedUnits(chapter.id);
+      courseTree.value = response.data.course;
 
-          const units = await Promise.all(
-            unitResponse.data.units.map(async (unit) => {
-              const cardResponse = await teacherMaterialApi.getPublishedKnowledgeCards(unit.id);
+      return true;
+    } catch (error) {
+      setError(error, '教材已更新，但重新載入教材失敗，請重新整理頁面');
 
-              return {
-                id: String(unit.id),
-
-                name: unit.name,
-
-                sort_order: unit.sort_order,
-
-                knowledge_cards: cardResponse.data.knowledge_cards.map((card) => ({
-                  id: String(card.id),
-
-                  title: card.title,
-
-                  content: card.content,
-
-                  example: card.example,
-
-                  sort_order: card.sort_order,
-                })),
-              };
-            }),
-          );
-
-          return {
-            id: String(chapter.id),
-
-            name: chapter.name,
-
-            sort_order: chapter.sort_order,
-
-            units,
-          };
-        }),
-      );
-
-      /*
-       * 轉成目前 MaterialTreeViewer
-       * 可以直接使用的格式。
-       */
-      return {
-        id: -topic.id,
-
-        course_id: 0,
-
-        name: topic.name,
-
-        status: 'published',
-
-        topics: [
-          {
-            id: String(topic.id),
-
-            name: topic.name,
-
-            sort_order: topic.sort_order,
-
-            chapters,
-          },
-        ],
-      };
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '已發布教材取得失敗');
-
-      return null;
+      return false;
     }
   }
 
   /*
-   * ============================================================
+   * ==========================================================
    * Download Template
-   * ============================================================
+   * ==========================================================
    */
+
   async function downloadTemplate(): Promise<boolean> {
     downloadingTemplate.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
       const response = await teacherMaterialApi.downloadTemplate();
 
-      const blobUrl = URL.createObjectURL(response.data);
+      const blob = response.data;
+
+      const url = window.URL.createObjectURL(blob);
 
       const link = document.createElement('a');
 
-      link.href = blobUrl;
+      link.href = url;
 
+      /*
+       * Backend 實際使用：
+       *
+       * public/templates/course_template.xlsx
+       *
+       * 但教師下載看到中文檔名。
+       */
       link.download = '教材匯入範本.xlsx';
 
       document.body.appendChild(link);
 
       link.click();
 
-      link.remove();
+      document.body.removeChild(link);
 
-      URL.revokeObjectURL(blobUrl);
+      window.URL.revokeObjectURL(url);
 
       return true;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '教材範本下載失敗');
+    } catch (error) {
+      setError(error, '下載教材範本失敗');
 
       return false;
     } finally {
@@ -222,534 +368,415 @@ export function useTeacherMaterialManagement() {
   }
 
   /*
-   * ============================================================
-   * Import Excel
-   * ============================================================
+   * ==========================================================
+   * Import Material
+   * ==========================================================
    */
+
   async function importMaterial(
     courseId: number,
-    topic: string,
+
     file: File,
-  ): Promise<MaterialDraft | null> {
+
+    overwrite = false,
+  ): Promise<boolean> {
     importing.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
+
+    /*
+     * 確保之後 CRUD Refresh
+     * 知道目前 Course。
+     */
+    currentCourseId.value = courseId;
 
     try {
-      const response = await teacherMaterialApi.importMaterial(courseId, topic, file);
+      await teacherMaterialApi.importMaterial(courseId, {
+        file,
+        overwrite,
+      });
 
-      /*
-       * 匯入成功後
-       * 重新取得 Draft List。
-       */
-      await fetchDrafts(courseId);
+      await refreshCourseTree();
 
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '教材匯入失敗');
+      return true;
+    } catch (error) {
+      setError(error, overwrite ? '重新匯入教材失敗' : '匯入教材失敗');
 
-      return null;
+      return false;
     } finally {
       importing.value = false;
     }
   }
 
   /*
-   * ============================================================
-   * Published → Draft
-   * ============================================================
-   */
-  async function createDraftFromPublished(courseId: number, topicId: number) {
-    creatingDraft.value = true;
-
-    errorMessage.value = '';
-
-    try {
-      const response = await teacherMaterialApi.createDraftFromPublished(courseId, topicId);
-
-      const draft = response.data.draft;
-
-      await fetchDrafts(courseId);
-
-      return draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '建立編輯草稿失敗');
-
-      return null;
-    } finally {
-      creatingDraft.value = false;
-    }
-  }
-  /*
-   * ============================================================
-   * Publish
-   * ============================================================
-   */
-  async function publishDraft(courseId: number, draftId: number): Promise<boolean> {
-    publishingDraftId.value = draftId;
-
-    errorMessage.value = '';
-
-    try {
-      await teacherMaterialApi.publish(draftId);
-
-      /*
-       * Draft 狀態會改變，
-       * 先重新取得 Draft。
-       *
-       * Published Topic
-       * 由 [courseId].vue
-       * 成功後另外 refresh。
-       */
-      await fetchDrafts(courseId);
-
-      return true;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '教材發布失敗');
-
-      return false;
-    } finally {
-      publishingDraftId.value = null;
-    }
-  }
-
-  /*
-   * ============================================================
-   * Replace Draft
-   * ============================================================
-   *
-   * Backend 每次 Draft CRUD
-   * 都回傳最新完整 Draft。
-   */
-  function replaceDraft(updatedDraft: MaterialDraft) {
-    drafts.value = drafts.value.map((draft) =>
-      draft.id === updatedDraft.id ? updatedDraft : draft,
-    );
-  }
-
-  /*
-   * ============================================================
-   * Topic
-   * ============================================================
-   *
-   * 這三個是原本 Draft Topic CRUD。
-   * 先保留，避免其他地方仍有使用。
-   */
-
-  /*
-   * =========================
-   * Add Draft Topic
-   * =========================
-   */
-  async function addTopic(
-    draftId: number,
-    data: MaterialNamePayload,
-  ): Promise<MaterialDraft | null> {
-    editing.value = true;
-
-    errorMessage.value = '';
-
-    try {
-      const response = await teacherMaterialApi.addTopic(draftId, data);
-
-      replaceDraft(response.data.draft);
-
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '新增主題失敗');
-
-      return null;
-    } finally {
-      editing.value = false;
-    }
-  }
-
-  /*
-   * =========================
-   * Update Draft Topic
-   * =========================
-   */
-  async function updateTopic(
-    draftId: number,
-    nodeId: string,
-    data: MaterialNamePayload,
-  ): Promise<MaterialDraft | null> {
-    editing.value = true;
-
-    errorMessage.value = '';
-
-    try {
-      const response = await teacherMaterialApi.updateTopic(draftId, nodeId, data);
-
-      replaceDraft(response.data.draft);
-
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '修改主題失敗');
-
-      return null;
-    } finally {
-      editing.value = false;
-    }
-  }
-
-  /*
-   * =========================
-   * Delete Draft Topic
-   * 舊版函式
-   * =========================
-   *
-   * 回傳 MaterialDraft，
-   * 先保留避免其他舊程式使用。
-   */
-  async function deleteTopic(draftId: number, nodeId: string): Promise<MaterialDraft | null> {
-    editing.value = true;
-
-    errorMessage.value = '';
-
-    try {
-      const response = await teacherMaterialApi.deleteTopic(draftId, nodeId);
-
-      replaceDraft(response.data.draft);
-
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '刪除主題失敗');
-
-      return null;
-    } finally {
-      editing.value = false;
-    }
-  }
-
-  /*
-   * ============================================================
-   * Delete Draft Topic
-   * ============================================================
-   *
-   * [courseId].vue 使用這一支。
-   *
-   * DELETE
-   * /teacher/material-drafts/{draftId}/topics/{nodeId}
-   *
-   * 成功 → true
-   * 失敗 → false
-   */
-  async function deleteDraftTopic(draftId: number, nodeId: string): Promise<boolean> {
-    editing.value = true;
-
-    errorMessage.value = '';
-
-    try {
-      const response = await teacherMaterialApi.deleteTopic(draftId, nodeId);
-
-      /*
-       * Backend 回傳更新後 Draft，
-       * 直接同步本地 drafts。
-       */
-      replaceDraft(response.data.draft);
-
-      return true;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '草稿主題刪除失敗');
-
-      return false;
-    } finally {
-      editing.value = false;
-    }
-  }
-
-  /*
-   * ============================================================
-   * Delete Published Topic
-   * ============================================================
-   *
-   * 正式教材 Topic。
-   *
-   * DELETE
-   * /teacher/topics/{topicId}
-   *
-   * 注意：
-   * 這裡的 topicId 是正式 topics.id，
-   * 不是 Draft tree nodeId。
-   */
-  async function deletePublishedTopic(topicId: number): Promise<boolean> {
-    editing.value = true;
-
-    errorMessage.value = '';
-
-    try {
-      await teacherMaterialApi.deletePublishedTopic(topicId);
-
-      /*
-       * 不在這裡自己修改 publishedTopics，
-       * [courseId].vue 成功後會呼叫：
-       *
-       * fetchPublishedTopics(courseId)
-       *
-       * 重新跟 Backend 同步。
-       */
-      return true;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '已發布主題刪除失敗');
-
-      return false;
-    } finally {
-      editing.value = false;
-    }
-  }
-
-  /*
-   * ============================================================
+   * ==========================================================
    * Chapter
-   * ============================================================
+   * ==========================================================
    */
-  async function addChapter(
-    draftId: number,
-    topicId: string,
-    data: MaterialNamePayload,
-  ): Promise<MaterialDraft | null> {
+
+  async function createChapter(courseId: number, data: MaterialNamePayload): Promise<boolean> {
     editing.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
-      const response = await teacherMaterialApi.addChapter(draftId, topicId, data);
+      await teacherMaterialApi.createChapter(courseId, data);
 
-      replaceDraft(response.data.draft);
+      /*
+       * CRUD 成功後，
+       * 從 Backend 重新取得 Tree。
+       */
+      await refreshCourseTree();
 
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '新增章節失敗');
+      return true;
+    } catch (error) {
+      setError(error, '新增章節失敗');
 
-      return null;
+      return false;
     } finally {
       editing.value = false;
     }
   }
 
   async function updateChapter(
-    draftId: number,
-    nodeId: string,
+    chapterId: number,
+
     data: MaterialNamePayload,
-  ): Promise<MaterialDraft | null> {
+  ): Promise<boolean> {
     editing.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
-      const response = await teacherMaterialApi.updateChapter(draftId, nodeId, data);
+      await teacherMaterialApi.updateChapter(chapterId, data);
 
-      replaceDraft(response.data.draft);
+      await refreshCourseTree();
 
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '修改章節失敗');
+      return true;
+    } catch (error) {
+      setError(error, '修改章節失敗');
 
-      return null;
+      return false;
     } finally {
       editing.value = false;
     }
   }
 
-  async function deleteChapter(draftId: number, nodeId: string): Promise<MaterialDraft | null> {
+  async function deleteChapter(chapterId: number): Promise<boolean> {
     editing.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
-      const response = await teacherMaterialApi.deleteChapter(draftId, nodeId);
+      await teacherMaterialApi.deleteChapter(chapterId);
 
-      replaceDraft(response.data.draft);
+      await refreshCourseTree();
 
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '刪除章節失敗');
+      return true;
+    } catch (error) {
+      setError(error, '刪除章節失敗');
 
-      return null;
+      return false;
     } finally {
       editing.value = false;
     }
   }
 
   /*
-   * ============================================================
+   * ==========================================================
    * Unit
-   * ============================================================
+   * ==========================================================
    */
-  async function addUnit(
-    draftId: number,
-    chapterId: string,
+
+  async function createUnit(
+    chapterId: number,
+
     data: MaterialNamePayload,
-  ): Promise<MaterialDraft | null> {
+  ): Promise<boolean> {
     editing.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
-      const response = await teacherMaterialApi.addUnit(draftId, chapterId, data);
+      await teacherMaterialApi.createUnit(chapterId, data);
 
-      replaceDraft(response.data.draft);
+      await refreshCourseTree();
 
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '新增單元失敗');
+      return true;
+    } catch (error) {
+      setError(error, '新增單元失敗');
 
-      return null;
+      return false;
     } finally {
       editing.value = false;
     }
   }
 
   async function updateUnit(
-    draftId: number,
-    nodeId: string,
+    unitId: number,
+
     data: MaterialNamePayload,
-  ): Promise<MaterialDraft | null> {
+  ): Promise<boolean> {
     editing.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
-      const response = await teacherMaterialApi.updateUnit(draftId, nodeId, data);
+      await teacherMaterialApi.updateUnit(unitId, data);
 
-      replaceDraft(response.data.draft);
+      await refreshCourseTree();
 
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '修改單元失敗');
+      return true;
+    } catch (error) {
+      setError(error, '修改單元失敗');
 
-      return null;
+      return false;
     } finally {
       editing.value = false;
     }
   }
 
-  async function deleteUnit(draftId: number, nodeId: string): Promise<MaterialDraft | null> {
+  async function deleteUnit(unitId: number): Promise<boolean> {
     editing.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
-      const response = await teacherMaterialApi.deleteUnit(draftId, nodeId);
+      await teacherMaterialApi.deleteUnit(unitId);
 
-      replaceDraft(response.data.draft);
+      await refreshCourseTree();
 
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '刪除單元失敗');
+      return true;
+    } catch (error) {
+      setError(error, '刪除單元失敗');
 
-      return null;
+      return false;
     } finally {
       editing.value = false;
     }
   }
 
   /*
-   * ============================================================
+   * ==========================================================
    * Knowledge Card
-   * ============================================================
+   * ==========================================================
    */
-  async function addKnowledgeCard(
-    draftId: number,
-    unitId: string,
+
+  async function createKnowledgeCard(
+    unitId: number,
+
     data: KnowledgeCardPayload,
-  ): Promise<MaterialDraft | null> {
+  ): Promise<boolean> {
     editing.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
-      const response = await teacherMaterialApi.addKnowledgeCard(draftId, unitId, data);
+      await teacherMaterialApi.createKnowledgeCard(unitId, data);
 
-      replaceDraft(response.data.draft);
+      await refreshCourseTree();
 
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '新增知識卡失敗');
+      return true;
+    } catch (error) {
+      setError(error, '新增知識卡失敗');
 
-      return null;
+      return false;
     } finally {
       editing.value = false;
     }
   }
 
   async function updateKnowledgeCard(
-    draftId: number,
-    nodeId: string,
+    cardId: number,
+
     data: KnowledgeCardPayload,
-  ): Promise<MaterialDraft | null> {
+  ): Promise<boolean> {
     editing.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
-      const response = await teacherMaterialApi.updateKnowledgeCard(draftId, nodeId, data);
+      await teacherMaterialApi.updateKnowledgeCard(cardId, data);
 
-      replaceDraft(response.data.draft);
+      /*
+       * 一張 Card 可能同時存在
+       * 於多個 Unit。
+       *
+       * 更新後重新取得整棵 Tree，
+       * 所有 Unit 裡的相同 Card
+       * 都會同步顯示新內容。
+       */
+      await refreshCourseTree();
 
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '修改知識卡失敗');
+      return true;
+    } catch (error) {
+      setError(error, '修改知識卡失敗');
 
-      return null;
+      return false;
     } finally {
       editing.value = false;
     }
   }
 
-  async function deleteKnowledgeCard(
-    draftId: number,
-    nodeId: string,
-  ): Promise<MaterialDraft | null> {
+  async function deleteKnowledgeCard(cardId: number): Promise<boolean> {
     editing.value = true;
 
-    errorMessage.value = '';
+    clearErrorMessage();
 
     try {
-      const response = await teacherMaterialApi.deleteKnowledgeCard(draftId, nodeId);
+      await teacherMaterialApi.deleteKnowledgeCard(cardId);
 
-      replaceDraft(response.data.draft);
+      await refreshCourseTree();
 
-      return response.data.draft;
-    } catch (error: unknown) {
-      errorMessage.value = getApiErrorMessage(error, '刪除知識卡失敗');
+      return true;
+    } catch (error) {
+      /*
+       * 如果 Knowledge Card
+       * 已被 Question 使用，
+       * Backend 可能回 422。
+       *
+       * 直接顯示 Backend message。
+       */
+      setError(error, '刪除知識卡失敗');
 
-      return null;
+      return false;
     } finally {
       editing.value = false;
     }
   }
 
   /*
-   * ============================================================
-   * Clear
-   * ============================================================
+   * ==========================================================
+   * Find Knowledge Card
+   * ==========================================================
+   *
+   * 因為一張 Card
+   * 可以出現在不同 Unit，
+   *
+   * 未來 Editor / Graph 點 Node 時
+   * 可以直接透過 ID 取得 Card。
    */
-  function clearDrafts() {
-    drafts.value = [];
+
+  function findKnowledgeCard(cardId: number): MaterialKnowledgeCardNode | null {
+    for (const chapter of chapters.value) {
+      for (const unit of chapter.units) {
+        const card = unit.knowledge_cards.find((item) => item.id === cardId);
+
+        if (card) {
+          return card;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /*
+   * ==========================================================
+   * Editor Image Upload
+   * ==========================================================
+   *
+   * Backend：
+   *
+   * POST /teacher/upload-image
+   *
+   * multipart:
+   *
+   * image
+   *
+   * 最大 5 MB。
+   *
+   * 成功：
+   *
+   * {
+   *   url: "..."
+   * }
+   *
+   * 之後 RichTextEditor
+   * 使用這個 URL 插入 <img>。
+   */
+
+  async function uploadEditorImage(image: File): Promise<string | null> {
+    clearErrorMessage();
 
     /*
-     * 換課程 / 離開課程時，
-     * 正式 Topic 也一起清除。
+     * Frontend 先做基本檢查。
      */
-    publishedTopics.value = [];
+    if (!image.type.startsWith('image/')) {
+      errorMessage.value = '請選擇圖片檔案';
 
-    errorMessage.value = '';
+      return null;
+    }
+
+    const maxSize = 5 * 1024 * 1024;
+
+    if (image.size > maxSize) {
+      errorMessage.value = '圖片大小不可超過 5MB';
+
+      return null;
+    }
+
+    uploadingImage.value = true;
+
+    try {
+      const response = await teacherMaterialApi.uploadEditorImage(image);
+
+      return response.data.url ?? null;
+    } catch (error) {
+      setError(error, '圖片上傳失敗');
+
+      return null;
+    } finally {
+      uploadingImage.value = false;
+    }
   }
 
   /*
-   * ============================================================
-   * Return
-   * ============================================================
+   * ==========================================================
+   * Clear
+   * ==========================================================
+   *
+   * 離開 Course Page
+   * 或 Route 變成無效 ID 時使用。
    */
+
+  function clearMaterial() {
+    currentCourseId.value = null;
+
+    courseTree.value = null;
+
+    clearErrorMessage();
+  }
+
+  /*
+   * ==========================================================
+   * Return
+   * ==========================================================
+   */
+
   return {
     /*
-     * Data
+     * Current Course
      */
-    drafts,
+    currentCourseId,
 
-    publishedTopics,
+    /*
+     * Tree
+     */
+    courseTree,
+
+    chapters,
+
+    /*
+     * Summary
+     */
+    hasMaterial,
+
+    chapterCount,
+
+    unitCount,
+
+    knowledgeCardCount,
 
     /*
      * Loading
@@ -760,25 +787,27 @@ export function useTeacherMaterialManagement() {
 
     importing,
 
-    creatingDraft,
-
-    publishingDraftId,
-
     editing,
+
+    uploadingImage,
+
+    isBusy,
 
     /*
      * Error
      */
     errorMessage,
 
+    errorStatus,
+
+    clearErrorMessage,
+
     /*
-     * Fetch
+     * Tree
      */
-    fetchDrafts,
+    fetchCourseTree,
 
-    fetchPublishedTopics,
-
-    fetchPublishedTopicTree,
+    refreshCourseTree,
 
     /*
      * Template / Import
@@ -788,35 +817,9 @@ export function useTeacherMaterialManagement() {
     importMaterial,
 
     /*
-     * Draft
-     */
-    createDraftFromPublished,
-
-    publishDraft,
-
-    /*
-     * Topic
-     */
-    addTopic,
-
-    updateTopic,
-
-    /*
-     * 舊版
-     */
-    deleteTopic,
-
-    /*
-     * 目前 [courseId].vue 使用
-     */
-    deleteDraftTopic,
-
-    deletePublishedTopic,
-
-    /*
      * Chapter
      */
-    addChapter,
+    createChapter,
 
     updateChapter,
 
@@ -825,7 +828,7 @@ export function useTeacherMaterialManagement() {
     /*
      * Unit
      */
-    addUnit,
+    createUnit,
 
     updateUnit,
 
@@ -834,42 +837,22 @@ export function useTeacherMaterialManagement() {
     /*
      * Knowledge Card
      */
-    addKnowledgeCard,
+    createKnowledgeCard,
 
     updateKnowledgeCard,
 
     deleteKnowledgeCard,
 
+    findKnowledgeCard,
+
+    /*
+     * Editor Image
+     */
+    uploadEditorImage,
+
     /*
      * Clear
      */
-    clearDrafts,
-
-    clearErrorMessage,
+    clearMaterial,
   };
-}
-
-/*
- * ============================================================
- * API Error
- * ============================================================
- */
-function getApiErrorMessage(error: unknown, fallback: string): string {
-  if (!axios.isAxiosError(error)) {
-    return fallback;
-  }
-
-  const data = error.response?.data as
-    | {
-        message?: string;
-
-        errors?: Record<string, string[]>;
-      }
-    | undefined;
-
-  const validationMessage = data?.errors
-    ? Object.values(data.errors).flat().find(Boolean)
-    : undefined;
-
-  return validationMessage ?? data?.message ?? fallback;
 }

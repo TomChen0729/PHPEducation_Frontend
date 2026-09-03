@@ -1,8 +1,6 @@
 <template>
   <q-page class="course-workspace-page">
-    <!-- =========================
-         Header
-    ========================== -->
+    <!-- Header -->
     <header class="course-workspace-page__header">
       <div>
         <q-btn
@@ -25,16 +23,10 @@
       </div>
     </header>
 
-    <!-- =========================
-         Course Error
-    ========================== -->
     <q-banner v-if="pageErrorMessage" rounded class="bg-red-1 text-negative q-mb-md">
       {{ pageErrorMessage }}
     </q-banner>
 
-    <!-- =========================
-         Workspace
-    ========================== -->
     <q-card flat bordered class="course-workspace-page__container">
       <q-tabs
         v-model="tab"
@@ -55,9 +47,7 @@
       <q-separator />
 
       <q-tab-panels v-model="tab" animated class="course-workspace-page__panels">
-        <!-- =========================
-             Course Info
-        ========================== -->
+        <!-- Course -->
         <q-tab-panel name="info">
           <CourseInfoPanel
             ref="courseInfoPanelRef"
@@ -68,9 +58,7 @@
           />
         </q-tab-panel>
 
-        <!-- =========================
-             Student
-        ========================== -->
+        <!-- Students -->
         <q-tab-panel name="students">
           <CourseStudentPanel
             v-if="courseId !== null"
@@ -79,99 +67,135 @@
           />
         </q-tab-panel>
 
-        <!-- =========================
-             Material
-        ========================== -->
+        <!-- Materials -->
         <q-tab-panel name="materials">
           <CourseMaterialPanel
             ref="materialPanelRef"
-            :drafts="drafts"
-            :published-topics="publishedTopics"
+            :course-name="course?.name ?? ''"
+            :has-material="hasMaterial"
+            :chapter-count="chapterCount"
+            :unit-count="unitCount"
+            :knowledge-card-count="knowledgeCardCount"
             :loading="materialLoading"
             :importing="importing"
             :downloading-template="downloadingTemplate"
-            :creating-draft="creatingDraft"
-            :publishing-draft-id="publishingDraftId"
+            :editing="editing"
+            :error-message="materialErrorMessage"
             @download-template="handleDownloadTemplate"
             @import="handleImportMaterial"
             @view="openMaterialViewer"
             @edit="openMaterialEditor"
-            @view-published="openPublishedMaterialViewer"
-            @edit-published="handleEditPublishedTopic"
-            @delete-draft-topic="handleDeleteDraftTopic"
-            @delete-published-topic="handleDeletePublishedTopic"
-            @publish="requestPublish"
+            @clear-error="clearMaterialErrorMessage"
           />
         </q-tab-panel>
 
+        <!-- Questions -->
         <q-tab-panel name="questions">
           <CourseQuestionPanel v-if="courseId !== null" :course-id="courseId" />
         </q-tab-panel>
       </q-tab-panels>
     </q-card>
 
-    <!-- =========================
-         Material Viewer
-    ========================== -->
+    <!-- Material Viewer -->
     <q-dialog v-model="materialViewerOpen">
       <q-card class="course-workspace-page__material-viewer">
         <q-card-section class="course-workspace-page__material-viewer-header">
           <div>
             <div class="text-h6">
-              {{ selectedDraft?.topics[0]?.name ?? selectedDraft?.name }}
+              {{ course?.name ?? '教材' }}
             </div>
 
-            <div class="text-caption text-grey-7">教材內容</div>
+            <div class="text-caption text-grey-7">正式教材</div>
           </div>
 
-          <q-btn flat round dense icon="close" v-close-popup />
-        </q-card-section>
+          <div class="course-workspace-page__material-viewer-actions">
+            <q-btn-toggle
+              v-model="materialViewMode"
+              unelevated
+              no-caps
+              color="grey-2"
+              text-color="blue-grey-8"
+              toggle-color="blue"
+              toggle-text-color="white"
+              :options="[
+                {
+                  label: '階層檢視',
+                  value: 'tree',
+                  icon: 'account_tree',
+                },
+                {
+                  label: '圖譜檢視',
+                  value: 'graph',
+                  icon: 'hub',
+                },
+              ]"
+            />
 
-        <q-card-section v-if="selectedDraft" class="course-workspace-page__material-viewer-content">
-          <MaterialTreeViewer :topic="selectedDraft.topics[0] ?? null" theme="teacher" />
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <!-- =========================
-         Material Editor
-    ========================== -->
-    <q-dialog
-      v-model="materialEditorOpen"
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      persistent
-    >
-      <q-card class="course-workspace-page__material-editor">
-        <!-- Header -->
-        <q-card-section class="course-workspace-page__material-editor-header flex justify-between">
-          <div>
-            <div class="text-h6">
-              {{ editingDraft?.topics[0]?.name ?? editingDraft?.name }}
-            </div>
-
-            <div class="text-caption text-grey-7">教材草稿編輯</div>
+            <q-btn flat round dense icon="close" v-close-popup />
           </div>
-
-          <q-btn flat round dense icon="close" :disable="editing" @click="closeMaterialEditor" />
         </q-card-section>
 
         <q-separator />
 
-        <!-- Editor -->
-        <q-card-section v-if="editingDraft" class="course-workspace-page__material-editor-content">
-          <MaterialDraftEditor
+        <q-card-section class="course-workspace-page__material-viewer-content">
+          <MaterialTreeViewer
+            v-if="materialViewMode === 'tree' && courseTree"
+            :tree="courseTree"
+            theme="teacher"
+          />
+
+          <MaterialGraphViewer
+            v-else-if="materialViewMode === 'graph' && courseTree"
+            :tree="courseTree"
+            theme="teacher"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- Material Editor -->
+    <q-dialog v-model="materialEditorOpen" persistent>
+      <q-card class="course-workspace-page__material-editor">
+        <q-card-section class="course-workspace-page__material-editor-header">
+          <div>
+            <div class="row items-center q-gutter-sm">
+              <div class="text-h6">
+                {{ course?.name ?? '教材' }}
+              </div>
+
+              <q-badge color="positive" label="正式教材" />
+            </div>
+
+            <div class="text-caption text-grey-7">教材編輯</div>
+          </div>
+
+          <q-btn
+            flat
+            round
+            dense
+            icon="close"
+            :disable="editing"
+            @click="requestCloseMaterialEditor"
+          />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section class="course-workspace-page__material-editor-content">
+          <MaterialEditor
+            v-if="courseTree"
             ref="materialEditorRef"
-            :draft="editingDraft"
+            :course-tree="courseTree"
             :editing="editing"
+            :upload-image="uploadEditorImage"
             :error-message="materialErrorMessage"
-            @add-chapter="handleAddChapter"
+            @create-chapter="handleCreateChapter"
             @update-chapter="handleUpdateChapter"
             @delete-chapter="handleDeleteChapter"
-            @add-unit="handleAddUnit"
+            @create-unit="handleCreateUnit"
             @update-unit="handleUpdateUnit"
             @delete-unit="handleDeleteUnit"
-            @add-card="handleAddCard"
+            @create-card="handleCreateCard"
             @update-card="handleUpdateCard"
             @delete-card="handleDeleteCard"
           />
@@ -194,11 +218,13 @@ import CourseStudentPanel from '../../../components/teacher/course-workspace/Cou
 
 import CourseMaterialPanel from '../../../components/teacher/course-workspace/CourseMaterialPanel.vue';
 
-import MaterialDraftEditor from '../../../components/teacher/course-workspace/MaterialDraftEditor.vue';
+import CourseQuestionPanel from '../../../components/teacher/course-workspace/CourseQuestionPanel.vue';
 
 import MaterialTreeViewer from '../../../components/material/MaterialTreeViewer.vue';
 
-import CourseQuestionPanel from '../../../components/teacher/course-workspace/CourseQuestionPanel.vue';
+import MaterialEditor from '../../../components/teacher/course-workspace/MaterialEditor.vue';
+
+import MaterialGraphViewer from '../../../components/material/MaterialGraphViewer.vue';
 
 import { useTeacherCourseWorkspace } from '../../../composables/useTeacherCourseWorkspace';
 
@@ -206,209 +232,95 @@ import { useTeacherMaterialManagement } from '../../../composables/useTeacherMat
 
 import type { CourseRequest } from '../../../types/course';
 
-import type { MaterialDraft, PublishedTopic } from '../../../types/material';
+import type { KnowledgeCardPayload, MaterialNamePayload } from '../../../types/material';
 
-/*
- * =========================
- * Route
- * =========================
- */
+type MaterialViewMode = 'tree' | 'graph';
+
+const materialViewMode = ref<MaterialViewMode>('tree');
+
 const route = useRoute();
 
 const courseId = computed<number | null>(() => {
   const params = route.params as Record<string, string | string[] | undefined>;
 
-  const rawCourseId = params.courseId;
+  const raw = params.courseId;
 
-  if (!rawCourseId) {
+  if (!raw) {
     return null;
   }
 
-  const value = Array.isArray(rawCourseId) ? rawCourseId[0] : rawCourseId;
+  const value = Array.isArray(raw) ? raw[0] : raw;
 
   const id = Number(value);
 
   return Number.isNaN(id) ? null : id;
 });
 
-/*
- * =========================
- * Tab
- * =========================
- */
 const tab = ref('info');
 
-/*
- * =========================
- * Course
- * =========================
- */
+const { course, courseLoading, courseSaving, courseErrorMessage, fetchCourse, updateCourse } =
+  useTeacherCourseWorkspace();
+
 const {
-  course,
+  courseTree,
+  hasMaterial,
 
-  courseLoading,
+  chapterCount,
+  unitCount,
+  knowledgeCardCount,
 
-  courseSaving,
-
-  courseErrorMessage,
-
-  fetchCourse,
-
-  updateCourse,
-} = useTeacherCourseWorkspace();
-
-/*
- * =========================
- * Material
- * =========================
- */
-const {
-  /*
-   * Data
-   */
-  drafts,
-
-  publishedTopics,
-
-  /*
-   * Loading
-   */
   loading: materialLoading,
 
   downloadingTemplate,
-
   importing,
-
-  creatingDraft,
-
-  publishingDraftId,
-
   editing,
 
-  /*
-   * Error
-   */
   errorMessage: materialErrorMessage,
 
-  /*
-   * Fetch
-   */
-  fetchDrafts,
-
-  fetchPublishedTopics,
-
-  fetchPublishedTopicTree,
-
-  /*
-   * Import
-   */
+  fetchCourseTree,
   downloadTemplate,
-
   importMaterial,
 
-  /*
-   * Draft / Publish
-   */
-  createDraftFromPublished,
-
-  publishDraft,
-
-  /*
-   * Topic
-   */
-  deleteDraftTopic,
-
-  deletePublishedTopic,
-
-  /*
-   * Chapter
-   */
-  addChapter,
-
+  createChapter,
   updateChapter,
-
   deleteChapter,
 
-  /*
-   * Unit
-   */
-  addUnit,
-
+  createUnit,
   updateUnit,
-
   deleteUnit,
 
-  /*
-   * Knowledge Card
-   */
-  addKnowledgeCard,
-
+  createKnowledgeCard,
   updateKnowledgeCard,
-
   deleteKnowledgeCard,
+  uploadEditorImage,
 
-  /*
-   * Clear
-   */
-  clearDrafts,
-
+  clearMaterial,
   clearErrorMessage: clearMaterialErrorMessage,
 } = useTeacherMaterialManagement();
 
-/*
- * =========================
- * Component Refs
- * =========================
- */
 const courseInfoPanelRef = ref<InstanceType<typeof CourseInfoPanel> | null>(null);
 
 const materialPanelRef = ref<InstanceType<typeof CourseMaterialPanel> | null>(null);
 
-const materialEditorRef = ref<InstanceType<typeof MaterialDraftEditor> | null>(null);
-
-/*
- * =========================
- * Viewer
- * =========================
- */
 const materialViewerOpen = ref(false);
 
-const selectedDraft = ref<MaterialDraft | null>(null);
+const pageErrorMessage = computed(() => courseErrorMessage.value);
 
-/*
- * =========================
- * Editor
- * =========================
- */
 const materialEditorOpen = ref(false);
 
-const editingDraft = ref<MaterialDraft | null>(null);
+const materialEditorRef = ref<InstanceType<typeof MaterialEditor> | null>(null);
 
-/*
- * =========================
- * Page Error
- * =========================
- */
-const pageErrorMessage = computed(() => {
-  return courseErrorMessage.value;
-});
-
-/*
- * =========================
- * Init
- * =========================
- */
 watch(
   courseId,
 
   async (id) => {
     if (id === null) {
-      clearDrafts();
+      clearMaterial();
 
       return;
     }
 
-    await Promise.all([fetchCourse(id), fetchDrafts(id), fetchPublishedTopics(id)]);
+    await Promise.all([fetchCourse(id), fetchCourseTree(id)]);
   },
 
   {
@@ -416,11 +328,6 @@ watch(
   },
 );
 
-/*
- * =========================
- * Course Save
- * =========================
- */
 async function handleSaveCourse(data: CourseRequest) {
   if (courseId.value === null) {
     return;
@@ -436,717 +343,264 @@ async function handleSaveCourse(data: CourseRequest) {
 
   Notify.create({
     type: 'positive',
-
     icon: 'check_circle',
-
     message: '課程資料修改成功',
-
     position: 'top',
-
     timeout: 1500,
   });
 }
 
-/*
- * =========================
- * Download Template
- * =========================
- */
 async function handleDownloadTemplate() {
   const success = await downloadTemplate();
 
   if (!success) {
     Notify.create({
       type: 'negative',
-
       icon: 'error_outline',
-
       message: materialErrorMessage.value || '教材範本下載失敗',
-
       position: 'top',
-
       timeout: 2500,
     });
-
-    clearMaterialErrorMessage();
 
     return;
   }
 
   Notify.create({
     type: 'positive',
-
     icon: 'check_circle',
-
     message: '教材匯入範本下載完成',
-
     position: 'top',
-
     timeout: 1500,
   });
 }
 
-/*
- * =========================
- * Import Material
- * =========================
- */
 async function handleImportMaterial(
-  topic: string,
-
   file: File,
+
+  overwrite: boolean,
 ) {
-  if (courseId.value === null) {
+  if (courseId.value === null || !course.value) {
     return;
   }
 
-  const draft = await importMaterial(courseId.value, topic, file);
+  const success = await importMaterial(courseId.value, file, overwrite);
 
-  if (!draft) {
+  if (!success) {
     Notify.create({
       type: 'negative',
-
       icon: 'error_outline',
-
       message: materialErrorMessage.value || '教材匯入失敗',
-
       position: 'top',
-
       timeout: 2500,
     });
 
-    clearMaterialErrorMessage();
-
     return;
   }
 
-  /*
-   * API 成功後才關閉匯入 Dialog。
-   */
   materialPanelRef.value?.closeImportDialog();
 
   Notify.create({
     type: 'positive',
-
     icon: 'check_circle',
-
-    message: `主題「${topic}」教材匯入成功`,
-
+    message: overwrite ? '教材重新匯入成功' : '教材匯入成功',
     position: 'top',
-
     timeout: 1800,
   });
 }
 
-/*
- * ============================================================
- * Viewer
- * ============================================================
- */
-function openMaterialViewer(draft: MaterialDraft) {
-  selectedDraft.value = draft;
+function openMaterialViewer() {
+  if (!courseTree.value) {
+    return;
+  }
+
+  materialViewMode.value = 'tree';
 
   materialViewerOpen.value = true;
 }
 
-/*
- * 已發布 Topic 需要先取得正式教材完整 Tree，
- * 再交給共用 Viewer。
- */
-async function openPublishedMaterialViewer(topic: PublishedTopic) {
-  const draft = await fetchPublishedTopicTree(topic);
-
-  if (!draft) {
-    Notify.create({
-      type: 'negative',
-
-      icon: 'error_outline',
-
-      message: materialErrorMessage.value || '已發布教材取得失敗',
-
-      position: 'top',
-
-      timeout: 2500,
-    });
-
-    clearMaterialErrorMessage();
-
-    return;
-  }
-
-  /*
-   * 共用 Viewer。
-   */
-  openMaterialViewer(draft);
-}
-
-/*
- * ============================================================
- * Editor
- * ============================================================
- */
-function openMaterialEditor(draft: MaterialDraft) {
-  /*
-   * 只有 Draft 可以直接編輯。
-   */
-  if (draft.status !== 'draft') {
-    return;
-  }
-
-  clearMaterialErrorMessage();
-
-  editingDraft.value = draft;
-
-  materialEditorOpen.value = true;
-}
-
-function closeMaterialEditor() {
-  clearMaterialErrorMessage();
-
-  materialEditorOpen.value = false;
-
-  editingDraft.value = null;
-}
-
-/*
- * ============================================================
- * Published Topic → Draft
- * ============================================================
- *
- * 每次只將點選的 Published Topic
- * 建立成一份 Draft。
- */
-async function handleEditPublishedTopic(topic: PublishedTopic) {
-  if (courseId.value === null) {
-    return;
-  }
-
-  const draft = await createDraftFromPublished(courseId.value, topic.id);
-
-  if (!draft) {
-    Notify.create({
-      type: 'negative',
-
-      icon: 'error_outline',
-
-      message: materialErrorMessage.value || '建立編輯草稿失敗',
-
-      position: 'top',
-
-      timeout: 2500,
-    });
-
-    clearMaterialErrorMessage();
-
-    return;
-  }
-
-  /*
-   * 防呆：
-   * 正常情況一份 Draft
-   * 應只有目前選擇的 Topic。
-   */
-  if (draft.topics.length === 0) {
-    Notify.create({
-      type: 'negative',
-
-      icon: 'error_outline',
-
-      message: '建立草稿成功，但草稿中沒有教材主題',
-
-      position: 'top',
-
-      timeout: 2500,
-    });
-
-    return;
-  }
-
-  /*
-   * 使用共用 Editor。
-   */
-  openMaterialEditor(draft);
-
-  Notify.create({
-    type: 'positive',
-
-    icon: 'check_circle',
-
-    message: `「${topic.name}」已加入草稿編輯`,
-
-    position: 'top',
-
-    timeout: 1800,
-  });
-}
-
-/*
- * =========================
- * Apply Updated Draft
- * =========================
- */
-function applyUpdatedDraft(draft: MaterialDraft) {
-  editingDraft.value = draft;
-
-  /*
-   * API 成功後才關閉
-   * Chapter / Unit / Card
-   * 新增或修改 Dialog。
-   */
-  materialEditorRef.value?.closeEditDialogs();
-}
-
-/*
- * =========================
- * Material Save Notify
- * =========================
- */
-
-function showMaterialSaveSuccess(message = '教材內容儲存成功') {
-  Notify.create({
-    type: 'positive',
-    icon: 'check_circle',
-    message,
-    position: 'top',
-    timeout: 1800,
-  });
-}
-
-/*
- * =========================
- * Chapter CRUD
- * =========================
- */
-async function handleAddChapter(
-  topicId: string,
-
-  name: string,
-) {
-  if (!editingDraft.value) {
-    return;
-  }
-
-  const draft = await addChapter(editingDraft.value.id, topicId, {
-    name,
-  });
-
-  if (!draft) {
-    return;
-  }
-
-  applyUpdatedDraft(draft);
-}
-
-async function handleUpdateChapter(nodeId: string, name: string) {
-  if (!editingDraft.value) {
-    return;
-  }
-
-  const draft = await updateChapter(editingDraft.value.id, nodeId, {
-    name,
-  });
-
-  if (!draft) {
-    return;
-  }
-
-  applyUpdatedDraft(draft);
-
-  showMaterialSaveSuccess('章節儲存成功');
-}
-
-async function handleDeleteChapter(nodeId: string) {
-  if (!editingDraft.value) {
-    return;
-  }
-
-  const draft = await deleteChapter(editingDraft.value.id, nodeId);
-
-  if (!draft) {
-    return;
-  }
-
-  applyUpdatedDraft(draft);
-}
-
-/*
- * =========================
- * Unit CRUD
- * =========================
- */
-async function handleAddUnit(
-  chapterId: string,
-
-  name: string,
-) {
-  if (!editingDraft.value) {
-    return;
-  }
-
-  const draft = await addUnit(editingDraft.value.id, chapterId, {
-    name,
-  });
-
-  if (!draft) {
-    return;
-  }
-
-  applyUpdatedDraft(draft);
-}
-
-async function handleUpdateUnit(nodeId: string, name: string) {
-  if (!editingDraft.value) {
-    return;
-  }
-
-  const draft = await updateUnit(editingDraft.value.id, nodeId, {
-    name,
-  });
-
-  if (!draft) {
-    return;
-  }
-
-  applyUpdatedDraft(draft);
-
-  showMaterialSaveSuccess('單元儲存成功');
-}
-
-async function handleDeleteUnit(nodeId: string) {
-  if (!editingDraft.value) {
-    return;
-  }
-
-  const draft = await deleteUnit(editingDraft.value.id, nodeId);
-
-  if (!draft) {
-    return;
-  }
-
-  applyUpdatedDraft(draft);
-}
-
-/*
- * =========================
- * Knowledge Card CRUD
- * =========================
- */
-async function handleAddCard(
-  unitId: string,
-
-  data: {
-    title: string;
-
-    content: string;
-
-    example: string | null;
-  },
-) {
-  if (!editingDraft.value) {
-    return;
-  }
-
-  const draft = await addKnowledgeCard(editingDraft.value.id, unitId, data);
-
-  if (!draft) {
-    return;
-  }
-
-  applyUpdatedDraft(draft);
-}
-
-async function handleUpdateCard(
-  nodeId: string,
-  data: {
-    title: string;
-    content: string;
-    example: string | null;
-  },
-) {
-  if (!editingDraft.value) {
-    return;
-  }
-
-  const draft = await updateKnowledgeCard(editingDraft.value.id, nodeId, data);
-
-  /*
-   * API Failed
-   */
-  if (!draft) {
-    return;
-  }
-
-  /*
-   * API Success
-   */
-  applyUpdatedDraft(draft);
-
-  showMaterialSaveSuccess('知識卡儲存成功');
-}
-
-async function handleDeleteCard(nodeId: string) {
-  if (!editingDraft.value) {
-    return;
-  }
-
-  const draft = await deleteKnowledgeCard(editingDraft.value.id, nodeId);
-
-  if (!draft) {
-    return;
-  }
-
-  applyUpdatedDraft(draft);
-}
-
-/*
- * ============================================================
- * Delete Draft Topic
- * ============================================================
- */
-function handleDeleteDraftTopic(
-  draftId: number,
-
-  nodeId: string,
-
-  topicName: string,
-) {
-  Dialog.create({
-    title: '刪除草稿主題',
-
-    message:
-      `確定要刪除草稿主題「${topicName}」嗎？` + '主題底下的章節、單元與知識卡也會一併移除。',
-
-    cancel: {
-      label: '取消',
-
-      flat: true,
-    },
-
-    ok: {
-      label: '確認刪除',
-
-      color: 'negative',
-    },
-
-    persistent: true,
-  }).onOk(() => {
-    void performDeleteDraftTopic(draftId, nodeId, topicName);
-  });
-}
-
-async function performDeleteDraftTopic(
-  draftId: number,
-
-  nodeId: string,
-
-  topicName: string,
-) {
-  if (courseId.value === null) {
-    return;
-  }
-
-  const success = await deleteDraftTopic(draftId, nodeId);
+async function handleCreateChapter(courseIdValue: number, data: MaterialNamePayload) {
+  const success = await createChapter(courseIdValue, data);
 
   if (!success) {
-    Notify.create({
-      type: 'negative',
-
-      icon: 'error_outline',
-
-      message: materialErrorMessage.value || '草稿主題刪除失敗',
-
-      position: 'top',
-
-      timeout: 2500,
-    });
-
-    clearMaterialErrorMessage();
-
     return;
   }
 
-  await fetchDrafts(courseId.value);
+  materialEditorRef.value?.closeNameDialog();
 
-  Notify.create({
-    type: 'positive',
-
-    icon: 'check_circle',
-
-    message: `草稿主題「${topicName}」已刪除`,
-
-    position: 'top',
-
-    timeout: 1800,
-  });
+  notifyMaterialSuccess('章節新增成功');
 }
 
-/*
- * ============================================================
- * Delete Published Topic
- * ============================================================
- */
-function handleDeletePublishedTopic(
-  topicId: number,
+async function handleUpdateChapter(
+  chapterId: number,
 
-  topicName: string,
+  data: MaterialNamePayload,
 ) {
-  Dialog.create({
-    title: '刪除已發布主題',
-
-    message:
-      `確定要刪除已發布主題「${topicName}」嗎？` + '主題底下的正式章節、單元與知識卡也會一併移除。',
-
-    cancel: {
-      label: '取消',
-
-      flat: true,
-    },
-
-    ok: {
-      label: '確認刪除',
-
-      color: 'negative',
-    },
-
-    persistent: true,
-  }).onOk(() => {
-    void performDeletePublishedTopic(topicId, topicName);
-  });
-}
-
-async function performDeletePublishedTopic(
-  topicId: number,
-
-  topicName: string,
-) {
-  if (courseId.value === null) {
-    return;
-  }
-
-  const success = await deletePublishedTopic(topicId);
+  const success = await updateChapter(chapterId, data);
 
   if (!success) {
-    Notify.create({
-      type: 'negative',
-
-      icon: 'error_outline',
-
-      message: materialErrorMessage.value || '已發布主題刪除失敗',
-
-      position: 'top',
-
-      timeout: 2500,
-    });
-
-    clearMaterialErrorMessage();
-
     return;
   }
 
-  /*
-   * 正式 Topic 刪除後，
-   * 重新取得正式教材。
-   */
-  await fetchPublishedTopics(courseId.value);
+  materialEditorRef.value?.closeNameDialog();
 
-  Notify.create({
-    type: 'positive',
-
-    icon: 'check_circle',
-
-    message: `已發布主題「${topicName}」已刪除`,
-
-    position: 'top',
-
-    timeout: 1800,
-  });
+  notifyMaterialSuccess('章節修改成功');
 }
 
-/*
- * ============================================================
- * Publish
- * ============================================================
- */
-function requestPublish(draft: MaterialDraft) {
-  Dialog.create({
-    title: '發布教材',
-
-    message: `確定要將「${draft.topics[0]?.name ?? draft.name}」發布為正式教材嗎？`,
-
-    cancel: {
-      label: '取消',
-
-      flat: true,
-    },
-
-    ok: {
-      label: '確認發布',
-
-      color: 'blue',
-    },
-
-    persistent: true,
-  }).onOk(() => {
-    void handlePublish(draft);
-  });
-}
-
-async function handlePublish(draft: MaterialDraft) {
-  if (courseId.value === null) {
-    return;
-  }
-
-  const success = await publishDraft(courseId.value, draft.id);
+async function handleDeleteChapter(chapterId: number) {
+  const success = await deleteChapter(chapterId);
 
   if (!success) {
-    Notify.create({
-      type: 'negative',
-
-      icon: 'error_outline',
-
-      message: materialErrorMessage.value || '教材發布失敗',
-
-      position: 'top',
-
-      timeout: 2500,
-    });
-
-    clearMaterialErrorMessage();
-
     return;
   }
 
-  /*
-   * 發布後刷新：
-   *
-   * 1. Draft
-   * 2. Published Topic
-   */
-  await Promise.all([fetchDrafts(courseId.value), fetchPublishedTopics(courseId.value)]);
-
-  Notify.create({
-    type: 'positive',
-
-    icon: 'check_circle',
-
-    message: `「${draft.topics[0]?.name ?? draft.name}」已發布`,
-
-    position: 'top',
-
-    timeout: 1500,
-  });
+  notifyMaterialSuccess('章節已刪除');
 }
 
-/*
- * =========================
- * Semester
- * =========================
- */
 function formatSemester(semester: string) {
   const [year, term] = semester.split('-');
 
   const termText = term === '1' ? '上學期' : term === '2' ? '下學期' : '';
 
   return `${year} 學年度・${termText}`;
+}
+
+async function handleCreateUnit(
+  chapterId: number,
+
+  data: MaterialNamePayload,
+) {
+  const success = await createUnit(chapterId, data);
+
+  if (!success) {
+    return;
+  }
+
+  materialEditorRef.value?.closeNameDialog();
+
+  notifyMaterialSuccess('單元新增成功');
+}
+
+async function handleUpdateUnit(
+  unitId: number,
+
+  data: MaterialNamePayload,
+) {
+  const success = await updateUnit(unitId, data);
+
+  if (!success) {
+    return;
+  }
+
+  materialEditorRef.value?.closeNameDialog();
+
+  notifyMaterialSuccess('單元修改成功');
+}
+
+async function handleDeleteUnit(unitId: number) {
+  const success = await deleteUnit(unitId);
+
+  if (!success) {
+    return;
+  }
+
+  notifyMaterialSuccess('單元已刪除');
+}
+
+async function handleCreateCard(
+  unitId: number,
+
+  data: KnowledgeCardPayload,
+) {
+  const success = await createKnowledgeCard(unitId, data);
+
+  if (!success) {
+    return;
+  }
+
+  materialEditorRef.value?.finishCardSave();
+
+  notifyMaterialSuccess('知識卡新增成功');
+}
+
+async function handleUpdateCard(
+  cardId: number,
+
+  data: KnowledgeCardPayload,
+) {
+  const success = await updateKnowledgeCard(cardId, data);
+
+  if (!success) {
+    return;
+  }
+
+  materialEditorRef.value?.finishCardSave();
+
+  notifyMaterialSuccess('教材內容已儲存');
+}
+
+async function handleDeleteCard(cardId: number) {
+  const success = await deleteKnowledgeCard(cardId);
+
+  if (!success) {
+    return;
+  }
+
+  materialEditorRef.value?.handleDeletedCard(cardId);
+
+  notifyMaterialSuccess('知識卡已刪除');
+}
+
+function openMaterialEditor() {
+  if (!courseTree.value) {
+    return;
+  }
+
+  clearMaterialErrorMessage();
+
+  materialEditorOpen.value = true;
+}
+
+function requestCloseMaterialEditor() {
+  if (!materialEditorRef.value?.hasUnsavedChanges()) {
+    closeMaterialEditor();
+
+    return;
+  }
+
+  Dialog.create({
+    title: '尚未儲存',
+
+    message: '目前還有尚未儲存的教材內容，確定要離開嗎？',
+
+    cancel: {
+      label: '繼續編輯',
+      flat: true,
+    },
+
+    ok: {
+      label: '離開',
+      color: 'negative',
+    },
+
+    persistent: true,
+  }).onOk(() => {
+    closeMaterialEditor();
+  });
+}
+
+function closeMaterialEditor() {
+  clearMaterialErrorMessage();
+
+  materialEditorOpen.value = false;
+}
+
+function notifyMaterialSuccess(message: string) {
+  Notify.create({
+    type: 'positive',
+    icon: 'check_circle',
+    message,
+    position: 'top',
+    timeout: 1500,
+  });
 }
 </script>

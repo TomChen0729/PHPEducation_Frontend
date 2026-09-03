@@ -2,6 +2,7 @@
 @use './components/navbar';
 @use './components/confirmDialog';
 @use './components/common/rich-text-editor';
+@use './components/common/rich-content-viewer';
 
 // login page css
 @use './components/login';
@@ -9,6 +10,7 @@
 
 // material css
 @use './components/material/material-tree-viewer';
+@use './components/material/material-graph-viewer';
 
 // admin page css
 @use './components/admin/course-activation-panel';
@@ -24,7 +26,7 @@
 @use './components/teacher/course-student-panel';
 @use './components/teacher/course-question-panel';
 @use './components/teacher/question-form-dialog';
-@use './components/teacher/material-draft-editor';
+@use './components/teacher/material-editor';
 
 // student page css
 @use './components/student/student-material';

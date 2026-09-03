@@ -1,4 +1,4 @@
-export type MaterialNodeCategory = 'topic' | 'chapter' | 'unit' | 'knowledge_card';
+export type MaterialNodeCategory = 'chapter' | 'unit' | 'knowledge_card';
 
 export interface MaterialNodeDisplayMeta {
   category: MaterialNodeCategory;
@@ -18,9 +18,6 @@ export interface MaterialNodeDisplayMeta {
 
 export function getMaterialCategoryLabel(category: MaterialNodeCategory): string {
   switch (category) {
-    case 'topic':
-      return '主題';
-
     case 'chapter':
       return '章節';
 
@@ -40,9 +37,6 @@ export function getMaterialCategoryLabel(category: MaterialNodeCategory): string
 
 export function getMaterialCategoryIcon(category: MaterialNodeCategory): string {
   switch (category) {
-    case 'topic':
-      return 'library_books';
-
     case 'chapter':
       return 'menu_book';
 

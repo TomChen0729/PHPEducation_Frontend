@@ -156,14 +156,11 @@
       display: flex;
       flex-direction: column;
 
-      /*
-     * 新版需要更接近桌面工作區。
-     */
-      width: 90% !important;
-      height: 900px;
+      width: 1400px;
+      height: 850px;
 
-      max-width: 90vw;
-      max-height: 95vh;
+      max-width: 96vw !important;
+      max-height: 94vh !important;
 
       overflow: hidden;
 
@@ -180,31 +177,16 @@
       gap: 16px;
 
       padding: 16px 20px;
-
-      background-color: #ffffff;
     }
 
-    /*
-   * 注意：
-   *
-   * 外層不要再 Scroll。
-   *
-   * 左側 Outline
-   * 與
-   * 右側 Editor
-   *
-   * 各自處理 Scroll。
-   */
     &__material-editor-content {
       flex: 1;
 
       min-height: 0;
 
-      padding: unset;
+      padding: 0;
 
       overflow: hidden;
-
-      background-color: #f4f6f8;
     }
   }
 }
@@ -428,49 +410,6 @@
   }
 
   /*
-   * ==========================================================
-   * Published / Draft Groups
-   * ==========================================================
-   */
-
-  &__groups {
-    display: grid;
-
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    align-items: start;
-
-    gap: 20px;
-  }
-
-  &__group {
-    min-width: 0;
-
-    padding: 16px;
-
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-
-    /*
-     * Published
-     */
-    &--published {
-      background-color: #f6fff8;
-
-      border-color: #c8e6c9;
-    }
-
-    /*
-     * Draft
-     */
-    &--draft {
-      background-color: #fffaf2;
-
-      border-color: #ffe0b2;
-    }
-  }
-
-  /*
    * =========================
    * Group Header
    * =========================
@@ -539,25 +478,6 @@
 
     border: 1px dashed #cfd8dc;
     border-radius: 10px;
-  }
-
-  /*
-   * =========================
-   * Topic Meta
-   * =========================
-   */
-
-  &__topic-meta {
-    display: flex;
-    flex-direction: column;
-
-    gap: 6px;
-
-    margin-top: 8px;
-
-    color: #607d8b;
-
-    font-size: 13px;
   }
 
   &__updated-at {
@@ -670,14 +590,6 @@
     margin-top: 16px;
   }
 
-  &__delete-topic-btn {
-    color: q.$red-7;
-
-    &:hover {
-      background-color: q.$red-1;
-    }
-  }
-
   /*
    * =========================
    * Common Dialog
@@ -702,7 +614,7 @@
     display: flex;
     flex-direction: column;
 
-    width: 680px;
+    width: 800px;
 
     max-width: 94vw;
     max-height: 90vh;
@@ -818,6 +730,121 @@
 
     padding: 12px 18px;
   }
+
+  &__content {
+    width: 100%;
+  }
+
+  &__material-card {
+    overflow: hidden;
+
+    background-color: #ffffff;
+
+    border-color: #bbdefb;
+    border-radius: 12px;
+  }
+
+  &__material-card-main {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+  }
+
+  &__material-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    width: 54px;
+    height: 54px;
+
+    color: #1976d2;
+
+    background-color: #e3f2fd;
+
+    border-radius: 12px;
+  }
+
+  &__material-info {
+    flex: 1;
+
+    min-width: 0;
+  }
+
+  &__material-name {
+    color: #263238;
+
+    font-size: 19px;
+    font-weight: 700;
+  }
+
+  &__material-caption {
+    margin-top: 4px;
+
+    color: #78909c;
+
+    font-size: 13px;
+  }
+
+  &__stats {
+    display: grid;
+
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    gap: 12px;
+
+    margin-top: 20px;
+  }
+
+  &__stat {
+    padding: 14px;
+
+    text-align: center;
+
+    background-color: #f7f9fb;
+
+    border-radius: 8px;
+  }
+
+  &__stat-value {
+    color: #1976d2;
+
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  &__stat-label {
+    margin-top: 2px;
+
+    color: #78909c;
+
+    font-size: 12px;
+  }
+
+  &__course-name-box {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 14px;
+
+    background-color: #f5f9ff;
+
+    border: 1px solid #d7e9ff;
+    border-radius: 8px;
+  }
+
+  &__overwrite-warning {
+    color: #795548;
+
+    background-color: #fff8e1;
+
+    border: 1px solid #ffe082;
+  }
 }
 
 /*
@@ -827,6 +854,35 @@
  */
 
 @media (max-width: 899px) {
+  // &__header {
+  //   align-items: stretch;
+  //   flex-direction: column;
+  // }
+
+  // &__header-actions {
+  //   width: 100%;
+
+  //   .q-btn {
+  //     width: 100%;
+  //   }
+  // }
+
+  // &__material-card-main {
+  //   align-items: flex-start;
+  // }
+
+  // &__stats {
+  //   grid-template-columns: 1fr;
+  // }
+
+  // &__actions {
+  //   flex-direction: column;
+
+  //   .q-btn {
+  //     width: 100%;
+  //   }
+  // }
+
   /*
    * =========================
    * Material Groups
@@ -856,8 +912,19 @@
 
   .course-workspace-page {
     &__material-editor {
-      width: 94vw;
-      height: 88vh;
+      width: 96vw;
+      height: 92vh;
+
+      max-width: 96vw !important;
+      max-height: 92vh !important;
+    }
+
+    &__material-editor-header {
+      padding: 13px 15px;
+    }
+
+    &__material-editor-content {
+      overflow-y: auto;
     }
   }
 

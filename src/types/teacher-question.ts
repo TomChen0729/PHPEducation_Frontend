@@ -41,8 +41,6 @@ export interface TeacherQuestionKnowledgeCardOption {
   unit_name: string | null;
 
   chapter_name: string | null;
-
-  topic_name: string | null;
 }
 
 export interface TeacherQuestionKnowledgeCardListResponse {

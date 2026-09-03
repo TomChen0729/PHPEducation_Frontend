@@ -3,27 +3,18 @@ import { api } from '../boot/axios';
 import type {
   StudentChapterListResponse,
   StudentKnowledgeCardListResponse,
-  StudentTopicListResponse,
+  StudentMaterialGraphResponse,
   StudentUnitListResponse,
 } from '../types/student-material';
 
 export const studentMaterialApi = {
   /*
    * =========================
-   * Topics
-   * =========================
-   */
-  getTopics(courseId: number) {
-    return api.get<StudentTopicListResponse>(`/student/courses/${courseId}/topics`);
-  },
-
-  /*
-   * =========================
    * Chapters
    * =========================
    */
-  getChapters(topicId: number) {
-    return api.get<StudentChapterListResponse>(`/student/topics/${topicId}/chapters`);
+  getChapters(courseId: number) {
+    return api.get<StudentChapterListResponse>(`/student/courses/${courseId}/chapters`);
   },
 
   /*
@@ -42,5 +33,14 @@ export const studentMaterialApi = {
    */
   getKnowledgeCards(unitId: number) {
     return api.get<StudentKnowledgeCardListResponse>(`/student/units/${unitId}/knowledge-cards`);
+  },
+
+  /*
+   * =========================
+   * Knowledge Graph
+   * =========================
+   */
+  getGraph(courseId: number) {
+    return api.get<StudentMaterialGraphResponse>(`/student/courses/${courseId}/graph`);
   },
 };
