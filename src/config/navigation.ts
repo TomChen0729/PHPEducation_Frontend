@@ -19,16 +19,16 @@ export const navigationByRole: Record<UserRole, NavigationItem[]> = {
       icon: 'manage_accounts',
       to: '/admin/userManagement',
     },
-    {
-      label: '課程管理',
-      icon: 'school',
-      to: '/admin/courses',
-    },
-    {
-      label: '知識圖譜',
-      icon: 'hub',
-      to: '/admin/knowledge-graph',
-    },
+    // {
+    //   label: '課程管理',
+    //   icon: 'school',
+    //   to: '/admin/courses',
+    // },
+    // {
+    //   label: '知識圖譜',
+    //   icon: 'hub',
+    //   to: '/admin/knowledge-graph',
+    // },
   ],
 
   // 教師頁面
@@ -43,26 +43,26 @@ export const navigationByRole: Record<UserRole, NavigationItem[]> = {
       icon: 'school',
       to: '/teacher/courseManagement',
     },
-    {
-      label: '教材管理',
-      icon: 'menu_book',
-      to: '/teacher/materials',
-    },
-    {
-      label: '題庫管理',
-      icon: 'quiz',
-      to: '/teacher/questions',
-    },
-    {
-      label: '知識圖譜',
-      icon: 'hub',
-      to: '/teacher/knowledge-graph',
-    },
-    {
-      label: '學習分析',
-      icon: 'analytics',
-      to: '/teacher/analytics',
-    },
+    // {
+    //   label: '教材管理',
+    //   icon: 'menu_book',
+    //   to: '/teacher/materials',
+    // },
+    // {
+    //   label: '題庫管理',
+    //   icon: 'quiz',
+    //   to: '/teacher/questions',
+    // },
+    // {
+    //   label: '知識圖譜',
+    //   icon: 'hub',
+    //   to: '/teacher/knowledge-graph',
+    // },
+    // {
+    //   label: '學習分析',
+    //   icon: 'analytics',
+    //   to: '/teacher/analytics',
+    // },
   ],
 
   // 學生頁面
@@ -77,15 +77,15 @@ export const navigationByRole: Record<UserRole, NavigationItem[]> = {
       icon: 'school',
       to: '/student/courses',
     },
-    {
-      label: '學習進度',
-      icon: 'trending_up',
-      to: '/student/progress',
-    },
-    {
-      label: '學習歷程',
-      icon: 'history',
-      to: '/student/history',
-    },
+    // {
+    //   label: '學習進度',
+    //   icon: 'trending_up',
+    //   to: '/student/progress',
+    // },
+    // {
+    //   label: '學習歷程',
+    //   icon: 'history',
+    //   to: '/student/history',
+    // },
   ],
 };
