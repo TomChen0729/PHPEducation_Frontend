@@ -6,8 +6,6 @@
     <div class="course-question-panel__header">
       <div>
         <h5 class="text-weight-bold">題庫管理</h5>
-
-        <p>管理此課程的題目、Bloom 層級與關聯知識卡</p>
       </div>
 
       <q-btn

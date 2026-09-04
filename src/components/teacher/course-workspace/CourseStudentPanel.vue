@@ -6,12 +6,6 @@
     <div class="course-student-panel__header">
       <div>
         <h5 class="text-weight-bold course-student-panel__title">班級學生</h5>
-
-        <div class="course-student-panel__description">
-          <template v-if="className"> 管理 {{ className }} 的學生名單與待審核申請 </template>
-
-          <template v-else> 管理此課程的學生名單與待審核申請 </template>
-        </div>
       </div>
 
       <div class="course-student-panel__header-actions">

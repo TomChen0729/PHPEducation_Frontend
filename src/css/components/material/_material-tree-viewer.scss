@@ -3,6 +3,19 @@
 .material-tree-viewer {
   width: 100%;
 
+  &__toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   /*
    * ==========================================================
    * Empty

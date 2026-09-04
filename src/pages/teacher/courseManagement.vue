@@ -161,6 +161,6 @@ async function confirmDeleteCourse() {
 }
 
 function enterCourse(course: Course) {
-  void router.push(`/teacher/courses/${course.id}`);
+  void router.push(`/teacher/course/${course.id}`);
 }
 </script>

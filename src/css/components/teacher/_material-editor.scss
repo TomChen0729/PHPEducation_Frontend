@@ -1,207 +1,22 @@
+// ============================================================
+// Material Editor
+// ============================================================
+
 .material-editor {
-  display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-
   width: 100%;
-  height: 100%;
-  min-height: 0;
-
-  background-color: #ffffff;
-
-  &__outline {
-    display: flex;
-    flex-direction: column;
-
-    min-width: 0;
-    min-height: 0;
-
-    border-right: 1px solid #e0e6ea;
-  }
-
-  &__outline-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 12px;
-
-    flex-shrink: 0;
-
-    padding: 16px 18px;
-  }
-
-  &__outline-title {
-    color: #263238;
-
-    font-size: 16px;
-    font-weight: 700;
-  }
-
-  &__outline-caption {
-    margin-top: 2px;
-
-    color: #90a4ae;
-
-    font-size: 12px;
-  }
-
-  &__outline-body {
-    flex: 1;
-
-    min-height: 0;
-
-    padding: 12px;
-
-    overflow-y: auto;
-
-    background-color: #f8fafb;
-  }
-
-  &__outline-empty,
-  &__workspace-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    gap: 8px;
-
-    min-height: 240px;
-
-    text-align: center;
-
-    color: #90a4ae;
-  }
-
-  &__chapter {
-    margin-bottom: 10px;
-
-    overflow: hidden;
-
-    background-color: #ffffff;
-
-    border: 1px solid #bbdefb;
-    border-radius: 9px;
-  }
-
-  &__chapter-title {
-    color: #37474f;
-
-    font-weight: 700;
-  }
-
-  &__units {
-    padding: 8px 10px 12px 18px;
-
-    background-color: #f8fbff;
-
-    border-left: 3px solid #42a5f5;
-  }
-
-  &__unit {
-    margin-top: 7px;
-
-    overflow: hidden;
-
-    background-color: #ffffff;
-
-    border: 1px solid #dce7ed;
-    border-radius: 7px;
-  }
-
-  &__unit-title {
-    color: #455a64;
-
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  &__node-actions {
-    display: flex;
-    align-items: center;
-
-    gap: 2px;
-  }
-
-  &__cards {
-    display: flex;
-    flex-direction: column;
-
-    gap: 5px;
-
-    padding: 8px;
-  }
-
-  &__card {
-    min-height: 52px;
-
-    border-radius: 6px;
-
-    transition:
-      background-color 0.15s ease,
-      box-shadow 0.15s ease;
-
-    &:hover {
-      background-color: #f5f9ff;
-    }
-
-    &--active {
-      background-color: #e3f2fd;
-
-      box-shadow: inset 3px 0 0 #1976d2;
-    }
-  }
-
-  &__card-title {
-    color: #37474f;
-
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  &__add-card {
-    align-self: flex-start;
-
-    margin-top: 3px;
-  }
-
-  &__workspace {
-    min-width: 0;
-    min-height: 0;
-
-    overflow-y: auto;
-
-    background-color: #f5f7f9;
-  }
-
-  &__workspace-empty {
-    height: 100%;
-  }
 
   &__error {
-    margin: 20px 24px 0;
+    margin-bottom: 18px;
   }
 
-  &__form {
-    width: min(900px, calc(100% - 48px));
-
-    margin: 24px auto;
-    padding: 24px;
-
-    background-color: #ffffff;
-
-    border: 1px solid #e0e6ea;
-    border-radius: 10px;
-  }
-
-  &__form-header {
+  &__header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
 
     gap: 16px;
 
-    margin-bottom: 16px;
+    margin-bottom: 8px;
   }
 
   &__breadcrumb {
@@ -212,16 +27,32 @@
     font-size: 12px;
   }
 
-  &__form-title {
+  &__title {
     color: #263238;
 
-    font-size: 20px;
+    font-size: 21px;
     font-weight: 700;
   }
 
-  &__live-note {
-    margin-bottom: 18px;
+  &__form,
+  &__card-form {
+    display: flex;
+    flex-direction: column;
 
+    gap: 10px;
+  }
+
+  &__form-grid {
+    display: grid;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      160px;
+
+    gap: 14px;
+  }
+
+  &__live-note {
     color: #455a64;
 
     background-color: #f4f9ff;
@@ -229,122 +60,231 @@
     border: 1px solid #bbdefb;
   }
 
-  &__form-grid {
-    display: grid;
-    grid-template-columns:
-      minmax(0, 1fr)
-      150px;
-
-    gap: 14px;
-
-    margin-top: 16px;
-  }
-
-  &__field {
-    margin-top: 18px;
-  }
-
   &__field-label {
-    margin-bottom: 8px;
-
     color: #455a64;
 
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
   }
 
-  &__example-input {
-    margin-top: 18px;
+  &__field-caption {
+    margin: 3px 0 8px;
 
+    color: #90a4ae;
+
+    font-size: 12px;
+  }
+
+  &__example {
     textarea {
       font-family: Consolas, 'Courier New', monospace;
     }
   }
 
-  &__form-actions {
+  &__actions {
     display: flex;
     justify-content: flex-end;
 
     gap: 8px;
 
-    margin-top: 22px;
+    margin-top: 24px;
   }
 
-  &__name-dialog {
-    width: 480px;
-    max-width: 92vw;
+  // ----------------------------------------------------------
+  // Chapter / Unit：內容少，使用緊湊版表單
+  // ----------------------------------------------------------
+  &--compact {
+    .material-editor__header {
+      margin-bottom: 18px;
+    }
 
-    border-radius: 10px;
+    .material-editor__form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 150px;
+
+      gap: 14px;
+    }
+
+    .material-editor__actions {
+      margin-top: 20px;
+    }
   }
 
-  &__name-form {
-    display: flex;
-    flex-direction: column;
-
-    gap: 14px;
+  // ----------------------------------------------------------
+  // Knowledge Card：維持完整大型編輯版面
+  // ----------------------------------------------------------
+  &--card {
+    min-height: 0;
   }
 }
 
-@media (max-width: 1000px) {
-  .material-editor {
-    grid-template-columns: 310px minmax(0, 1fr);
+// ============================================================
+// Material Editor Dialog Size
+//
+// course-workspace.scss 原本把所有教材編輯 Dialog 都固定成
+// 1500 x 900。這裡使用 modifier class 覆蓋尺寸：
+// Chapter / Unit -> compact
+// Knowledge Card   -> large
+// ============================================================
 
-    &__form {
-      width: calc(100% - 30px);
+.q-dialog__inner--minimized {
+  > .course-workspace-page__material-editor {
+    display: flex;
+    flex-direction: column;
 
-      margin: 15px auto;
+    overflow: hidden;
+
+    border-radius: 12px;
+
+    transition:
+      width 0.18s ease,
+      height 0.18s ease;
+  }
+
+  > .course-workspace-page__material-editor.course-workspace-page__material-editor--compact {
+    width: 680px;
+    height: auto;
+
+    max-width: 92vw !important;
+    max-height: 90vh !important;
+  }
+
+  > .course-workspace-page__material-editor.course-workspace-page__material-editor--card {
+    width: 1500px;
+    height: 900px;
+
+    max-width: 96vw !important;
+    max-height: 94vh !important;
+  }
+}
+
+// Dialog header / content 直接放在全域，避免 q-dialog portal 後
+// 因為不再是 .course-workspace-page 的子元素而吃不到巢狀樣式。
+.course-workspace-page__material-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  flex-shrink: 0;
+
+  gap: 16px;
+
+  padding: 16px 20px;
+}
+
+.course-workspace-page__material-editor-content {
+  min-height: 0;
+}
+
+.course-workspace-page__material-editor--compact {
+  .course-workspace-page__material-editor-content {
+    flex: 0 1 auto;
+
+    padding: 20px 22px 22px;
+
+    overflow-y: auto;
+  }
+}
+
+.course-workspace-page__material-editor--card {
+  .course-workspace-page__material-editor-content {
+    flex: 1;
+
+    padding: 20px;
+
+    overflow-y: auto;
+  }
+}
+
+// ============================================================
+// Responsive
+// ============================================================
+
+@media (max-width: 899px) {
+  .q-dialog__inner--minimized {
+    > .course-workspace-page__material-editor.course-workspace-page__material-editor--compact {
+      width: 720px;
+      height: auto;
+
+      max-width: 94vw !important;
+      max-height: 90vh !important;
+    }
+
+    > .course-workspace-page__material-editor.course-workspace-page__material-editor--card {
+      width: 96vw;
+      height: 92vh;
+
+      max-width: 96vw !important;
+      max-height: 92vh !important;
+    }
+  }
+
+  .course-workspace-page__material-editor-header {
+    padding: 13px 15px;
+  }
+
+  .course-workspace-page__material-editor--compact {
+    .course-workspace-page__material-editor-content {
       padding: 18px;
     }
   }
+
+  .course-workspace-page__material-editor--card {
+    .course-workspace-page__material-editor-content {
+      padding: 16px;
+    }
+  }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 650px) {
   .material-editor {
-    display: flex;
-    flex-direction: column;
-
-    overflow-y: auto;
-
-    &__outline {
-      flex-shrink: 0;
-
-      max-height: 360px;
-
-      border-right: 0;
-      border-bottom: 1px solid #e0e6ea;
-    }
-
-    &__outline-body {
-      max-height: 290px;
-    }
-
-    &__workspace {
-      flex-shrink: 0;
-
-      overflow: visible;
-    }
-
     &__form-grid {
       grid-template-columns: 1fr;
     }
 
-    &__form {
-      width: calc(100% - 24px);
-
-      margin: 12px;
-      padding: 15px;
+    &--compact {
+      .material-editor__form {
+        grid-template-columns: 1fr;
+      }
     }
 
-    &__form-actions {
+    &__actions {
       flex-direction: column;
 
       .q-btn {
         width: 100%;
       }
     }
+  }
+}
 
-    &__node-actions {
-      gap: 0;
+@media (max-width: 599px) {
+  .q-dialog__inner--minimized {
+    > .course-workspace-page__material-editor.course-workspace-page__material-editor--compact {
+      width: 94vw;
+      height: auto;
+
+      max-width: 94vw !important;
+      max-height: 88vh !important;
+    }
+
+    > .course-workspace-page__material-editor.course-workspace-page__material-editor--card {
+      width: 96vw;
+      height: 90vh;
+
+      max-width: 96vw !important;
+      max-height: 90vh !important;
+    }
+  }
+
+  .course-workspace-page__material-editor-header {
+    padding: 14px 16px;
+  }
+
+  .course-workspace-page__material-editor--compact,
+  .course-workspace-page__material-editor--card {
+    .course-workspace-page__material-editor-content {
+      padding: 14px;
     }
   }
 }

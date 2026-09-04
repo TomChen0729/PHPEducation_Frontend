@@ -8,6 +8,48 @@
   border: 1px solid #e0e6ea;
   border-radius: 10px;
 
+  &__search-results {
+    max-height: 260px;
+
+    overflow-y: auto;
+
+    background-color: #ffffff;
+
+    border-bottom: 1px solid #e0e6ea;
+  }
+
+  &__search-results-header {
+    padding: 9px 16px;
+
+    color: #78909c;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    background-color: #f8fafb;
+  }
+
+  &__search-result-list {
+    .q-item {
+      min-height: 52px;
+    }
+
+    .q-item:hover {
+      background-color: #f5f8fa;
+    }
+  }
+
+  &__search-result-dot {
+    display: inline-block;
+
+    width: 12px;
+    height: 12px;
+
+    border-radius: 50%;
+
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+  }
+
   &__toolbar {
     display: flex;
     align-items: center;
@@ -84,7 +126,8 @@
     &--detail {
       grid-template-columns:
         minmax(0, 1fr)
-        360px;
+        8px
+        var(--detail-width, 360px);
     }
   }
 
@@ -116,6 +159,45 @@
     gap: 10px;
 
     color: #90a4ae;
+  }
+
+  &__resize-handle {
+    position: relative;
+
+    width: 8px;
+    height: 100%;
+
+    cursor: col-resize;
+
+    background-color: transparent;
+
+    transition: background-color 0.15s ease;
+
+    &::after {
+      position: absolute;
+
+      top: 0;
+      bottom: 0;
+      left: 50%;
+
+      width: 1px;
+
+      content: '';
+
+      background-color: #e0e6ea;
+
+      transform: translateX(-50%);
+    }
+
+    &:hover {
+      background-color: rgba(25, 118, 210, 0.08);
+
+      &::after {
+        width: 2px;
+
+        background-color: #90caf9;
+      }
+    }
   }
 
   &__detail {
@@ -184,14 +266,32 @@
 
     gap: 5px;
 
+    min-width: 0;
+
     .q-chip {
+      max-width: 100%;
+
       height: auto;
 
       padding-top: 4px;
       padding-bottom: 4px;
-
-      white-space: normal;
     }
+  }
+
+  &__path-chip {
+    max-width: 100%;
+  }
+
+  &__path-text {
+    display: block;
+
+    min-width: 0;
+    max-width: 100%;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   &--teacher {
@@ -205,10 +305,28 @@
       color: #00897b;
     }
   }
+
+  &__detail-actions {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    flex-shrink: 0;
+  }
+}
+
+.material-graph-resizing {
+  cursor: col-resize !important;
+  user-select: none !important;
 }
 
 @media (max-width: 900px) {
   .material-graph-viewer {
+    &__resize-handle {
+      display: none;
+    }
+
     &__body {
       height: auto;
 
@@ -253,6 +371,15 @@
 
     &__canvas-wrapper {
       height: 460px;
+    }
+
+    &__detail-header {
+      align-items: flex-start;
+    }
+
+    &__detail-actions {
+      flex-direction: column-reverse;
+      align-items: flex-end;
     }
   }
 }

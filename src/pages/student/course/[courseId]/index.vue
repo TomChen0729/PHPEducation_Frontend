@@ -53,14 +53,14 @@
       <q-card-section class="student-material-page__material-header">
         <div>
           <div class="student-material-page__material-title">
-            <q-icon name="auto_stories" color="teal-8" />
+            <!-- <q-icon name="auto_stories" color="teal-8" /> -->
 
-            教材
+            課程內容
           </div>
 
-          <div class="student-material-page__material-caption">
+          <!-- <div class="student-material-page__material-caption">
             {{ course?.name ?? '課程教材' }}
-          </div>
+          </div> -->
         </div>
 
         <q-btn-toggle
@@ -86,7 +86,7 @@
         />
       </q-card-section>
 
-      <q-separator />
+      <!-- <q-separator /> -->
 
       <!-- Loading -->
       <div v-if="loading" class="student-material-page__loading">

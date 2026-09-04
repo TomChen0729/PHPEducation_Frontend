@@ -4,8 +4,6 @@
     <div class="course-material-panel__header">
       <div>
         <h5 class="text-weight-bold">教材管理</h5>
-
-        <p>管理本課程的正式教材，儲存後學生將立即看到最新內容</p>
       </div>
 
       <div class="course-material-panel__header-actions">
@@ -55,26 +53,9 @@
 
     <!-- Material -->
     <div v-else class="course-material-panel__content">
-      <q-card flat bordered class="course-material-panel__material-card">
+      <!-- Summary -->
+      <q-card flat class="course-material-panel__summary">
         <q-card-section>
-          <div class="course-material-panel__material-card-main">
-            <div class="course-material-panel__material-icon">
-              <q-icon name="menu_book" size="30px" />
-            </div>
-
-            <div class="course-material-panel__material-info">
-              <div class="course-material-panel__material-name">
-                {{ courseName }}
-              </div>
-
-              <div class="course-material-panel__material-caption">
-                正式教材 ・ 儲存修改後學生將立即看到最新內容
-              </div>
-            </div>
-
-            <q-badge color="positive" label="使用中" />
-          </div>
-
           <div class="course-material-panel__stats">
             <div class="course-material-panel__stat">
               <div class="course-material-panel__stat-value">
@@ -100,24 +81,72 @@
               <div class="course-material-panel__stat-label">知識卡</div>
             </div>
           </div>
-
-          <q-separator class="q-my-md" />
-
-          <div class="course-material-panel__actions">
-            <q-btn flat color="blue" icon="visibility" label="查看教材" @click="emit('view')" />
-
-            <q-btn flat color="blue" icon="edit" label="編輯教材" @click="emit('edit')" />
-
-            <q-btn
-              flat
-              color="blue"
-              icon="upload_file"
-              label="重新匯入"
-              @click="openImportDialog"
-            />
-          </div>
         </q-card-section>
       </q-card>
+
+      <!-- Viewer -->
+      <div class="course-material-panel__viewer">
+        <div class="course-material-panel__viewer-header">
+          <div>
+            <div class="course-material-panel__viewer-title">教材內容</div>
+
+            <div class="course-material-panel__viewer-caption">可切換階層與知識圖譜檢視</div>
+          </div>
+
+          <div class="course-material-panel__viewer-actions">
+            <q-btn-toggle
+              v-model="viewMode"
+              unelevated
+              no-caps
+              color="grey-2"
+              text-color="blue-grey-8"
+              toggle-color="blue"
+              toggle-text-color="white"
+              :options="[
+                {
+                  label: '階層檢視',
+                  value: 'tree',
+                  icon: 'account_tree',
+                },
+                {
+                  label: '圖譜檢視',
+                  value: 'graph',
+                  icon: 'hub',
+                },
+              ]"
+            />
+          </div>
+        </div>
+
+        <q-separator />
+
+        <div class="course-material-panel__viewer-content">
+          <MaterialTreeViewer
+            v-if="viewMode === 'tree' && courseTree"
+            :tree="courseTree"
+            theme="teacher"
+            editable
+            @create-chapter="emit('create-chapter')"
+            @edit-chapter="(chapter) => emit('edit-chapter', chapter)"
+            @delete-chapter="(chapter) => emit('delete-chapter', chapter)"
+            @create-unit="(chapter) => emit('create-unit', chapter)"
+            @edit-unit="(chapter, unit) => emit('edit-unit', chapter, unit)"
+            @delete-unit="(unit) => emit('delete-unit', unit)"
+            @create-card="(chapter, unit) => emit('create-card', chapter, unit)"
+            @edit-card="(chapter, unit, card) => emit('edit-card', chapter, unit, card)"
+            @delete-card="(card) => emit('delete-card', card)"
+          />
+
+          <MaterialGraphViewer
+            v-else-if="viewMode === 'graph' && courseTree"
+            :tree="courseTree"
+            theme="teacher"
+            @edit-chapter="(chapter) => emit('edit-chapter', chapter)"
+            @edit-unit="(chapter, unit) => emit('edit-unit', chapter, unit)"
+            @edit-card="(chapter, unit, card) => emit('edit-card', chapter, unit, card)"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- Import Dialog -->
@@ -136,7 +165,6 @@
             {{ errorMessage }}
           </q-banner>
 
-          <!-- Step 1 -->
           <div class="course-material-panel__import-step">
             <div class="course-material-panel__import-step-title">
               <span class="course-material-panel__import-step-number"> 1 </span>
@@ -161,7 +189,6 @@
 
           <q-separator />
 
-          <!-- Step 2 -->
           <div class="course-material-panel__import-step">
             <div class="course-material-panel__import-step-title">
               <span class="course-material-panel__import-step-number"> 2 </span>
@@ -194,7 +221,6 @@
 
           <q-separator />
 
-          <!-- Step 3 -->
           <div class="course-material-panel__import-step">
             <div class="course-material-panel__import-step-title">
               <span class="course-material-panel__import-step-number"> 3 </span>
@@ -251,18 +277,37 @@ import { ref } from 'vue';
 
 import { Dialog } from 'quasar';
 
+import MaterialTreeViewer from '../../material/MaterialTreeViewer.vue';
+
+import MaterialGraphViewer from '../../material/MaterialGraphViewer.vue';
+
+import type {
+  MaterialChapterNode,
+  MaterialCourseTree,
+  MaterialKnowledgeCardNode,
+  MaterialUnitNode,
+} from '../../../types/material';
+
+type MaterialViewMode = 'tree' | 'graph';
+
 const props = withDefaults(
   defineProps<{
-    courseName: string;
+    courseTree: MaterialCourseTree | null;
+
     hasMaterial: boolean;
 
     chapterCount: number;
+
     unitCount: number;
+
     knowledgeCardCount: number;
 
     loading: boolean;
+
     importing: boolean;
+
     downloadingTemplate: boolean;
+
     editing: boolean;
 
     errorMessage?: string;
@@ -277,12 +322,36 @@ const emit = defineEmits<{
 
   import: [file: File, overwrite: boolean];
 
-  view: [];
-
   edit: [];
 
   'clear-error': [];
+
+  'create-chapter': [];
+
+  'edit-chapter': [chapter: MaterialChapterNode];
+
+  'delete-chapter': [chapter: MaterialChapterNode];
+
+  'create-unit': [chapter: MaterialChapterNode];
+
+  'edit-unit': [chapter: MaterialChapterNode, unit: MaterialUnitNode];
+
+  'delete-unit': [unit: MaterialUnitNode];
+
+  'create-card': [chapter: MaterialChapterNode, unit: MaterialUnitNode];
+
+  'edit-card': [
+    chapter: MaterialChapterNode,
+
+    unit: MaterialUnitNode,
+
+    card: MaterialKnowledgeCardNode,
+  ];
+
+  'delete-card': [card: MaterialKnowledgeCardNode];
 }>();
+
+const viewMode = ref<MaterialViewMode>('tree');
 
 const importDialog = ref(false);
 
@@ -316,11 +385,13 @@ function submitImport() {
 
     cancel: {
       label: '取消',
+
       flat: true,
     },
 
     ok: {
       label: '確認重新匯入',
+
       color: 'blue',
     },
 

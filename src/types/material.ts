@@ -299,3 +299,80 @@ export interface MaterialDeleteResponse {
 export interface MaterialEditorImageUploadResponse {
   url: string;
 }
+
+export type MaterialEditorContext =
+  | {
+      kind: 'chapter';
+      mode: 'create';
+      courseId: number;
+      nextOrder: number;
+    }
+  | {
+      kind: 'chapter';
+      mode: 'edit';
+      chapter: MaterialChapterNode;
+    }
+  | {
+      kind: 'unit';
+      mode: 'create';
+      chapter: MaterialChapterNode;
+      nextOrder: number;
+    }
+  | {
+      kind: 'unit';
+      mode: 'edit';
+      chapter: MaterialChapterNode;
+      unit: MaterialUnitNode;
+    }
+  | {
+      kind: 'card';
+      mode: 'create';
+      chapter: MaterialChapterNode;
+      unit: MaterialUnitNode;
+      nextOrder: number;
+    }
+  | {
+      kind: 'card';
+      mode: 'edit';
+      chapter: MaterialChapterNode;
+      unit: MaterialUnitNode;
+      card: MaterialKnowledgeCardNode;
+    };
+
+export type MaterialEditorSubmitPayload =
+  | {
+      kind: 'chapter';
+      mode: 'create';
+      courseId: number;
+      data: MaterialNamePayload;
+    }
+  | {
+      kind: 'chapter';
+      mode: 'edit';
+      chapterId: number;
+      data: MaterialNamePayload;
+    }
+  | {
+      kind: 'unit';
+      mode: 'create';
+      chapterId: number;
+      data: MaterialNamePayload;
+    }
+  | {
+      kind: 'unit';
+      mode: 'edit';
+      unitId: number;
+      data: MaterialNamePayload;
+    }
+  | {
+      kind: 'card';
+      mode: 'create';
+      unitId: number;
+      data: KnowledgeCardPayload;
+    }
+  | {
+      kind: 'card';
+      mode: 'edit';
+      cardId: number;
+      data: KnowledgeCardPayload;
+    };
