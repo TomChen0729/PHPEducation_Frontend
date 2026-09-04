@@ -1,5 +1,7 @@
 export type UserRole = 'admin' | 'teacher' | 'student';
 
+export type ForgotPasswordRole = 'teacher' | 'student';
+
 export interface User {
   id: number;
   account: string;
@@ -29,4 +31,21 @@ export interface LogoutResponse {
 export interface LoginErrorResponse {
   statusCode: number;
   message: string;
+}
+
+export interface StudentForgotPasswordRequest {
+  student_no: string;
+}
+
+export interface TeacherForgotPasswordRequest {
+  teacher_account: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export interface ValidationErrorResponse {
+  message?: string;
+  errors?: Record<string, string[]>;
 }

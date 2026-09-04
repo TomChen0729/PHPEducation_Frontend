@@ -7,7 +7,13 @@ import { authApi } from '../api/auth.api';
 import { useAuthStore } from '../stores/auth';
 import { getHomePathByRole } from '../utils/auth-route';
 
-import type { LoginRequest, LoginErrorResponse, UserRole } from '../types/auth';
+import type {
+  ForgotPasswordRole,
+  LoginErrorResponse,
+  LoginRequest,
+  UserRole,
+  ValidationErrorResponse,
+} from '../types/auth';
 
 export function useAuth() {
   const router = useRouter();
@@ -15,6 +21,9 @@ export function useAuth() {
 
   const loading = ref(false);
   const errorMessage = ref('');
+
+  const forgotPasswordLoading = ref(false);
+  const forgotPasswordErrorMessage = ref('');
 
   async function login(data: LoginRequest) {
     loading.value = true;
@@ -34,6 +43,57 @@ export function useAuth() {
       }
     } finally {
       loading.value = false;
+    }
+  }
+
+  async function forgotPassword(role: ForgotPasswordRole, account: string): Promise<boolean> {
+    const normalizedAccount = account.trim();
+
+    forgotPasswordErrorMessage.value = '';
+
+    if (!normalizedAccount) {
+      forgotPasswordErrorMessage.value = role === 'student' ? '請輸入學號' : '請輸入教師帳號';
+
+      return false;
+    }
+
+    forgotPasswordLoading.value = true;
+
+    try {
+      const response =
+        role === 'student'
+          ? await authApi.studentForgotPassword({
+              student_no: normalizedAccount,
+            })
+          : await authApi.teacherForgotPassword({
+              teacher_account: normalizedAccount,
+            });
+
+      Notify.create({
+        type: 'positive',
+        message: response.data.message || '新密碼已寄出',
+        position: 'top',
+        timeout: 2500,
+      });
+
+      return true;
+    } catch (error: unknown) {
+      if (axios.isAxiosError<ValidationErrorResponse>(error)) {
+        const errors = error.response?.data?.errors;
+
+        const fieldName = role === 'student' ? 'student_no' : 'teacher_account';
+
+        const fieldMessage = errors?.[fieldName]?.[0];
+
+        forgotPasswordErrorMessage.value =
+          fieldMessage || error.response?.data?.message || '無法重設密碼，請確認帳號後再試一次';
+      } else {
+        forgotPasswordErrorMessage.value = '無法重設密碼，請稍後再試';
+      }
+
+      return false;
+    } finally {
+      forgotPasswordLoading.value = false;
     }
   }
 
@@ -69,10 +129,20 @@ export function useAuth() {
     await router.replace(getHomePathByRole(role));
   }
 
+  function clearForgotPasswordError() {
+    forgotPasswordErrorMessage.value = '';
+  }
+
   return {
     loading,
     errorMessage,
+
+    forgotPasswordLoading,
+    forgotPasswordErrorMessage,
+
     login,
+    forgotPassword,
+    clearForgotPasswordError,
     logout,
   };
 }

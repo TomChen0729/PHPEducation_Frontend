@@ -9,4 +9,54 @@
   width: 100%;
   max-width: 420px;
   border-radius: 16px;
+
+  &__forgot-password {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: -10px;
+  }
+}
+
+.forgot-password-dialog {
+  width: 520px;
+
+  max-width: 92vw !important;
+
+  border-radius: 14px;
+
+  &__header {
+    padding: 20px 22px 16px;
+  }
+
+  &__content {
+    padding: 22px;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding-top: 4px;
+  }
+}
+
+@media (max-width: 599px) {
+  .login-card {
+    margin: 16px;
+  }
+
+  .forgot-password-dialog {
+    width: 92vw;
+
+    &__header {
+      padding: 18px 18px 14px;
+    }
+
+    &__content {
+      padding: 18px;
+    }
+  }
 }
