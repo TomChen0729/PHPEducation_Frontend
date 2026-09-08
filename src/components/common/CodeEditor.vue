@@ -1,5 +1,5 @@
 <template>
-  <div ref="editorElement" class="code-example-viewer" :class="themeClass" />
+  <div ref="editorElement" class="code-editor" :class="themeClass" />
 </template>
 
 <script setup lang="ts">
@@ -7,140 +7,93 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { basicSetup } from 'codemirror';
 
-import { EditorState } from '@codemirror/state';
+import { Compartment, EditorState } from '@codemirror/state';
 
 import { EditorView } from '@codemirror/view';
 
 import { php } from '@codemirror/lang-php';
 
-/*
- * =========================
- * Props
- * =========================
- */
 const props = withDefaults(
   defineProps<{
-    code: string | null | undefined;
-
+    modelValue: string | null | undefined;
     theme?: 'teacher' | 'student';
+    disabled?: boolean;
   }>(),
   {
-    code: '',
-
+    modelValue: '',
     theme: 'teacher',
+    disabled: false,
   },
 );
 
-/*
- * =========================
- * Theme
- * =========================
- */
+const emit = defineEmits<{
+  'update:modelValue': [value: string];
+}>();
+
 const themeClass = computed(() => {
   return props.theme === 'student'
-    ? 'code-example-viewer--student'
-    : 'code-example-viewer--teacher';
+    ? 'code-editor--student'
+    : 'code-editor--teacher';
 });
 
-/*
- * =========================
- * Editor
- * =========================
- */
 const editorElement = ref<HTMLElement | null>(null);
 
 let editorView: EditorView | null = null;
+let syncingFromProps = false;
 
-/*
- * =========================
- * Create Editor
- * =========================
- */
+const editableCompartment = new Compartment();
+
+function editableExtension() {
+  return [
+    EditorState.readOnly.of(props.disabled),
+    EditorView.editable.of(!props.disabled),
+  ];
+}
+
 function createEditor() {
   if (!editorElement.value) {
     return;
   }
 
   const state = EditorState.create({
-    doc: props.code ?? '',
-
+    doc: props.modelValue ?? '',
     extensions: [
-      /*
-       * CodeMirror 基本功能
-       */
       basicSetup,
-
-      /*
-       * PHP Syntax Highlight
-       */
       php(),
-
-      /*
-       * 唯讀
-       */
-      EditorState.readOnly.of(true),
-
-      EditorView.editable.of(false),
-
-      /*
-       * 長程式碼自動換行
-       */
       EditorView.lineWrapping,
+      editableCompartment.of(editableExtension()),
+      EditorView.updateListener.of((update) => {
+        if (!update.docChanged || syncingFromProps) {
+          return;
+        }
 
-      /*
-       * CodeMirror 基本排版。
-       *
-       * 顏色不寫在 TypeScript，
-       * 交由 SCSS 根據 Teacher / Student
-       * theme 控制。
-       */
+        emit('update:modelValue', update.state.doc.toString());
+      }),
       EditorView.theme({
         '&': {
           width: '100%',
-
           height: 'auto',
-
           minHeight: '0',
-
           borderRadius: '8px',
-
           overflow: 'hidden',
         },
-
         '.cm-scroller': {
           overflowX: 'auto',
-
           overflowY: 'hidden',
-
           fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-
           fontSize: '14px',
-
           lineHeight: '1.7',
         },
-
         '.cm-content': {
           minHeight: '0',
-
           padding: '8px 0',
         },
-
         '.cm-gutters': {
           minHeight: '0',
         },
-
         '.cm-lineNumbers .cm-gutterElement': {
           padding: '0 10px',
         },
-
-        '.cm-activeLine': {
-          backgroundColor: 'transparent',
-        },
-
-        '.cm-activeLineGutter': {
-          backgroundColor: 'transparent',
-        },
-
         '&.cm-focused': {
           outline: 'none',
         },
@@ -150,77 +103,67 @@ function createEditor() {
 
   editorView = new EditorView({
     state,
-
     parent: editorElement.value,
   });
 }
 
-/*
- * =========================
- * Init
- * =========================
- */
 onMounted(() => {
   createEditor();
 });
 
-/*
- * =========================
- * Update Code
- * =========================
- */
 watch(
-  () => props.code,
-
-  (newCode) => {
+  () => props.modelValue,
+  (newValue) => {
     if (!editorView) {
       return;
     }
 
-    const nextCode = newCode ?? '';
+    const nextValue = newValue ?? '';
+    const currentValue = editorView.state.doc.toString();
 
-    const currentCode = editorView.state.doc.toString();
-
-    if (currentCode === nextCode) {
+    if (nextValue === currentValue) {
       return;
     }
+
+    syncingFromProps = true;
 
     editorView.dispatch({
       changes: {
         from: 0,
-
         to: editorView.state.doc.length,
-
-        insert: nextCode,
+        insert: nextValue,
       },
+    });
+
+    syncingFromProps = false;
+  },
+);
+
+watch(
+  () => props.disabled,
+  () => {
+    if (!editorView) {
+      return;
+    }
+
+    editorView.dispatch({
+      effects: editableCompartment.reconfigure(editableExtension()),
     });
   },
 );
 
-/*
- * =========================
- * Destroy
- * =========================
- */
 onBeforeUnmount(() => {
   editorView?.destroy();
-
   editorView = null;
 });
 </script>
 
 <style scoped lang="scss">
-.code-example-viewer {
+.code-editor {
   width: 100%;
 
-  /*
-   * =========================
-   * Base
-   * =========================
-   */
   :deep(.cm-editor) {
     width: 100%;
-
     border-radius: 8px;
     overflow: hidden;
   }
@@ -230,53 +173,29 @@ onBeforeUnmount(() => {
     overflow-y: hidden;
   }
 
-  /*
-   * ==========================================================
-   * Teacher Theme
-   * ==========================================================
-   */
   &--teacher {
     :deep(.cm-editor) {
-      // background-color: $blue-1;
-
       border: 1px solid $blue-2;
     }
 
     :deep(.cm-gutters) {
-      // background-color: $blue-1;
-
       border-right: 1px solid $blue-2;
-
       color: $blue-7;
+    }
+
+    :deep(.cm-focused) {
+      border-color: $blue-5;
     }
   }
 
-  /*
-   * ==========================================================
-   * Student Theme
-   * ==========================================================
-   */
   &--student {
     :deep(.cm-editor) {
-      // background-color: $teal-1;
-
       border: 1px solid $teal-3;
     }
 
     :deep(.cm-gutters) {
-      // background-color: $teal-2;
-
       border-right: 1px solid $teal-3;
-
       color: $teal-8;
-    }
-
-    :deep(.cm-selectionBackground) {
-      background-color: $teal-3 !important;
-    }
-
-    :deep(.cm-cursor) {
-      border-left-color: $teal-10;
     }
   }
 }

@@ -227,6 +227,32 @@ export type QuestionSystemStatus = 'correct' | 'wrong' | 'pending';
 
 export type QuestionTeacherStatus = 'correct' | 'wrong' | 'pending';
 
+export interface StudentSubAnswerResult {
+  correct: number;
+
+  total: number;
+
+  answers: Record<string, string>;
+}
+
+export type StudentQuestionRecordResult = string | number | StudentSubAnswerResult | null;
+
+/*
+ * ============================================================
+ * Question Record
+ * ============================================================
+ */
+
+export interface StudentQuestionRecordSub {
+  id: number;
+
+  sub_id: number;
+
+  answer: string;
+
+  is_right: boolean;
+}
+
 /*
  * ============================================================
  * Question Record
@@ -242,33 +268,16 @@ export interface StudentQuestionRecord {
 
   question_id: number;
 
-  /*
-   * Backend 依題型可能存：
-   *
-   * option id
-   * correct/total
-   * code
-   */
-  result?: string | number | null;
+  result?: StudentQuestionRecordResult;
 
-  /*
-   * 系統判斷
-   */
   system_status: QuestionSystemStatus;
 
-  /*
-   * 老師覆核狀態
-   */
   teacher_status: QuestionTeacherStatus;
 
-  /*
-   * SOLO 結果可能存在
-   */
+  subs?: StudentQuestionRecordSub[];
+
   solo?: number | null;
 
-  /*
-   * Coding 覆核後可能存在
-   */
   bloom_id?: string | null;
 
   created_at?: string;
@@ -296,6 +305,13 @@ export interface StudentQuestionSubmitResponse {
    * Backend 可能回傳解釋。
    */
   explanation?: string | null;
+
+  /*
+   * 目前 Backend 的 Fill / Debug / Interpret
+   * 仍可能使用 description 回傳答案說明。
+   * 前端暫時相容兩種欄位名稱。
+   */
+  description?: string | null;
 
   record: StudentQuestionRecord;
 }

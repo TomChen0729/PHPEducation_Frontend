@@ -3,91 +3,60 @@
 PHPEducation 教學網站前端專案。
 
 本專案使用 **Vue 3 + Quasar + TypeScript** 開發，採前後端分離架構。  
-本 README 依 **2026-09-04 最新 `src` 程式碼**整理，內容只記錄目前已完成並實際存在於前端的功能。
+本 README 依 **2026-09-09 最新前端 `src` 程式碼與本次已完成修改**整理，內容以目前已完成並實際存在於前端的功能為主。
 
 ---
 
 ## 1. 前端技術
 
-目前使用：
+目前主要使用：
 
 ```text
 Vue 3
 Quasar Framework
 TypeScript
-Vue Router
-File-based Routing
+Vue Router / File-based Routing
 Pinia
 Axios
-SCSS
-CodeMirror
 TipTap
 vis-network
-vis-data
-ESLint
-Prettier
+CodeMirror 6
+SCSS
 ```
 
-系統角色：
+各套件主要用途：
 
-```text
-Admin
-Teacher
-Student
-```
-
-角色主題色：
-
-```text
-Admin   → Purple
-Teacher → Blue
-Student → Teal
-```
-
-教材共用 Viewer 依角色切換 Theme：
-
-```text
-Teacher → Blue
-Student → Teal
-```
+| 技術 | 用途 |
+|---|---|
+| Vue 3 | 頁面與元件開發 |
+| Quasar | UI 元件、Dialog、Notify、RWD |
+| TypeScript | API / Component 型別管理 |
+| Pinia | 登入狀態管理 |
+| Axios | REST API 串接 |
+| TipTap | 教材 HTML 富文字編輯 |
+| vis-network | 教材知識圖譜 |
+| CodeMirror 6 | 程式碼顯示與編輯 |
+| SCSS | 元件樣式與 RWD |
 
 ---
 
 ## 2. 前端架構
-
-主要資料流程：
-
-```text
-Page
- ↓
-Component
- ↓
-Composable
- ↓
-API
- ↓
-Axios
- ↓
-Backend
-```
-
-跨頁登入狀態使用 Pinia。
 
 主要目錄：
 
 ```text
 src/
 ├─ api/
-│  ├─ admin-user-management.api.ts
 │  ├─ auth.api.ts
 │  ├─ dashboard.api.ts
-│  ├─ student-material.api.ts
-│  ├─ student-question.api.ts
+│  ├─ admin-user-management.api.ts
 │  ├─ teacher-application.api.ts
-│  ├─ teacher-course-student.api.ts
 │  ├─ teacher-course.api.ts
+│  ├─ teacher-course-student.api.ts
 │  ├─ teacher-material.api.ts
-│  └─ teacher-question.api.ts
+│  ├─ teacher-question.api.ts
+│  ├─ student-material.api.ts
+│  └─ student-question.api.ts
 │
 ├─ boot/
 │  ├─ auth.ts
@@ -96,180 +65,151 @@ src/
 ├─ components/
 │  ├─ admin/
 │  ├─ common/
+│  │  ├─ CodeEditor.vue
+│  │  ├─ CodeExampleViewer.vue
+│  │  ├─ ConfirmDialog.vue
+│  │  ├─ RichContentViewer.vue
+│  │  └─ RichTextEditor.vue
 │  ├─ material/
+│  │  ├─ MaterialGraphViewer.vue
+│  │  └─ MaterialTreeViewer.vue
 │  ├─ navigation/
-│  ├─ student/
+│  │  └─ AppNavbar.vue
+│  ├─ student/question/
+│  │  ├─ ChoiceAnswer.vue
+│  │  ├─ TrueFalseAnswer.vue
+│  │  ├─ FillAnswer.vue
+│  │  ├─ DebugAnswer.vue
+│  │  ├─ InterpretAnswer.vue
+│  │  ├─ CodingAnswer.vue
+│  │  └─ StudentQuestionList.vue
 │  └─ teacher/
+│     ├─ course-workspace/
+│     └─ question/
+│        └─ QuestionFormDialog.vue
 │
 ├─ composables/
-│  ├─ useAuth.ts
-│  ├─ useDashboard.ts
-│  ├─ useStudentMaterial.ts
-│  ├─ useStudentQuestions.ts
-│  ├─ useTeacherApplication.ts
-│  ├─ useTeacherCourses.ts
-│  ├─ useTeacherCourseStudents.ts
-│  ├─ useTeacherCourseWorkspace.ts
-│  ├─ useTeacherMaterialManagement.ts
-│  ├─ useTeacherQuestions.ts
-│  └─ useUserManagement.ts
-│
 ├─ config/
-│  └─ navigation.ts
-│
 ├─ css/
-│  ├─ app.scss
-│  ├─ quasar.variables.scss
-│  └─ components/
-│
 ├─ pages/
-│  ├─ admin/
-│  ├─ student/
-│  ├─ teacher/
-│  ├─ login.vue
-│  └─ teacherApplication.vue
-│
 ├─ router/
-│  └─ index.ts
-│
 ├─ stores/
-│  └─ auth.ts
-│
 ├─ types/
 └─ utils/
 ```
 
-職責分工：
+前端基本分工：
 
 ```text
 Page
-→ 頁面組合、Router、頁面層事件
-
+  ↓
 Component
-→ UI 顯示、表單、emit
-
+  ↓
 Composable
-→ State、Loading、Error、API 流程
-
+  ↓
 API
-→ Axios Request
-
-Store
-→ 跨頁共用狀態
-
-Types
-→ TypeScript 資料結構
-
-SCSS
-→ UI 樣式與 RWD
+  ↓
+Laravel Backend
 ```
 
 ---
 
-## 3. 開發環境與 API Base URL
+## 3. API Base URL
 
-Backend：
-
-```text
-http://127.0.0.1:8000
-```
-
-Frontend：
-
-```text
-http://localhost:9000
-```
-
-Frontend `.env`：
-
-```env
-QCLI_API_BASE_URL=http://127.0.0.1:8000/api/v1
-```
-
-Axios：
+Axios instance 位於：
 
 ```text
 src/boot/axios.ts
 ```
 
-已統一處理：
+Base URL 由環境變數取得：
+
+```ts
+import.meta.env.QCLI_API_BASE_URL
+```
+
+開發環境 Backend 通常為：
 
 ```text
+http://127.0.0.1:8000/api/v1
+```
+
+Request Interceptor 會自動從 `sessionStorage` 取得：
+
+```text
+auth_token
+```
+
+並加入：
+
+```http
 Authorization: Bearer {token}
-Accept: application/json
 ```
 
-Token 儲存位置：
-
-```text
-sessionStorage
-└─ auth_token
-```
-
-### FormData
-
-檔案上傳不手動固定 multipart Boundary，由 Browser 自動產生：
-
-```text
-multipart/form-data; boundary=...
-```
-
-目前使用於：
-
-```text
-學生 Excel 名冊上傳
-教材 Excel 上傳
-Rich Text Editor 圖片上傳
-```
+FormData Request 不會手動指定 `Content-Type`，交由瀏覽器自動產生 multipart boundary。
 
 ---
 
 ## 4. Authentication
 
-主要檔案：
-
-```text
-api/auth.api.ts
-composables/useAuth.ts
-stores/auth.ts
-boot/auth.ts
-pages/login.vue
-```
-
 目前已完成：
 
 ```text
-POST /api/v1/auth/login
-POST /api/v1/auth/logout
-GET  /api/v1/auth/me
+登入
+登出
+Session Restore
+/auth/me
+Role-based Router Guard
+登入後依角色導向
 ```
 
-登入成功後保存：
+角色：
 
 ```text
-token
-user
-role
+admin
+teacher
+student
 ```
 
-Session Restore：
-
-```text
-Browser Refresh
-      ↓
-sessionStorage auth_token
-      ↓
-GET /auth/me
-      ↓
-有效 → setUser()
-無效 → clearAuth()
-```
+學生登入時前端可直接輸入學號，不需自行加 `s` 或組完整校園信箱。
 
 ---
 
-## 5. 忘記密碼
+## 5. Token 失效全域處理
 
-登入頁已完成教師與學生的忘記密碼功能。
+`src/boot/axios.ts` 已完成 Axios Response Interceptor。
+
+當已登入使用者呼叫受保護 API 並收到 `401`：
+
+```text
+API 回 401
+↓
+確認不是 /auth/login 本身的帳密錯誤
+↓
+確認原本存在 auth token
+↓
+clearAuth()
+↓
+清除 sessionStorage auth_token
+↓
+導回 /login
+↓
+顯示「登入已逾期，請重新登入」
+```
+
+跳轉時會保留原本路徑：
+
+```text
+/login?redirect=/原本頁面
+```
+
+並透過鎖定旗標避免多支 API 同時 401 時重複 Notify / 重複導頁。
+
+---
+
+## 6. 忘記密碼
+
+登入頁已完成學生與教師忘記密碼功能。
 
 入口：
 
@@ -278,14 +218,14 @@ GET /auth/me
 └─ 忘記密碼？
 ```
 
-API：
+支援角色：
 
 ```text
-POST /api/v1/auth/student/forgot-password
-POST /api/v1/auth/teacher/forgot-password
+學生
+教師
 ```
 
-學生 Request：
+學生送：
 
 ```json
 {
@@ -293,1047 +233,608 @@ POST /api/v1/auth/teacher/forgot-password
 }
 ```
 
-教師 Request：
+教師送：
 
 ```json
 {
-  "teacher_account": "teacher@school.edu.tw"
+  "teacher_account": "teacher_account"
 }
 ```
 
-目前 UI 流程：
+表單使用：
 
-```text
-點擊「忘記密碼？」
-↓
-開啟 Dialog
-↓
-選擇學生 / 教師
-↓
-輸入學號或教師帳號
-↓
-按「寄送新密碼」
-↓
-欄位驗證
-↓
-呼叫 Forgot Password API
-↓
-成功 Notify
-↓
-關閉 Dialog
+```vue
+lazy-rules="ondemand"
 ```
 
-目前行為：
+因此只有按下「寄送新密碼」時才開始驗證。
 
-- 學生 / 教師使用同一個 Dialog
-- 學生輸入學號，不需加 `s`
-- 教師輸入登入帳號
-- 使用 `lazy-rules="ondemand"`，只有按下「寄送新密碼」後才進行欄位驗證
-- 切換學生 / 教師時會清空輸入內容
-- 切換身分時會清除 Backend Error
-- 切換身分時會 `resetValidation()`，移除上一個身分留下的紅框與錯誤文字
-- API 呼叫期間顯示 Loading，避免重複送出
-- 成功後顯示 Backend 回傳訊息
-
-後端流程為：
+切換學生 / 教師角色時會：
 
 ```text
-收到 Forgot Password Request
-↓
-產生新的 12 碼密碼
-↓
-更新帳號密碼
-↓
-寄送至帳號綁定信箱
+清空帳號欄位
+清除 API 錯誤
+resetValidation()
 ```
+
+避免前一角色的紅框與錯誤訊息殘留。
 
 ---
 
-## 6. Router Guard
+## 7. 共用 Navbar 與 Router Guard
 
-Router：
-
-```text
-src/router/index.ts
-```
-
-使用 File-based Routing / typed routes。
-
-頁面可透過：
-
-```ts
-definePage({
-  meta: {
-    requiresAuth: true,
-    roles: ['teacher'],
-  },
-});
-```
-
-限制登入與角色。
-
-角色首頁：
+共用 Navbar：
 
 ```text
-/admin
-/teacher
-/student
+src/components/navigation/AppNavbar.vue
 ```
 
-未登入：
+不同角色使用不同導覽項目與主題色。
+
+Router Guard 會依：
 
 ```text
-受保護頁面
-↓
-/login?redirect=...
+是否登入
+使用者 role
+目標 route
 ```
 
-角色不符：
-
-```text
-Admin   → /admin
-Teacher → /teacher
-Student → /student
-```
-
-公開頁：
-
-```text
-/login
-/teacherApplication
-```
-
----
-
-## 7. 共用 Navbar
-
-主要檔案：
-
-```text
-components/navigation/AppNavbar.vue
-config/navigation.ts
-```
-
-目前已完成：
-
-- 依 Admin / Teacher / Student 顯示不同導航內容
-- 角色主題色
-- 目前登入者資訊
-- 登出功能
-- 配合 Router Guard 進行頁面導向
+限制不同角色存取不屬於自己的頁面。
 
 ---
 
 ## 8. 教師帳號申請
 
-頁面：
+公開頁面：
 
 ```text
 /teacherApplication
 ```
 
-架構：
-
-```text
-teacherApplication.vue
-        ↓
-useTeacherApplication.ts
-        ↓
-teacher-application.api.ts
-```
-
-API：
-
-```text
-POST /api/v1/teacher-applications
-```
-
-欄位：
+目前可填：
 
 ```text
 姓名
-Email
-帳號名稱
-申請原因
+Eportal 信箱
+自訂帳號
+申請理由
 ```
 
-目前支援：
+送出後建立待審核教師申請。
 
-- 必填驗證
-- Email 格式驗證
-- Backend Validation Error
-- 成功 / 失敗 Notify
-- 成功後清空表單
-- Reset Validation
-- 公開頁，不需登入
+### Email 提醒
+
+教師申請表已加入 Email 提示：
+
+```text
+審核通過後，系統會將帳號開通通知寄到此信箱。
+若收件匣中沒有看到，請一併檢查垃圾郵件或促銷內容。
+```
 
 ---
 
 ## 9. 管理員－使用者管理
 
-路由：
+管理員使用者管理頁已完成：
 
 ```text
-/admin/userManagement
+教師申請列表
+教師申請核准
+學生帳號申請列表
+課程篩選
+學生搜尋
+學生批次勾選開通
+教師 / 學生 / 課程統計
 ```
 
-主要結構：
+相關元件：
 
 ```text
-pages/admin/userManagement.vue
-
 components/admin/user-management/
-├─ UserStatsCards.vue
 ├─ TeacherApprovalPanel.vue
 ├─ CourseActivationPanel.vue
-└─ CourseStudentListDialog.vue
-
-composables/useUserManagement.ts
-api/admin-user-management.api.ts
+├─ CourseStudentListDialog.vue
+└─ UserStatsCards.vue
 ```
-
-目前已完成：
-
-```text
-使用者管理
-├─ 系統統計
-├─ 教師申請核准
-└─ 學生帳號 / 課程開通
-```
-
-### 9.1 系統統計
-
-API：
-
-```text
-GET /api/v1/stats
-```
-
-顯示：
-
-```text
-教師總數
-學生總數
-課程總數
-本學期課程數
-目前學期
-```
-
-### 9.2 教師申請核准
-
-API：
-
-```text
-GET  /api/v1/teacher-applications?status=pending
-POST /api/v1/teacher-applications/{id}/approve
-```
-
-流程：
-
-```text
-Pending Teacher
-↓
-管理員確認核准
-↓
-POST Approve
-↓
-更新 Pending List
-↓
-更新 Stats
-↓
-Notify
-```
-
-### 9.3 學生帳號 / 課程開通
-
-API：
-
-```text
-GET /api/v1/courses
-
-GET /api/v1/student-applications
-    ?course_id={courseId}
-    &status=pending
-    &q={keyword}
-
-POST /api/v1/student-applications/approve
-```
-
-目前支援：
-
-- 只顯示有 Pending Student 的課程
-- 課程下拉選擇
-- 搜尋學生
-- 單選 / 全選
-- 批次開通
-- 開通後重新整理學生、課程與 Stats
 
 ---
 
 ## 10. 教師－課程管理
 
-路由：
+教師可管理自己的課程：
 
 ```text
-/teacher/courseManagement
+查看課程列表
+建立課程
+修改課程
+刪除課程
 ```
 
-架構：
-
-```text
-courseManagement.vue
-        ↓
-useTeacherCourses.ts
-        ↓
-teacher-course.api.ts
-```
-
-API：
-
-```text
-GET    /api/v1/teacher/courses
-POST   /api/v1/teacher/courses
-GET    /api/v1/teacher/courses/{courseId}
-PUT    /api/v1/teacher/courses/{courseId}
-DELETE /api/v1/teacher/courses/{courseId}
-```
-
-目前支援：
-
-- 顯示教師自己的課程
-- 新增課程
-- 編輯課程
-- 刪除課程
-- Loading / Error
-- ConfirmDialog
-- Notify
-- Empty State
-- RWD
-- 進入單一課程工作區
-
-課程資料：
+課程資料包含：
 
 ```text
 name
 description
 semester
 class_name
-teacher_id
 ```
 
-學期 Backend 格式：
+課程管理頁：
 
 ```text
-115-1
-115-2
+src/pages/teacher/courseManagement.vue
 ```
 
-Frontend 顯示：
+單一課程工作區：
 
 ```text
-115 學年度・上學期
-115 學年度・下學期
+src/pages/teacher/course/[courseId].vue
 ```
 
 ---
 
-## 11. 教師－單一課程工作區
+## 11. 教師－班級學生管理
 
-路由：
+單一課程內已完成學生名冊管理：
 
 ```text
-/teacher/course/:courseId
+查看課程學生
+下載 Excel 名冊範本
+Excel 批次上傳
+手動新增一位或多位學生
+顯示待開通 / 已開通狀態
+移除課程學生
 ```
 
-目前工作區包含：
+### Email 提醒
+
+老師送出學生帳號申請時，目前在：
 
 ```text
-課程資訊
-班級學生
-教材管理
-題庫管理
+學生名冊頁
+Excel 匯入 Dialog
+手動新增 Dialog
 ```
 
-主要元件：
+都會提醒：
 
 ```text
-CourseInfoPanel.vue
-CourseStudentPanel.vue
-CourseMaterialPanel.vue
-CourseQuestionPanel.vue
-MaterialEditor.vue
+管理員開通後，若本次有新建立的學生帳號，
+系統會將學生帳號名單寄到教師信箱；
+若未收到，請檢查垃圾郵件。
 ```
 
 ---
 
-## 12. 教師－班級學生
+## 12. 教師－教材管理
 
-主要檔案：
-
-```text
-components/teacher/course-workspace/CourseStudentPanel.vue
-composables/useTeacherCourseStudents.ts
-api/teacher-course-student.api.ts
-types/course-student.ts
-```
-
-名單分為：
-
-```text
-已開通 approved
-待審核 pending
-```
-
-### 12.1 名單
-
-API：
-
-```text
-GET /api/v1/teacher/courses/{courseId}/student-applications?status=approved
-GET /api/v1/teacher/courses/{courseId}/student-applications?status=pending
-```
-
-目前支援：
-
-- 已開通 / 待審核切換
-- 學號 / 姓名 / Email 搜尋
-- 學生人數
-- Loading
-- Empty State
-- Error
-- RWD
-
-### 12.2 手動新增學生
-
-API：
-
-```text
-POST /api/v1/teacher/courses/{courseId}/student-applications
-```
-
-可一次新增多位學生：
-
-```json
-{
-  "students": [
-    {
-      "student_no": "1411131001",
-      "name": "王小明"
-    },
-    {
-      "student_no": "1411131002",
-      "name": "陳小華"
-    }
-  ]
-}
-```
-
-前端已完成：
-
-- 一次最多 100 筆
-- 必填檢查
-- 同批重複學號檢查
-- 學號不需輸入 `s`
-- 成功後切換待審核名單
-- API 失敗時 Dialog 保持開啟
-
-### 12.3 Excel 匯入學生
-
-下載範本：
-
-```text
-GET /api/v1/teacher/student-applications/template
-```
-
-上傳：
-
-```text
-POST /api/v1/teacher/student-applications
-```
-
-FormData：
-
-```text
-tid
-course_id
-file
-```
-
-### 12.4 移除學生
-
-API：
-
-```text
-DELETE /api/v1/teacher/courses/{courseId}/student-applications/{itemId}
-```
-
-Pending：
-
-```text
-刪除待審核申請
-```
-
-Approved：
-
-```text
-取消此課程 Enrollment
-學生帳號保留
-其他課程不受影響
-```
-
----
-
-## 13. 教師－教材管理
-
-資料層：
-
-```text
-api/teacher-material.api.ts
-composables/useTeacherMaterialManagement.ts
-types/material.ts
-```
-
-正式教材結構：
+教材資料層級：
 
 ```text
 Course
 └─ Chapter
    └─ Unit
-      ↔ Knowledge Card
+      └─ Knowledge Card
 ```
 
-Knowledge Card 主要欄位：
+目前已完成：
 
 ```text
-title
-name (alias)
-type
-content (HTML)
-example
-code_example (alias)
-sort_order
+教材 Excel 範本下載
+Excel 教材匯入
+已有教材時覆蓋確認
+整棵教材 Tree 讀取
+Chapter CRUD
+Unit CRUD
+Knowledge Card CRUD
+圖片上傳
+正式教材立即更新
 ```
-
-同一張 Knowledge Card 可以掛在多個 Unit。
-
-目前教材直接操作正式資料，不使用 Draft / Publish 流程。
 
 ---
 
-## 14. 教材 Excel 匯入
+## 13. 教材 Excel 匯入
 
-下載範本：
+教師可下載公版 Excel 範本，再匯入指定課程。
+
+Frontend 不自行解析 Excel，而是將檔案送給 Backend：
 
 ```text
-GET /api/v1/teacher/materials/template
+POST /teacher/courses/{courseId}/materials/import
 ```
 
-匯入：
+如果課程已有教材，前端會顯示覆蓋確認流程，再以：
 
 ```text
-POST /api/v1/teacher/courses/{courseId}/materials/import
+overwrite=true
 ```
 
-FormData：
+重新送出。
+
+教材匯入 Dialog 已使用獨立寬度，並覆寫 Quasar minimized dialog 預設的 `max-width` 限制。
+
+---
+
+## 14. MaterialEditor
+
+共用教材編輯器：
 
 ```text
-file
-overwrite=1
+src/components/teacher/course-workspace/MaterialEditor.vue
 ```
 
-目前 UI 流程：
+依編輯類型使用不同 Dialog 尺寸：
 
 ```text
-1. 下載 Excel 範本
-2. 依欄位填寫教材
-3. 上傳 .xlsx
-4. 若課程已有教材，顯示覆蓋提醒
-5. 確認後重新匯入
+Chapter       → 小型表單
+Unit          → 小型表單
+KnowledgeCard → 大型編輯器
 ```
 
-Excel 欄位：
+Knowledge Card 可編輯：
 
 ```text
-章節名稱
-章節順序
-單元名稱
-單元順序
-知識卡名稱
-類別
-教材內容
+名稱
+類型
+HTML 內容
 程式範例
+排序
 ```
-
-前端不解析 Excel，直接將檔案送至 Backend。
-
-匯入 Dialog 已有獨立寬度設定，並覆蓋 Quasar 預設 Dialog `max-width` 限制。
 
 ---
 
-## 15. 正式教材 CRUD
+## 15. RichTextEditor / RichContentViewer
 
-### Chapter
+教材內容編輯使用 TipTap。
 
-```text
-GET    /api/v1/teacher/courses/{courseId}/chapters
-POST   /api/v1/teacher/courses/{courseId}/chapters
-PUT    /api/v1/teacher/chapters/{chapterId}
-DELETE /api/v1/teacher/chapters/{chapterId}
-```
-
-### Unit
+支援：
 
 ```text
-GET    /api/v1/teacher/chapters/{chapterId}/units
-POST   /api/v1/teacher/chapters/{chapterId}/units
-PUT    /api/v1/teacher/units/{unitId}
-DELETE /api/v1/teacher/units/{unitId}
+標題 / 段落
+粗體 / 斜體
+清單
+文字對齊
+表格
+圖片
 ```
 
-### Knowledge Card
+圖片透過 Backend 上傳後，以 URL 寫入教材 HTML。
+
+學生與教師瀏覽教材時使用：
 
 ```text
-GET    /api/v1/teacher/units/{unitId}/knowledge-cards
-POST   /api/v1/teacher/units/{unitId}/knowledge-cards
-PUT    /api/v1/teacher/knowledge-cards/{cardId}
-DELETE /api/v1/teacher/knowledge-cards/{cardId}
+RichContentViewer.vue
 ```
 
-修改成功後會重新取得 Course Tree，確保 Tree / Graph 使用最新資料。
+顯示正式 HTML 內容。
 
 ---
 
-## 16. MaterialEditor
+## 16. MaterialTreeViewer
 
-元件：
+教師與學生共用：
 
 ```text
-components/teacher/course-workspace/MaterialEditor.vue
+src/components/material/MaterialTreeViewer.vue
+```
+
+目前階層：
+
+```text
+Chapter
+→ Unit
+→ Knowledge Card
+```
+
+### 預設收合
+
+Chapter 與 Unit 的 `q-expansion-item` 目前預設都是關閉狀態。
+
+進入教材頁時先看到：
+
+```text
+▶ 第一章
+▶ 第二章
+▶ 第三章
+```
+
+由使用者自行展開章節，再展開單元查看知識卡。
+
+教師模式另外提供：
+
+```text
+新增
+編輯
+刪除
+```
+
+學生模式則為純瀏覽。
+
+---
+
+## 17. MaterialGraphViewer
+
+教材可切換成知識圖譜顯示，使用：
+
+```text
+vis-network
+```
+
+目前已完成：
+
+```text
+課程 / 章節 / 單元 / 知識卡節點
+搜尋
+Zoom
+Fit
+重新排列
+拖曳節點
+拖曳視圖
+節點詳細資料
+知識卡內容顯示
+```
+
+知識卡「所屬位置」過長時：
+
+```text
+顯示省略號
+Hover Tooltip 顯示完整路徑
+```
+
+右側詳細資料區可以拖曳中間分隔線調整寬度，也可以雙擊恢復預設寬度。
+
+---
+
+## 18. CodeMirror 共用元件
+
+目前有兩個 CodeMirror 共用元件：
+
+```text
+CodeExampleViewer.vue
+→ 唯讀程式碼
+
+CodeEditor.vue
+→ 可編輯程式碼
+```
+
+兩者都使用 CodeMirror 6，並載入 PHP Syntax Highlight。
+
+### 自動高度
+
+CodeMirror 已改成依內容自然調整高度：
+
+```text
+1 行程式碼 → 約 1 行高度
+5 行程式碼 → 自然增加到 5 行
+10 行程式碼 → 自然增加到 10 行
+```
+
+不再使用固定 `height` / 大型 `min-height` 留下多餘空白。
+
+目前 CodeMirror 用於：
+
+```text
+教材程式範例
+填空題題目
+除錯題程式碼
+程式解讀題程式碼
+學生程式實作答案
+```
+
+並分為 Teacher / Student Theme。
+
+---
+
+## 19. 教師－題庫管理
+
+教師可以在自己的課程內：
+
+```text
+查看題目
+搜尋題目
+依題型篩選
+依 Bloom 篩選
+新增題目
+修改題目
+刪除題目
+關聯知識卡
+控制是否顯示知識卡範例
+```
+
+支援 6 種題型：
+
+```text
+choice       選擇題
+true_false   是非題
+fill         填空題
+debug        除錯題
+interpret    程式解讀題
+coding       程式實作題
+```
+
+---
+
+## 20. 教師出題－選擇題 / 是非題
+
+選擇題可建立多個選項，並指定正確答案。
+
+是非題固定使用兩個選項，且只能有一個正解。
+
+前端不需要自行計算 SOLO，交由 Backend 處理。
+
+---
+
+## 21. 教師出題－填空題
+
+填空題題幹目前使用 **CodeMirror** 編輯。
+
+老師可以在要作答的位置使用：
+
+```text
+（1）
+（2）
+（3）
+```
+
+例如：
+
+```text
+123（1）
+5（2）7
+```
+
+並依順序設定每格標準答案。
+
+`sub_id` 依答案順序對應：
+
+```text
+（1）→ sub_id = 1
+（2）→ sub_id = 2
+```
+
+---
+
+## 22. 教師出題－除錯題
+
+除錯題的完整待除錯程式使用可編輯 **CodeMirror**。
+
+老師另外設定：
+
+```text
+錯誤行號
+修正後程式碼
+錯誤原因
+```
+
+其中：
+
+```text
+sub_id = 真實程式行號
+```
+
+不是第幾筆答案。
+
+前端會檢查：
+
+```text
+行號必須是正整數
+行號不可重複
+行號不可超過程式總行數
+```
+
+刪除其中一筆錯誤答案時，不會重新改寫其他錯誤的真實行號。
+
+Debug 題目的程式內容儲存時會保留原始行數，避免 `.trim()` 導致 CodeMirror 行號與 Backend `sub_id` 錯位。
+
+---
+
+## 23. 教師出題－程式解讀題
+
+程式解讀題用來：
+
+```text
+判斷或解釋程式碼執行結果
+評估學生解讀與推演程式的能力
+```
+
+教師端分成：
+
+```text
+提問方式
+待解讀程式碼（CodeMirror）
+單一標準答案
+答案說明
+```
+
+程式解讀題固定只有 **1 個答案**，不提供新增多個答案。
+
+Frontend 會在送出前將：
+
+```text
+提問方式
++
+<!--code-stem-->
++
+程式碼
+```
+
+組回 Backend 原本使用的 `question_content` 格式。
+
+---
+
+## 24. 教師出題－程式實作題
+
+Coding 題已支援 Backend 的：
+
+```text
+starter_code
+expected_output
+reference_answer
 ```
 
 用途：
 
-```text
-新增 / 編輯 Chapter
-新增 / 編輯 Unit
-新增 / 編輯 Knowledge Card
-```
+| 欄位 | 說明 |
+|---|---|
+| `starter_code` | 學生可看到的初始程式 / 已知條件 |
+| `expected_output` | 教師端期望輸出 |
+| `reference_answer` | 教師端參考程式 |
 
-### Dynamic Dialog Size
-
-依內容量使用不同 Dialog 尺寸：
-
-```text
-Chapter / Unit
-→ Compact Dialog
-→ 自動高度
-
-Knowledge Card
-→ Large Dialog
-→ 提供 Rich Text Editor 足夠空間
-```
-
-### Knowledge Card Editor
-
-可編輯：
-
-```text
-名稱
-type
-排序
-教材內容 HTML
-程式範例
-```
-
-`type` 目前提供常用值：
-
-```text
-keyword
-function
-```
-
-並允許其他自訂字串類型。
+新增與編輯題目時都會正確載入與送出這三個欄位。
 
 ---
 
-## 17. RichTextEditor / RichContentViewer
+## 25. 學生－我的課程與教材
 
-編輯器：
+學生登入後可查看自己已選修的課程。
 
-```text
-components/common/RichTextEditor.vue
-```
-
-顯示器：
+進入單一課程後可查看：
 
 ```text
-components/common/RichContentViewer.vue
+教材階層
+教材圖譜
+題目練習
 ```
 
-RichTextEditor 使用 TipTap，目前支援：
-
-- Undo / Redo
-- 一般文字與 Heading
-- Bold / Italic / Underline / Strike
-- 左 / 中 / 右 / Justify
-- Bullet List / Ordered List
-- Blockquote
-- Code Block
-- Link / Unlink
-- Image
-- Table
-
-圖片上傳：
+教材顯示與教師端共用：
 
 ```text
-POST /api/v1/teacher/upload-image
+MaterialTreeViewer
+MaterialGraphViewer
+RichContentViewer
+CodeExampleViewer
 ```
-
-FormData：
-
-```text
-image
-```
-
-Backend 回傳 URL 後插入教材 HTML。
 
 ---
 
-## 18. MaterialTreeViewer
+## 26. 學生－題目列表
 
-共用元件：
+題目練習列表目前改為 **條列式 / List** 顯示。
 
-```text
-components/material/MaterialTreeViewer.vue
-```
-
-目前功能：
-
-- Chapter / Unit 展開收合
-- 階層排序
-- 顯示 Knowledge Card Type
-- RichContentViewer 顯示教材 HTML
-- CodeExampleViewer 顯示程式範例
-- Teacher 模式可新增 / 編輯 / 刪除
-- Student 模式唯讀
-- Teacher / Student 共用相同 Layout
-- Blue / Teal Theme 切換
-
----
-
-## 19. MaterialGraphViewer
-
-共用元件：
+Desktop / Tablet 欄位：
 
 ```text
-components/material/MaterialGraphViewer.vue
-```
-
-使用：
-
-```text
-vis-network
-vis-data
-```
-
-目前功能：
-
-- Course Root / Chapter / Unit / Knowledge Card 圖譜
-- Knowledge Card Type 顏色區分
-- 搜尋節點
-- 搜尋結果列表
-- 聚焦搜尋結果
-- Zoom In / Zoom Out
-- Fit / 置中
-- 重新排列
-- Node Drag
-- View Drag
-- 點擊節點顯示 Detail Panel
-- Teacher 可從 Detail Panel 進入教材編輯
-- Knowledge Card 顯示所屬位置
-- 長路徑使用 Ellipsis (`...`)
-- Hover Tooltip 顯示完整路徑
-- Detail Panel 可左右拖曳調整寬度
-- 雙擊 Resize Handle 恢復預設寬度
-- Teacher / Student 共用 Viewer 與角色 Theme
-
----
-
-## 20. CodeExampleViewer
-
-共用元件：
-
-```text
-components/common/CodeExampleViewer.vue
-```
-
-使用 CodeMirror。
-
-目前設定：
-
-- PHP Syntax Highlight
-- Read Only
-- `editable = false`
-- Line Wrapping
-- 行號
-- 等寬字體
-- Teacher / Student Theme
-- 元件卸載時 Destroy EditorView
-
----
-
-## 21. 教師－題庫管理
-
-題庫位於：
-
-```text
-/teacher/course/:courseId
-└─ 題庫管理
-```
-
-主要檔案：
-
-```text
-components/teacher/course-workspace/CourseQuestionPanel.vue
-components/teacher/question/QuestionFormDialog.vue
-composables/useTeacherQuestions.ts
-api/teacher-question.api.ts
-types/teacher-question.ts
-```
-
-API：
-
-```text
-GET /api/v1/teacher/blooms
-GET /api/v1/teacher/courses/{courseId}/knowledge-cards
-
-GET    /api/v1/teacher/courses/{courseId}/questions
-POST   /api/v1/teacher/courses/{courseId}/questions
-GET    /api/v1/teacher/questions/{questionId}
-PUT    /api/v1/teacher/questions/{questionId}
-DELETE /api/v1/teacher/questions/{questionId}
-```
-
-### 題庫列表
-
-目前已完成：
-
-- 題目列表
-- 題目名稱
-- 題型 Badge
-- Bloom 編碼
-- 關聯知識卡
-- 最後更新時間
-- 搜尋
-- 題型 Filter
-- Pagination
-- 新增
-- 編輯
-- 刪除
-- Confirm Delete
-- Notify
-
-搜尋內容包含：
-
-```text
-題目名稱
-題目內容
-Bloom
-知識卡名稱
-```
-
-### 已完成出題介面
-
-共通欄位：
-
-```text
-題目名稱
+題號
+題目
 題型
-題目內容
-題目說明
-Bloom 編碼
-關聯知識卡
-show_example
+Bloom
+作答次數
+操作
 ```
 
-已完成並可使用的出題表單包含：
+不同題型使用不同 Badge 顏色。
 
-```text
-Choice
-True / False
-Fill
-Interpret
-```
+Mobile 會縮成較適合小螢幕的資訊排列。
 
-Choice：
+### 作答次數欄位
 
-- 至少 2 個選項
-- 可新增 / 移除選項
-- 選項說明
-- 設定正確答案
-
-True / False：
-
-- 固定兩個選項
-- 設定正確答案
-
-Fill / Interpret：
-
-- 使用 `sub_answers`
-- 可新增多個答案
-- 支援 `answer`
-- 支援 `description`
+Frontend 已預留「作答次數」欄位與型別位置；目前 Backend 尚未提供 `attempt_count`，因此目前不顯示實際次數資料。
 
 ---
 
-## 22. 學生－我的課程
+## 27. 學生－選擇題 / 是非題作答
 
-路由：
-
-```text
-/student/courses
-```
-
-資料：
-
-```text
-GET /api/v1/dashboard
-```
-
-目前顯示：
-
-```text
-課程名稱
-班級
-學期
-課程說明
-查看教材
-```
-
-進入：
-
-```text
-/student/course/{courseId}
-```
-
----
-
-## 23. 學生－正式教材
-
-路由：
-
-```text
-/student/course/:courseId
-```
-
-主要資料層：
-
-```text
-api/student-material.api.ts
-composables/useStudentMaterial.ts
-types/student-material.ts
-```
-
-主要 API：
-
-```text
-GET /api/v1/student/courses/{courseId}/graph
-```
-
-頁面已完成：
-
-```text
-階層檢視
-知識圖譜
-題目練習入口
-```
-
-Viewer：
-
-```text
-Tree  → MaterialTreeViewer theme="student"
-Graph → MaterialGraphViewer theme="student"
-```
-
-另已串接 Drill-down API：
-
-```text
-GET /api/v1/student/courses/{courseId}/chapters
-GET /api/v1/student/chapters/{chapterId}/units
-GET /api/v1/student/units/{unitId}/knowledge-cards
-```
-
----
-
-## 24. 學生－題目列表
-
-路由：
-
-```text
-/student/course/:courseId/questions
-```
-
-主要檔案：
-
-```text
-components/student/question/StudentQuestionList.vue
-composables/useStudentQuestions.ts
-api/student-question.api.ts
-types/student-question.ts
-```
-
-API：
-
-```text
-GET /api/v1/student/courses/{courseId}/questions
-```
-
-可使用：
-
-```text
-?knowledge_card_id={knowledgeCardId}
-```
-
-目前題目列表可以：
-
-- 取得課程題目
-- 顯示題型
-- 顯示題目資訊
-- 依 Knowledge Card 篩選
-- 進入單題作答頁
-
-單題網址：
-
-```text
-/student/question/{questionId}?courseId={courseId}
-```
-
----
-
-## 25. 學生－選擇題 / 是非題作答
-
-路由：
-
-```text
-/student/question/:questionId
-```
-
-API：
-
-```text
-GET  /api/v1/student/questions/{questionId}
-POST /api/v1/student/questions/{questionId}/submit
-```
-
-### Choice
-
-元件：
-
-```text
-ChoiceAnswer.vue
-```
-
-Request：
+學生可直接點選選項並送出：
 
 ```json
 {
@@ -1341,25 +842,134 @@ Request：
 }
 ```
 
-### True / False
-
-元件：
+作答完成後會顯示 Backend 回傳的：
 
 ```text
-TrueFalseAnswer.vue
+correct
+wrong
 ```
 
-Request：
+以及答案說明。
+
+---
+
+## 28. 學生－填空題作答
+
+填空題題目會以 **CodeMirror 唯讀模式**顯示，保留老師輸入的程式格式與換行。
+
+前端依 Backend 的：
+
+```text
+sub_ids
+```
+
+建立答案欄位。
+
+送出格式：
 
 ```json
 {
-  "option_id": 1
+  "answers": {
+    "1": "答案一",
+    "2": "答案二"
+  }
 }
 ```
 
-### 作答結果
+輸入欄使用 on-demand validation，只有送出時才顯示必填錯誤。
 
-目前可以顯示：
+---
+
+## 29. 學生－除錯題作答
+
+除錯題的待除錯程式以 **CodeMirror 唯讀模式**顯示，因此學生可以直接對照行號。
+
+Backend 只提供：
+
+```text
+debug_error_count
+```
+
+前端依錯誤數量產生對應的作答區：
+
+```text
+錯誤行號
+修正後程式碼
+```
+
+前端會檢查：
+
+```text
+行號必填
+行號為正整數
+錯誤行號不可重複
+修正內容必填
+```
+
+最後組成：
+
+```json
+{
+  "answers": {
+    "2": "$name = \"Tom\";",
+    "5": "echo $name;"
+  }
+}
+```
+
+---
+
+## 30. 學生－程式解讀題作答
+
+學生會看到：
+
+```text
+提問文字
+CodeMirror 唯讀程式碼
+單一答案輸入欄
+```
+
+Interpret 固定只有一個答案，不產生多組答案欄位。
+
+送出仍使用 Sub Answer 格式：
+
+```json
+{
+  "answers": {
+    "1": "15"
+  }
+}
+```
+
+---
+
+## 31. 學生－程式實作題作答
+
+Coding 題目前已完成可編輯 CodeMirror 作答介面。
+
+如果老師有提供：
+
+```text
+starter_code
+```
+
+會自動載入學生的 CodeMirror，學生可直接在原程式上繼續完成。
+
+送出格式：
+
+```json
+{
+  "code": "$a = 10;\n$b = 20;\necho $a + $b;"
+}
+```
+
+Coding 題送出後依 Backend 設計顯示 `pending` 狀態，等待後續教師覆核。
+
+---
+
+## 32. 學生－作答結果
+
+單題頁目前可處理：
 
 ```text
 correct
@@ -1367,59 +977,53 @@ wrong
 pending
 ```
 
-如果 Backend 回傳：
+Fill / Debug / Interpret 額外顯示：
+
+```text
+答對 X / Y 格
+答對 X / Y 處
+答對 X / Y 題
+```
+
+Frontend 同時相容 Backend Submit Response 的：
 
 ```text
 explanation
+description
 ```
 
-前端會顯示解釋內容。
-
-若單題 API 回傳：
-
-```text
-examples
-```
-
-學生可以展開 / 收合知識卡範例。
+因此不同題型目前都能顯示答案說明。
 
 ---
 
-## 26. Dashboard
+## 33. 作答完成後導覽
 
-資料層：
+學生成功送出答案後，頁面會顯示：
 
 ```text
-dashboard.api.ts
-useDashboard.ts
-types/dashboard.ts
+返回題目列表
+回答下一題
 ```
 
-API：
+「回答下一題」不是直接使用 `questionId + 1`，而是依目前課程題目列表的實際順序尋找下一題。
+
+例如題目 ID 為：
 
 ```text
-GET /api/v1/dashboard
+2 → 5 → 8
 ```
 
-目前已使用於：
+目前在 2 時會前往 5。
+
+若目前已是最後一題，顯示：
 
 ```text
-Teacher 首頁課程資料
-Student 我的課程
-角色基本資料
+已是最後一題
 ```
 
 ---
 
-## 27. 已正式串接 API
-
-以下 Path 皆以：
-
-```text
-/api/v1
-```
-
-為 Base Prefix。
+## 34. 已串接的主要 API
 
 ### Authentication
 
@@ -1429,12 +1033,6 @@ POST /auth/logout
 GET  /auth/me
 POST /auth/student/forgot-password
 POST /auth/teacher/forgot-password
-```
-
-### Dashboard
-
-```text
-GET /dashboard
 ```
 
 ### Teacher Application
@@ -1464,23 +1062,23 @@ PUT    /teacher/courses/{courseId}
 DELETE /teacher/courses/{courseId}
 ```
 
-### Teacher Course Students
+### Teacher Student Roster
 
 ```text
+GET    /teacher/student-applications/template
+POST   /teacher/student-applications
 GET    /teacher/courses/{courseId}/student-applications
 POST   /teacher/courses/{courseId}/student-applications
 DELETE /teacher/courses/{courseId}/student-applications/{itemId}
-
-GET  /teacher/student-applications/template
-POST /teacher/student-applications
 ```
 
-### Teacher Materials
+### Teacher Material
 
 ```text
-GET  /teacher/materials/template
-POST /teacher/courses/{courseId}/materials/import
-GET  /teacher/courses/{courseId}/tree
+GET    /teacher/materials/template
+POST   /teacher/courses/{courseId}/materials/import
+GET    /teacher/courses/{courseId}/tree
+POST   /teacher/upload-image
 
 GET    /teacher/courses/{courseId}/chapters
 POST   /teacher/courses/{courseId}/chapters
@@ -1496,16 +1094,13 @@ GET    /teacher/units/{unitId}/knowledge-cards
 POST   /teacher/units/{unitId}/knowledge-cards
 PUT    /teacher/knowledge-cards/{cardId}
 DELETE /teacher/knowledge-cards/{cardId}
-
-POST /teacher/upload-image
 ```
 
-### Teacher Questions
+### Teacher Question
 
 ```text
-GET /teacher/blooms
-GET /teacher/courses/{courseId}/knowledge-cards
-
+GET    /teacher/blooms
+GET    /teacher/courses/{courseId}/knowledge-cards
 GET    /teacher/courses/{courseId}/questions
 POST   /teacher/courses/{courseId}/questions
 GET    /teacher/questions/{questionId}
@@ -1513,7 +1108,7 @@ PUT    /teacher/questions/{questionId}
 DELETE /teacher/questions/{questionId}
 ```
 
-### Student Materials
+### Student Material
 
 ```text
 GET /student/courses/{courseId}/graph
@@ -1522,7 +1117,7 @@ GET /student/chapters/{chapterId}/units
 GET /student/units/{unitId}/knowledge-cards
 ```
 
-### Student Questions
+### Student Question
 
 ```text
 GET  /student/courses/{courseId}/questions
@@ -1532,175 +1127,42 @@ POST /student/questions/{questionId}/submit
 
 ---
 
-## 28. 已完成功能摘要
+## 35. CSS / SCSS 架構
 
-| 功能 | 狀態 |
-|---|---|
-| Login | ✅ |
-| Logout | ✅ |
-| Restore Session | ✅ |
-| Student / Teacher Forgot Password | ✅ |
-| Forgot Password On-demand Validation | ✅ |
-| Forgot Password Role Switch Error Reset | ✅ |
-| Router Guard | ✅ |
-| Role Guard | ✅ |
-| 共用 Navbar | ✅ |
-| 教師帳號申請 | ✅ |
-| 管理員統計 | ✅ |
-| 管理員教師核准 | ✅ |
-| 管理員學生帳號開通 | ✅ |
-| 教師課程 CRUD | ✅ |
-| 課程 `class_name` | ✅ |
-| 教師課程資訊 | ✅ |
-| 教師班級學生－已開通 | ✅ |
-| 教師班級學生－待審核 | ✅ |
-| 教師手動新增多位學生 | ✅ |
-| 教師 Excel 匯入學生 | ✅ |
-| 教師移除學生 | ✅ |
-| 教材 Excel 匯入 | ✅ |
-| 教材覆蓋匯入 | ✅ |
-| Chapter CRUD | ✅ |
-| Unit CRUD | ✅ |
-| Knowledge Card CRUD | ✅ |
-| Dynamic Material Editor Dialog | ✅ |
-| Rich Text 教材編輯 | ✅ |
-| 教材圖片上傳 | ✅ |
-| MaterialTreeViewer 共用化 | ✅ |
-| MaterialGraphViewer 共用化 | ✅ |
-| Graph 搜尋 / Zoom / Fit / Rearrange | ✅ |
-| Graph Path Ellipsis / Tooltip | ✅ |
-| Graph Detail Panel Resize | ✅ |
-| Teacher / Student Material Theme | ✅ |
-| CodeMirror Example Viewer | ✅ |
-| 學生我的課程 | ✅ |
-| 學生正式教材 Tree | ✅ |
-| 學生正式教材 Graph | ✅ |
-| Teacher 題庫列表 | ✅ |
-| Teacher 題庫搜尋 / 題型 Filter | ✅ |
-| Teacher Question CRUD | ✅ |
-| Bloom / Knowledge Card 關聯 | ✅ |
-| Choice 出題 | ✅ |
-| True / False 出題 | ✅ |
-| Fill 出題 | ✅ |
-| Interpret 出題 | ✅ |
-| Student 題目列表 | ✅ |
-| Student 單題頁 | ✅ |
-| Student Choice 作答 | ✅ |
-| Student True / False 作答 | ✅ |
-
----
-
-## 29. CSS / SCSS 架構
-
-入口：
+主要樣式：
 
 ```text
-src/css/app.scss
-```
-
-目前主要引入：
-
-```scss
-// common
-@use './components/navbar';
-@use './components/confirmDialog';
-@use './components/common/rich-text-editor';
-@use './components/common/rich-content-viewer';
-
-// login / application
-@use './components/login';
-@use './components/teacherApplication';
-
-// material
-@use './components/material/material-tree-viewer';
-@use './components/material/material-graph-viewer';
-
-// admin
-@use './components/admin/course-activation-panel';
-@use './components/admin/teacher-approval-panel';
-@use './components/admin/user-management';
-@use './components/admin/user-stats-cards';
-
-// teacher
-@use './components/teacher/course-management';
-@use './components/teacher/course-card';
-@use './components/teacher/course-form-dialog';
-@use './components/teacher/course-workspace';
-@use './components/teacher/course-student-panel';
-@use './components/teacher/course-question-panel';
-@use './components/teacher/question-form-dialog';
-@use './components/teacher/material-editor';
-
-// student
-@use './components/student/student-material';
-@use './components/student/student-question-list';
-@use './components/student/student-question-page';
-@use './components/student/student-question-answer-page';
-@use './components/student/student-question-answer';
+src/css/
+├─ app.scss
+├─ quasar.variables.scss
+└─ components/
+   ├─ admin/
+   ├─ common/
+   ├─ material/
+   ├─ student/
+   └─ teacher/
 ```
 
 原則：
 
 ```text
-頁面 / 功能 SCSS 分檔
-共用 Viewer 放 material/
-Teacher / Student 透過 Theme 共用 Layout
-RWD 與元件樣式放在對應功能 SCSS
+Vue Component → 結構與互動
+SCSS          → 畫面樣式
+```
+
+角色主題大致為：
+
+```text
+Admin   → Purple
+Teacher → Blue
+Student → Teal / Green
 ```
 
 ---
 
-## 30. Dialog / Notify 原則
+## 36. RWD
 
-目前主要操作流程：
-
-```text
-API 成功
-↓
-關閉 Dialog
-↓
-重新整理資料
-↓
-Notify Success
-```
-
-```text
-API 失敗
-↓
-Dialog 保持開啟
-↓
-顯示 Error
-↓
-Notify Error
-```
-
-需要等待 API 的按鈕使用：
-
-```text
-loading
-+ disable
-```
-
-重要操作使用 Confirm Dialog，例如：
-
-```text
-刪除
-覆蓋教材
-核准帳號
-```
-
-教材編輯 Dialog 已依資料量分為：
-
-```text
-Chapter / Unit → Compact
-Knowledge Card → Large
-```
-
----
-
-## 31. RWD
-
-目前主要功能皆逐步支援：
+目前主要頁面與共用元件都有針對：
 
 ```text
 Desktop
@@ -1708,141 +1170,148 @@ Tablet
 Mobile
 ```
 
+處理版面。
+
 包含：
 
-- Navbar
-- Login / Forgot Password Dialog
-- Course Card / Course Form
-- User Management
-- Course Workspace
-- Student List
-- Material Editor
-- Material Tree
-- Material Graph
-- Student Course List
-- Student Material
-- Question List
-- Student Choice / True-False Answer
+```text
+Navbar
+Dialog
+課程卡片
+教材 Tree
+教材 Graph
+題目列表
+學生作答介面
+CodeMirror
+```
 
-Graph 在小螢幕下會調整 Detail Panel 與 Resize 行為，避免桌面操作直接套用到 Mobile。
+學生題目列表在 Desktop 使用多欄條列；Mobile 會縮成單題資訊區塊，避免橫向欄位過擠。
 
 ---
 
-## 32. 前端開發原則
+## 37. 已完成功能摘要
 
-目前專案使用以下原則：
-
-- 前後端分離
-- TypeScript 型別化
-- Page / Component / Composable / API 職責分離
-- API Loading 明確
-- Error 明確
-- Dialog 成功後才關閉
-- FormData 不手動固定 multipart Boundary
-- Router Role Guard
-- SCSS 依功能分檔
-- 共用元件避免角色綁死
-- Teacher / Student 共用 Viewer 透過 Theme 切換
-- 正式教材由 Backend 作為資料來源
-- 前端不自行解析 Excel
-- RWD
-- 不過度抽象非必要功能
+| 功能 | 狀態 |
+|---|---:|
+| Login / Logout | ✅ |
+| Session Restore | ✅ |
+| Role-based Router Guard | ✅ |
+| Token 401 自動清除與回登入頁 | ✅ |
+| Student Forgot Password | ✅ |
+| Teacher Forgot Password | ✅ |
+| Teacher Application | ✅ |
+| Teacher Application Email 垃圾郵件提醒 | ✅ |
+| Admin Teacher Approval | ✅ |
+| Admin Student Activation | ✅ |
+| Teacher Course CRUD | ✅ |
+| Teacher Student Roster | ✅ |
+| Student Roster Excel Upload | ✅ |
+| Student Account Email 垃圾郵件提醒 | ✅ |
+| Material Excel Import | ✅ |
+| Chapter CRUD | ✅ |
+| Unit CRUD | ✅ |
+| Knowledge Card CRUD | ✅ |
+| RichText Editor | ✅ |
+| Editor Image Upload | ✅ |
+| Material Tree Viewer | ✅ |
+| Material Tree 預設收合 | ✅ |
+| Material Graph Viewer | ✅ |
+| Graph Search / Zoom / Fit / Drag | ✅ |
+| Graph Path Ellipsis + Tooltip | ✅ |
+| Graph Detail Panel Resize | ✅ |
+| CodeMirror 唯讀 Viewer | ✅ |
+| CodeMirror 可編輯 Editor | ✅ |
+| CodeMirror 依內容自動高度 | ✅ |
+| Teacher Question CRUD | ✅ |
+| Teacher Choice 出題 | ✅ |
+| Teacher True / False 出題 | ✅ |
+| Teacher Fill 出題 | ✅ |
+| Teacher Debug 出題 | ✅ |
+| Teacher Interpret 出題 | ✅ |
+| Teacher Coding 出題 | ✅ |
+| Student Question List | ✅ |
+| Student Question List 條列式顯示 | ✅ |
+| Student Choice 作答 | ✅ |
+| Student True / False 作答 | ✅ |
+| Student Fill 作答 | ✅ |
+| Student Debug 作答 | ✅ |
+| Student Interpret 作答 | ✅ |
+| Student Coding 作答 | ✅ |
+| Student Submit Result | ✅ |
+| 回答下一題 | ✅ |
+| 返回題目列表 | ✅ |
 
 ---
 
-## 33. 目前已完成核心流程
+## 38. 已完成核心流程
 
-### 教師帳號
+### 使用者流程
 
 ```text
-教師公開申請
+教師申請帳號
 ↓
-Admin 核准
+管理員核准
 ↓
 教師登入
 ```
 
-### 忘記密碼
-
-```text
-Login
-↓
-Forgot Password
-↓
-學生 / 教師身分切換
-↓
-按下寄送後進行欄位驗證
-↓
-Backend 產生新密碼並寄信
-```
-
-### 課程
+### 課程與學生
 
 ```text
 教師建立課程
 ↓
-設定學期
+教師匯入 / 新增學生名冊
 ↓
-設定 class_name
+管理員開通學生
 ↓
-進入 Course Workspace
-```
-
-### 學生加入課程
-
-```text
-教師手動新增學生
-或
-Excel 匯入名冊
-↓
-Pending
-↓
-Admin 開通
-↓
-建立 / 使用 Student Account
-↓
-建立 Enrollment
-↓
-Teacher 已開通名單
-↓
-Student 我的課程
+學生登入並看到已選課程
 ```
 
 ### 教材
 
 ```text
-Teacher
+教師下載教材 Excel 範本
 ↓
-下載 Excel 範本
+匯入正式教材
 ↓
-Excel 匯入正式教材
-或
-直接新增 / 修改 Chapter / Unit / Knowledge Card
+Chapter / Unit / Knowledge Card 編輯
 ↓
-Course Tree
+學生立即瀏覽正式教材
 ↓
-├─ MaterialTreeViewer
-└─ MaterialGraphViewer
-      ↓
-Student 修課後讀取正式教材
+Tree / Graph 顯示
 ```
 
-### 題庫與目前可作答題型
+### 題目與學生作答
 
 ```text
-Teacher Course Workspace
+教師建立題目
 ↓
-建立題目
+關聯 Bloom + Knowledge Card
 ↓
-設定 Bloom
+學生進入題目練習列表
 ↓
-關聯 Knowledge Cards
+Choice / True False / Fill / Debug / Interpret / Coding
 ↓
-Student 題目列表
+送出答案
 ↓
-Student 單題頁
+顯示作答結果或 pending
 ↓
-Choice / True-False 作答
-↓
-顯示作答結果
+返回題目列表 / 回答下一題
 ```
+
+---
+
+## 39. 開發原則
+
+目前前端持續採用以下原則：
+
+```text
+API 集中於 src/api
+型別集中於 src/types
+頁面流程集中於 composables
+UI 拆成可重用 components
+共用題目 / 教材元件避免重複實作
+角色權限以前端 Guard + Backend Middleware 雙重限制
+實際判分與資料權限以 Backend 為準
+```
+

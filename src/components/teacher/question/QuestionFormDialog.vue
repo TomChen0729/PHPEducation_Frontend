@@ -69,8 +69,71 @@
                 @update:model-value="handleTypeChange"
               />
 
-              <!-- 題目內容 -->
+              <!-- 填空題：題幹也使用 CodeMirror，保留程式碼格式與換行 -->
+              <div v-if="form.type === 'fill'" class="question-form-dialog__full">
+                <div class="text-subtitle2 q-mb-xs">填空題題目 *</div>
+
+                <div class="text-caption text-grey-7 q-mb-sm">
+                  請在要作答的位置使用（1）、（2）標示空格；學生端會以相同的 CodeMirror 顯示。
+                </div>
+
+                <CodeEditor
+                  v-model="form.question_content"
+                  theme="teacher"
+                  :disabled="submitting"
+                />
+              </div>
+
+              <!-- 除錯題：使用 CodeMirror 編輯完整錯誤程式碼 -->
+              <div v-else-if="form.type === 'debug'" class="question-form-dialog__full">
+                <div class="text-subtitle2 q-mb-xs">待除錯程式碼 *</div>
+
+                <div class="text-caption text-grey-7 q-mb-sm">
+                  行號會直接對應下方「錯誤行號」，請在設定答案後避免再插入或刪除前面的程式行。
+                </div>
+
+                <CodeEditor
+                  v-model="form.question_content"
+                  theme="teacher"
+                  :disabled="submitting"
+                />
+              </div>
+
+              <!-- 程式解讀題：提問文字 + CodeMirror 程式碼 -->
+              <div
+                v-else-if="form.type === 'interpret'"
+                class="question-form-dialog__full question-form-dialog__interpret-editor"
+              >
+                <q-input
+                  v-model="form.interpret_prompt"
+                  outlined
+                  type="textarea"
+                  autogrow
+                  label="提問方式 *"
+                  hint="例如：請判斷並說明下列程式最後會輸出什麼結果。"
+                  :disable="submitting"
+                  :rules="[requiredTextRule]"
+                  lazy-rules
+                />
+
+                <div>
+                  <div class="text-subtitle2 q-mb-xs">待解讀程式碼 *</div>
+
+                  <div class="text-caption text-grey-7 q-mb-sm">
+                    學生作答時會以 CodeMirror 顯示這段程式碼。
+                  </div>
+
+                  <CodeEditor
+                    v-model="form.interpret_code"
+                    theme="teacher"
+                    :disabled="submitting"
+                  />
+                </div>
+              </div>
+
+              <!-- 其他題型：維持一般文字輸入 -->
               <q-input
+                v-else
                 v-model="form.question_content"
                 outlined
                 type="textarea"
@@ -313,15 +376,15 @@
           </section>
 
           <!-- =========================
-               Fill / Debug / Interpret
+               Fill
           ========================== -->
-          <section v-if="isSubAnswerType" class="question-form-dialog__section">
+          <section v-if="form.type === 'fill'" class="question-form-dialog__section">
             <div class="question-form-dialog__section-header">
               <div>
                 <div class="question-form-dialog__section-title">標準答案</div>
 
                 <div class="question-form-dialog__section-description">
-                  可設定一個或多個答案項目，供系統進行後續判定。
+                  依題幹中的（1）、（2）順序設定每一格標準答案。
                 </div>
               </div>
 
@@ -338,7 +401,7 @@
             <div class="question-form-dialog__sub-answer-list">
               <div
                 v-for="(item, index) in form.sub_answers"
-                :key="item.sub_id"
+                :key="index"
                 class="question-form-dialog__sub-answer"
               >
                 <div class="question-form-dialog__sub-answer-number">
@@ -381,16 +444,180 @@
           </section>
 
           <!-- =========================
+               Interpret
+          ========================== -->
+          <section v-if="form.type === 'interpret'" class="question-form-dialog__section">
+            <div class="question-form-dialog__section-header">
+              <div>
+                <div class="question-form-dialog__section-title">標準解讀答案</div>
+
+                <div class="question-form-dialog__section-description">
+                  程式解讀題固定只有一個答案，用來評估學生對程式執行結果的判斷、推演與解釋能力。
+                </div>
+              </div>
+            </div>
+
+            <div class="question-form-dialog__interpret-answer">
+              <q-input
+                v-model="form.interpret_answer"
+                outlined
+                type="textarea"
+                autogrow
+                label="標準答案 *"
+                hint="填寫此程式執行後的結果，或完整的推演與解釋。"
+                :disable="submitting"
+                :rules="[requiredTextRule]"
+                lazy-rules
+              />
+
+              <q-input
+                v-model="form.interpret_answer_description"
+                outlined
+                type="textarea"
+                autogrow
+                label="答案說明（選填）"
+                hint="作答完成後可提供給學生的解釋。"
+                :disable="submitting"
+              />
+            </div>
+          </section>
+
+          <!-- =========================
+     Debug
+========================== -->
+          <section v-if="form.type === 'debug'" class="question-form-dialog__section">
+            <div class="question-form-dialog__section-header">
+              <div>
+                <div class="question-form-dialog__section-title">錯誤行與標準修正</div>
+
+                <div class="question-form-dialog__section-description">
+                  題目內容請放完整的錯誤程式碼； 這裡只填「錯誤行號、修正後程式碼、錯誤原因」。
+                </div>
+              </div>
+
+              <q-btn
+                flat
+                color="blue"
+                icon="add"
+                label="新增錯誤行"
+                :disable="submitting"
+                @click="addSubAnswer"
+              />
+            </div>
+
+            <div class="question-form-dialog__sub-answer-list">
+              <div
+                v-for="(item, index) in form.sub_answers"
+                :key="index"
+                class="question-form-dialog__sub-answer question-form-dialog__sub-answer--debug"
+              >
+                <div class="question-form-dialog__sub-answer-number">
+                  {{ index + 1 }}
+                </div>
+
+                <div class="question-form-dialog__debug-fields">
+                  <q-input
+                    v-model.number="item.sub_id"
+                    outlined
+                    type="number"
+                    min="1"
+                    label="錯誤行號 *"
+                    hint="例如：第 4 行有錯就輸入 4"
+                    :disable="submitting"
+                    :rules="[positiveIntegerRule]"
+                    lazy-rules
+                  />
+
+                  <q-input
+                    v-model="item.answer"
+                    outlined
+                    label="修正後程式碼 *"
+                    :disable="submitting"
+                    :rules="[requiredTextRule]"
+                    lazy-rules
+                  />
+
+                  <q-input
+                    v-model="item.description"
+                    outlined
+                    type="textarea"
+                    label="錯誤原因（選填）"
+                    class="question-form-dialog__full"
+                    :disable="submitting"
+                  />
+                </div>
+
+                <q-btn
+                  v-if="form.sub_answers.length > 1"
+                  flat
+                  round
+                  dense
+                  icon="delete"
+                  color="negative"
+                  :disable="submitting"
+                  @click="removeSubAnswer(index)"
+                >
+                  <q-tooltip> 刪除錯誤行 </q-tooltip>
+                </q-btn>
+              </div>
+            </div>
+          </section>
+
+          <!-- =========================
                Coding
           ========================== -->
           <section v-if="form.type === 'coding'" class="question-form-dialog__section">
-            <q-banner rounded class="bg-blue-1 text-blue-9">
-              <template #avatar>
-                <q-icon name="code" color="blue" />
-              </template>
+            <!-- =========================
+     Coding
+========================== -->
+            <section v-if="form.type === 'coding'" class="question-form-dialog__section">
+              <div class="question-form-dialog__section-header">
+                <div>
+                  <div class="question-form-dialog__section-title">程式實作設定</div>
 
-              程式實作題不需要設定選項或一般標準答案， 學生會在作答頁輸入程式碼。
-            </q-banner>
+                  <div class="question-form-dialog__section-description">
+                    設定學生可看到的初始程式碼，以及只提供教師查看的期望輸出與參考答案。
+                  </div>
+                </div>
+              </div>
+
+              <q-banner rounded class="bg-blue-1 text-blue-9 q-mb-md">
+                <template #avatar>
+                  <q-icon name="code" color="blue" />
+                </template>
+
+                初始程式碼會提供給學生； 期望輸出與參考答案只供教師覆核使用。
+              </q-banner>
+
+              <div class="question-form-dialog__coding-fields">
+                <q-input
+                  v-model="form.starter_code"
+                  outlined
+                  type="textarea"
+                  label="初始程式碼 / 已知條件（選填）"
+                  hint="學生作答時可以看到這段內容"
+                  :disable="submitting"
+                />
+
+                <q-input
+                  v-model="form.expected_output"
+                  outlined
+                  type="textarea"
+                  label="期望輸出（選填）"
+                  hint="只供教師查看，不回傳給學生"
+                  :disable="submitting"
+                />
+
+                <q-input
+                  v-model="form.reference_answer"
+                  outlined
+                  type="textarea"
+                  label="參考答案（選填）"
+                  hint="只供教師查看，不回傳給學生"
+                  :disable="submitting"
+                />
+              </div>
+            </section>
           </section>
         </q-form>
       </q-card-section>
@@ -421,6 +648,8 @@ import { computed, reactive, ref, watch } from 'vue';
 
 import type { QForm } from 'quasar';
 
+import CodeEditor from '../../common/CodeEditor.vue';
+
 import type {
   TeacherBloom,
   TeacherQuestion,
@@ -429,7 +658,7 @@ import type {
   TeacherQuestionRequest,
   TeacherQuestionSubAnswerInput,
   TeacherQuestionType,
-} from '../../../types/teacher-question';
+} from '../../../types/teacher-question.js';
 
 /*
  * ============================================================
@@ -456,7 +685,9 @@ type QuestionOptionForm = Omit<TeacherQuestionOptionInput, 'description'> & {
  * 同樣把 description
  * 在表單內固定成 string。
  */
-type QuestionSubAnswerForm = Omit<TeacherQuestionSubAnswerInput, 'description'> & {
+type QuestionSubAnswerForm = Omit<TeacherQuestionSubAnswerInput, 'description' | 'sub_id'> & {
+  sub_id: number | null;
+
   description: string;
 };
 
@@ -468,7 +699,13 @@ type QuestionSubAnswerForm = Omit<TeacherQuestionSubAnswerInput, 'description'> 
  */
 type QuestionFormState = Omit<
   TeacherQuestionRequest,
-  'bloom_id' | 'description' | 'options' | 'sub_answers'
+  | 'bloom_id'
+  | 'description'
+  | 'options'
+  | 'sub_answers'
+  | 'starter_code'
+  | 'expected_output'
+  | 'reference_answer'
 > & {
   bloom_id: string | null;
 
@@ -477,6 +714,20 @@ type QuestionFormState = Omit<
   options: QuestionOptionForm[];
 
   sub_answers: QuestionSubAnswerForm[];
+
+  starter_code: string;
+
+  expected_output: string;
+
+  reference_answer: string;
+
+  interpret_prompt: string;
+
+  interpret_code: string;
+
+  interpret_answer: string;
+
+  interpret_answer_description: string;
 };
 
 /*
@@ -644,11 +895,20 @@ function createTrueFalseOptions(): QuestionOptionForm[] {
   ];
 }
 
-function createSubAnswers(): QuestionSubAnswerForm[] {
+function createSubAnswers(type: TeacherQuestionType): QuestionSubAnswerForm[] {
   return [
     {
-      sub_id: 1,
+      /*
+       * Fill / Interpret：
+       * sub_id 由答案順序決定。
+       *
+       * Debug：
+       * sub_id 必須由老師輸入實際錯誤行號。
+       */
+      sub_id: type === 'debug' ? null : 1,
+
       answer: '',
+
       description: '',
     },
   ];
@@ -677,6 +937,20 @@ function createEmptyForm(): QuestionFormState {
     options: createChoiceOptions(),
 
     sub_answers: [],
+
+    starter_code: '',
+
+    expected_output: '',
+
+    reference_answer: '',
+
+    interpret_prompt: '',
+
+    interpret_code: '',
+
+    interpret_answer: '',
+
+    interpret_answer_description: '',
   };
 }
 
@@ -702,10 +976,6 @@ const displayError = computed(() => {
 
 const isOptionType = computed(() => {
   return form.type === 'choice' || form.type === 'true_false';
-});
-
-const isSubAnswerType = computed(() => {
-  return ['fill', 'debug', 'interpret'].includes(form.type);
 });
 
 const optionSectionTitle = computed(() => {
@@ -809,6 +1079,28 @@ function resetForm() {
   formRef.value?.resetValidation();
 }
 
+const INTERPRET_CODE_MARKER = '<!--code-stem-->';
+
+function splitInterpretContent(content: string) {
+  const markerIndex = content.indexOf(INTERPRET_CODE_MARKER);
+
+  if (markerIndex < 0) {
+    return {
+      prompt: '',
+      code: content,
+    };
+  }
+
+  return {
+    prompt: content.slice(0, markerIndex).trim(),
+    code: content.slice(markerIndex + INTERPRET_CODE_MARKER.length).trim(),
+  };
+}
+
+function buildInterpretContent() {
+  return `${form.interpret_prompt.trim()}\n${INTERPRET_CODE_MARKER}\n${form.interpret_code}`;
+}
+
 /*
  * Backend Question
  * ↓
@@ -821,9 +1113,27 @@ function fillForm(question: TeacherQuestion) {
 
   form.question_content = question.question_content;
 
+  if (question.type === 'interpret') {
+    const interpretContent = splitInterpretContent(question.question_content);
+
+    form.interpret_prompt = interpretContent.prompt;
+
+    form.interpret_code = interpretContent.code;
+  } else {
+    form.interpret_prompt = '';
+
+    form.interpret_code = '';
+  }
+
   form.bloom_id = question.bloom_id;
 
   form.description = question.description ?? '';
+
+  form.starter_code = question.starter_code ?? '';
+
+  form.expected_output = question.expected_output ?? '';
+
+  form.reference_answer = question.reference_answer ?? '';
 
   /*
    * 新欄位：
@@ -882,6 +1192,20 @@ function fillForm(question: TeacherQuestion) {
     description: item.description ?? '',
   }));
 
+  if (form.type === 'interpret') {
+    const firstAnswer = form.sub_answers[0];
+
+    form.interpret_answer = firstAnswer?.answer ?? '';
+
+    form.interpret_answer_description = firstAnswer?.description ?? '';
+
+    form.sub_answers = createSubAnswers('interpret');
+  } else {
+    form.interpret_answer = '';
+
+    form.interpret_answer_description = '';
+  }
+
   /*
    * 相容舊題資料：
    * 如果該題型理論上需要選項，
@@ -897,7 +1221,7 @@ function fillForm(question: TeacherQuestion) {
   }
 
   if (['fill', 'debug', 'interpret'].includes(form.type) && form.sub_answers.length === 0) {
-    form.sub_answers = createSubAnswers();
+    form.sub_answers = createSubAnswers(form.type);
   }
 
   localError.value = '';
@@ -941,10 +1265,26 @@ function handleTypeChange(type: TeacherQuestionType) {
 
     case 'fill':
     case 'debug':
+      form.options = [];
+
+      form.sub_answers = createSubAnswers(type);
+
+      break;
+
     case 'interpret':
       form.options = [];
 
-      form.sub_answers = createSubAnswers();
+      form.sub_answers = createSubAnswers('interpret');
+
+      form.question_content = '';
+
+      form.interpret_prompt = '';
+
+      form.interpret_code = '';
+
+      form.interpret_answer = '';
+
+      form.interpret_answer_description = '';
 
       break;
 
@@ -989,7 +1329,10 @@ function removeOption(index: number) {
 
 function addSubAnswer() {
   form.sub_answers.push({
-    sub_id: form.sub_answers.length + 1,
+    /*
+     * Debug 必須讓老師自行指定錯誤行號。
+     */
+    sub_id: form.type === 'debug' ? null : form.sub_answers.length + 1,
 
     answer: '',
 
@@ -1005,13 +1348,17 @@ function removeSubAnswer(index: number) {
   form.sub_answers.splice(index, 1);
 
   /*
-   * 刪除後重新整理 sub_id：
+   * Fill / Interpret：
+   * sub_id 是答案順序，所以重新編號。
    *
-   * 1, 2, 3...
+   * Debug：
+   * sub_id 是真實行號，不能重新編號。
    */
-  form.sub_answers.forEach((item, itemIndex) => {
-    item.sub_id = itemIndex + 1;
-  });
+  if (form.type !== 'debug') {
+    form.sub_answers.forEach((item, itemIndex) => {
+      item.sub_id = itemIndex + 1;
+    });
+  }
 }
 
 /*
@@ -1021,6 +1368,24 @@ function removeSubAnswer(index: number) {
  */
 
 function validateTypeSpecific(): string | null {
+  /*
+   * Debug 的題目內容改用 CodeMirror，
+   * 不會經過 q-input rules，因此在這裡補必填驗證。
+   */
+  if (form.type === 'debug' && !form.question_content.trim()) {
+    return '請輸入待除錯程式碼';
+  }
+
+  if (form.type === 'interpret') {
+    if (!form.interpret_prompt.trim()) {
+      return '請輸入程式解讀題的提問方式';
+    }
+
+    if (!form.interpret_code.trim()) {
+      return '請輸入待解讀程式碼';
+    }
+  }
+
   /*
    * Choice / True False
    */
@@ -1043,9 +1408,16 @@ function validateTypeSpecific(): string | null {
   }
 
   /*
-   * Fill / Debug / Interpret
+   * Interpret 固定單一答案。
    */
-  if (isSubAnswerType.value) {
+  if (form.type === 'interpret' && !form.interpret_answer.trim()) {
+    return '請填寫程式解讀題的標準答案';
+  }
+
+  /*
+   * Fill / Debug
+   */
+  if (form.type === 'fill' || form.type === 'debug') {
     if (form.sub_answers.length === 0) {
       return '請至少設定一個標準答案';
     }
@@ -1053,7 +1425,35 @@ function validateTypeSpecific(): string | null {
     const hasEmptyAnswer = form.sub_answers.some((item) => !item.answer.trim());
 
     if (hasEmptyAnswer) {
-      return '請填寫完整的標準答案';
+      return form.type === 'debug' ? '請填寫完整的修正後程式碼' : '請填寫完整的標準答案';
+    }
+
+    if (form.type === 'debug') {
+      const lineNumbers = form.sub_answers.map((item) => item.sub_id);
+
+      const hasInvalidLineNumber = lineNumbers.some(
+        (lineNumber) => lineNumber === null || !Number.isInteger(lineNumber) || lineNumber <= 0,
+      );
+
+      if (hasInvalidLineNumber) {
+        return '請填寫正確的錯誤行號';
+      }
+
+      const totalLines = form.question_content.split(/\r?\n/).length;
+
+      const hasOutOfRangeLineNumber = lineNumbers.some(
+        (lineNumber) => lineNumber !== null && lineNumber > totalLines,
+      );
+
+      if (hasOutOfRangeLineNumber) {
+        return `錯誤行號不可超過程式碼總行數（${totalLines} 行）`;
+      }
+
+      const uniqueLineNumbers = new Set(lineNumbers);
+
+      if (uniqueLineNumbers.size !== lineNumbers.length) {
+        return '同一個錯誤行號不可重複設定';
+      }
     }
   }
 
@@ -1072,7 +1472,16 @@ function buildRequest(): TeacherQuestionRequest {
 
     type: form.type,
 
-    question_content: form.question_content.trim(),
+    /*
+     * Debug 的 sub_id 是實際程式行號。
+     * 不可 trim 掉前後空白行，否則儲存後行號可能位移。
+     */
+    question_content:
+      form.type === 'debug' || form.type === 'fill'
+        ? form.question_content
+        : form.type === 'interpret'
+          ? buildInterpretContent()
+          : form.question_content.trim(),
 
     bloom_id: form.bloom_id ?? '',
 
@@ -1103,9 +1512,9 @@ function buildRequest(): TeacherQuestionRequest {
   }
 
   /*
-   * Fill / Debug / Interpret
+   * Fill
    */
-  if (form.type === 'fill' || form.type === 'debug' || form.type === 'interpret') {
+  if (form.type === 'fill') {
     payload.sub_answers = form.sub_answers.map((item, index) => ({
       sub_id: index + 1,
 
@@ -1116,11 +1525,45 @@ function buildRequest(): TeacherQuestionRequest {
   }
 
   /*
-   * Coding：
+   * Interpret
    *
-   * 不送 options
-   * 不送 sub_answers
+   * 程式解讀題固定只有一個標準答案。
    */
+  if (form.type === 'interpret') {
+    payload.sub_answers = [
+      {
+        sub_id: 1,
+
+        answer: form.interpret_answer.trim(),
+
+        description: form.interpret_answer_description.trim() || null,
+      },
+    ];
+  }
+
+  /*
+   * Debug
+   */
+  if (form.type === 'debug') {
+    payload.sub_answers = form.sub_answers.map((item) => ({
+      /*
+       * 使用老師真正輸入的錯誤行號。
+       */
+      sub_id: item.sub_id as number,
+
+      answer: item.answer.trim(),
+
+      description: item.description.trim() || null,
+    }));
+  }
+
+  if (form.type === 'coding') {
+    payload.starter_code = nullableText(form.starter_code);
+
+    payload.expected_output = nullableText(form.expected_output);
+
+    payload.reference_answer = nullableText(form.reference_answer);
+  }
 
   return payload;
 }
@@ -1225,4 +1668,14 @@ watch(
     fillForm(question);
   },
 );
+
+function positiveIntegerRule(value: number | string | null | undefined) {
+  const numberValue = Number(value);
+
+  return (Number.isInteger(numberValue) && numberValue > 0) || '請輸入大於 0 的整數行號';
+}
+
+function nullableText(value: string): string | null {
+  return value.trim() ? value : null;
+}
 </script>

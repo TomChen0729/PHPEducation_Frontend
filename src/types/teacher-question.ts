@@ -144,6 +144,12 @@ export interface TeacherQuestion {
 
   show_example: boolean;
 
+  starter_code: string | null;
+
+  expected_output: string | null;
+
+  reference_answer: string | null;
+
   knowledge_card_ids: number[];
 
   knowledge_cards: TeacherQuestionKnowledgeCard[];
@@ -177,6 +183,12 @@ export interface TeacherQuestionRequest {
   show_example: boolean;
 
   knowledge_card_ids: number[];
+
+  starter_code?: string | null;
+
+  expected_output?: string | null;
+
+  reference_answer?: string | null;
 
   options?: TeacherQuestionOptionInput[];
 

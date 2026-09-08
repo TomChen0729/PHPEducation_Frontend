@@ -106,7 +106,32 @@
                Content
           ================================================ -->
           <div class="student-question-answer-page__question-content">
-            {{ selectedQuestion.question_content }}
+            <!-- Fill / Debug：用與教材程式範例相同的 CodeMirror Viewer 顯示 -->
+            <template v-if="selectedQuestion.type === 'fill' || selectedQuestion.type === 'debug'">
+              <div class="student-question-answer-page__interpret-code">
+                <CodeExampleViewer :code="selectedQuestion.question_content" theme="student" />
+              </div>
+            </template>
+
+            <template v-else-if="selectedQuestion.type === 'interpret' && interpretQuestionCode">
+              <div v-if="interpretQuestionPrompt">
+                {{ interpretQuestionPrompt }}
+              </div>
+
+              <div class="student-question-answer-page__interpret-code">
+                <div class="student-question-answer-page__interpret-code-label">
+                  <q-icon name="code" />
+
+                  程式碼
+                </div>
+
+                <CodeExampleViewer :code="interpretQuestionCode" theme="student" />
+              </div>
+            </template>
+
+            <template v-else>
+              {{ selectedQuestion.question_content }}
+            </template>
           </div>
 
           <!-- ===============================================
@@ -234,11 +259,13 @@
               }}
             </div>
 
-            <div
-              v-if="submitResult.explanation"
-              class="student-question-answer-page__result-description"
-            >
-              {{ submitResult.explanation }}
+            <div v-if="subAnswerResult" class="student-question-answer-page__result-score">
+              答對 {{ subAnswerResult.correct }} / {{ subAnswerResult.total }}
+              {{ subAnswerResultUnit }}
+            </div>
+
+            <div v-if="submitExplanation" class="student-question-answer-page__result-description">
+              {{ submitExplanation }}
             </div>
           </q-banner>
 
@@ -267,57 +294,81 @@
           <!-- ===============================================
                Fill
           ================================================ -->
-          <div
+          <FillAnswer
             v-else-if="selectedQuestion.type === 'fill'"
-            class="student-question-answer-page__answer-placeholder"
-          >
-            <q-icon name="edit" size="32px" color="orange-6" />
-
-            <div>填空題作答區</div>
-
-            <small> 後續會依 sub_answers 產生多個答案欄位。 </small>
-          </div>
+            :sub-ids="selectedQuestion.sub_ids ?? []"
+            :loading="submitLoading"
+            :disabled="Boolean(submitResult)"
+            @submit="handleSubmitSubAnswers"
+          />
 
           <!-- ===============================================
                Debug
           ================================================ -->
-          <div
+          <DebugAnswer
             v-else-if="selectedQuestion.type === 'debug'"
-            class="student-question-answer-page__answer-placeholder"
-          >
-            <q-icon name="bug_report" size="32px" color="deep-orange-6" />
-
-            <div>除錯題作答區</div>
-
-            <small> 後續會建立除錯答案輸入介面。 </small>
-          </div>
+            :error-count="selectedQuestion.debug_error_count ?? 0"
+            :loading="submitLoading"
+            :disabled="Boolean(submitResult)"
+            @submit="handleSubmitSubAnswers"
+          />
 
           <!-- ===============================================
                Interpret
           ================================================ -->
-          <div
+          <InterpretAnswer
             v-else-if="selectedQuestion.type === 'interpret'"
-            class="student-question-answer-page__answer-placeholder"
-          >
-            <q-icon name="psychology" size="32px" color="purple-6" />
-
-            <div>程式解讀題作答區</div>
-
-            <small> 後續會依題目需求產生答案欄位。 </small>
-          </div>
+            :sub-id="selectedQuestion.sub_ids?.[0] ?? 1"
+            :loading="submitLoading"
+            :disabled="Boolean(submitResult)"
+            @submit="handleSubmitSubAnswers"
+          />
 
           <!-- ===============================================
                Coding
           ================================================ -->
-          <div
+          <CodingAnswer
             v-else-if="selectedQuestion.type === 'coding'"
-            class="student-question-answer-page__answer-placeholder"
-          >
-            <q-icon name="code" size="32px" color="indigo-6" />
+            :starter-code="selectedQuestion.starter_code ?? null"
+            :loading="submitLoading"
+            :disabled="Boolean(submitResult)"
+            @submit="handleSubmitCoding"
+          />
 
-            <div>程式實作題作答區</div>
+          <!-- ===============================================
+               Post Submit Navigation
+          ================================================ -->
+          <div v-if="submitResult" class="student-question-answer-page__post-submit-actions">
+            <q-btn
+              outline
+              color="grey-8"
+              icon="list"
+              label="返回題目列表"
+              no-caps
+              @click="goBack"
+              class="student-question-answer-page__post-submit-actions-list-button"
+            />
 
-            <small> 後續會在這裡放入可編輯的 CodeMirror。 </small>
+            <q-btn
+              v-if="nextQuestion"
+              unelevated
+              color="teal"
+              icon-right="arrow_forward"
+              label="回答下一題"
+              no-caps
+              @click="goToNextQuestion"
+              class="student-question-answer-page__post-submit-actions-list-button"
+            />
+
+            <q-btn
+              v-else
+              flat
+              disable
+              color="grey-6"
+              icon="check_circle_outline"
+              label="已是最後一題"
+              no-caps
+            />
           </div>
         </q-card-section>
       </q-card>
@@ -330,15 +381,26 @@ import ChoiceAnswer from '../../../components/student/question/ChoiceAnswer.vue'
 
 import TrueFalseAnswer from '../../../components/student/question/TrueFalseAnswer.vue';
 
+import FillAnswer from '../../../components/student/question/FillAnswer.vue';
+
+import InterpretAnswer from '../../../components/student/question/InterpretAnswer.vue';
+
+import DebugAnswer from '../../../components/student/question/DebugAnswer.vue';
+
+import CodingAnswer from '../../../components/student/question/CodingAnswer.vue';
+
 import CodeExampleViewer from '../../../components/common/CodeExampleViewer.vue';
 
 import { computed, ref, watch } from 'vue';
 
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router';
 
-import { useStudentQuestions } from '../../../composables/useStudentQuestions';
+import { useStudentQuestions } from '../../../composables/useStudentQuestions.js';
 
-import type { StudentQuestionType } from '../../../types/student-question';
+import type {
+  StudentQuestionType,
+  StudentSubAnswerResult,
+} from '../../../types/student-question.js';
 
 /*
  * ============================================================
@@ -439,6 +501,14 @@ const validCourseId = computed(() => {
 
 const {
   /*
+   * Question List
+   *
+   * 單題頁也載入同一門課題目列表，
+   * 用來判斷「下一題」。
+   */
+  questions,
+
+  /*
    * Question
    */
   selectedQuestion,
@@ -463,6 +533,8 @@ const {
   /*
    * Methods
    */
+  loadQuestions,
+
   loadQuestion,
 
   submitAnswer,
@@ -480,14 +552,125 @@ const hasExamples = computed(() => {
 
 /*
  * ============================================================
+ * Interpret Question Content
+ * ============================================================
+ *
+ * Backend 的程式解讀題可使用：
+ *
+ * 題目文字
+ * <!--code-stem-->
+ * 程式碼
+ *
+ * Frontend 將兩段拆開顯示。
+ * 如果舊題沒有 marker，則仍使用原本 question_content 顯示。
+ */
+
+const INTERPRET_CODE_MARKER = '<!--code-stem-->';
+
+const interpretQuestionPrompt = computed(() => {
+  if (selectedQuestion.value?.type !== 'interpret') {
+    return '';
+  }
+
+  const content = selectedQuestion.value.question_content ?? '';
+
+  const markerIndex = content.indexOf(INTERPRET_CODE_MARKER);
+
+  if (markerIndex < 0) {
+    return '';
+  }
+
+  return content.slice(0, markerIndex).trim();
+});
+
+const interpretQuestionCode = computed(() => {
+  if (selectedQuestion.value?.type !== 'interpret') {
+    return '';
+  }
+
+  const content = selectedQuestion.value.question_content ?? '';
+
+  const markerIndex = content.indexOf(INTERPRET_CODE_MARKER);
+
+  if (markerIndex < 0) {
+    return '';
+  }
+
+  return content.slice(markerIndex + INTERPRET_CODE_MARKER.length).trim();
+});
+
+/*
+ * Fill / Debug / Interpret 的 Backend result
+ * 會包含 correct / total / answers。
+ */
+const subAnswerResult = computed<StudentSubAnswerResult | null>(() => {
+  const result = submitResult.value?.record.result;
+
+  if (!result || typeof result !== 'object') {
+    return null;
+  }
+
+  return result;
+});
+
+/*
+ * Backend 的舊版 Sub Answer Submit Response 使用 description，
+ * Choice / True False 則使用 explanation。
+ *
+ * 這裡先相容兩者，避免 Fill / Debug / Interpret
+ * 作答成功後看不到答案說明。
+ */
+const submitExplanation = computed(() => {
+  return submitResult.value?.explanation ?? submitResult.value?.description ?? null;
+});
+
+const subAnswerResultUnit = computed(() => {
+  switch (selectedQuestion.value?.type) {
+    case 'interpret':
+      return '題';
+
+    case 'debug':
+      return '處';
+
+    default:
+      return '格';
+  }
+});
+
+/*
+ * ============================================================
+ * Question Navigation
+ * ============================================================
+ *
+ * Backend 的課程題目列表目前依 question id 由小到大排序。
+ * 這裡直接沿用列表順序判斷下一題，
+ * 不使用 questionId + 1，避免題目刪除後 ID 不連續。
+ */
+
+const currentQuestionIndex = computed(() => {
+  return questions.value.findIndex((question) => question.id === questionId.value);
+});
+
+const nextQuestion = computed(() => {
+  const index = currentQuestionIndex.value;
+
+  if (index < 0) {
+    return null;
+  }
+
+  return questions.value[index + 1] ?? null;
+});
+
+/*
+ * ============================================================
  * Load Question
  * ============================================================
  */
 
 watch(
-  questionId,
+  [questionId, courseId],
 
-  async (id) => {
+  async ([id, currentCourseId]) => {
     if (!Number.isInteger(id) || id <= 0) {
       return;
     }
@@ -497,6 +680,21 @@ watch(
      */
     showExamples.value = false;
 
+    /*
+     * 有 courseId 時先取得課程題目順序，
+     * 讓作答完成後可以前往下一題。
+     *
+     * 題目列表只需要在尚未載入時取得一次。
+     */
+    if (Number.isInteger(currentCourseId) && currentCourseId > 0 && questions.value.length === 0) {
+      await loadQuestions(currentCourseId);
+    }
+
+    /*
+     * 即使題目列表取得失敗，
+     * 單題仍然繼續載入。
+     * loadQuestion() 會重新整理單題自己的錯誤狀態。
+     */
     await loadQuestion(id);
   },
 
@@ -540,6 +738,82 @@ async function handleSubmitOption(optionId: number) {
   await submitAnswer(selectedQuestion.value.id, {
     option_id: optionId,
   });
+}
+
+/*
+ * ============================================================
+ * Submit Sub Answers
+ * ============================================================
+ *
+ * fill / interpret / debug（多錯誤）
+ * 共用 Backend 格式：
+ *
+ * {
+ *   answers: {
+ *     "1": "...",
+ *     "2": "..."
+ *   }
+ * }
+ *
+ * 目前接 Fill / Interpret / Debug。
+ */
+
+async function handleSubmitSubAnswers(answers: Record<string, string>) {
+  if (!selectedQuestion.value) {
+    return;
+  }
+
+  await submitAnswer(selectedQuestion.value.id, {
+    answers,
+  });
+}
+
+/*
+ * ============================================================
+ * Submit Coding
+ * ============================================================
+ *
+ * coding：
+ *
+ * {
+ *   code: "..."
+ * }
+ */
+
+async function handleSubmitCoding(code: string) {
+  if (!selectedQuestion.value) {
+    return;
+  }
+
+  await submitAnswer(selectedQuestion.value.id, {
+    code,
+  });
+}
+
+/*
+ * ============================================================
+ * Go To Next Question
+ * ============================================================
+ */
+
+function goToNextQuestion() {
+  const question = nextQuestion.value;
+
+  if (!question) {
+    return;
+  }
+
+  const route: RouteLocationRaw = {
+    path: `/student/question/${question.id}`,
+  };
+
+  if (validCourseId.value) {
+    route.query = {
+      courseId: String(courseId.value),
+    };
+  }
+
+  void router.push(route);
 }
 
 /*

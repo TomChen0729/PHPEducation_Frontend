@@ -6,8 +6,6 @@
           <!-- 標題 -->
           <q-card-section class="teacherApplication-card__header">
             <div class="text-h4 text-weight-bold">教師帳號申請</div>
-
-            <div class="text-body2 text-grey-7">請填寫以下資料送出申請</div>
           </q-card-section>
 
           <!-- 表單 -->
@@ -34,6 +32,15 @@
                   (value) => emailPattern.test(value) || '格式不正確',
                 ]"
               />
+
+              <!-- Email 提醒 -->
+              <q-banner rounded dense class="bg-amber-1 text-brown-9">
+                <template #avatar>
+                  <q-icon name="mark_email_unread" color="amber-9" />
+                </template>
+
+                審核通過後，系統會將帳號開通通知寄到此信箱。若收件匣中沒有看到， 請檢查垃圾郵件。
+              </q-banner>
 
               <!-- 帳號名稱 -->
               <q-input

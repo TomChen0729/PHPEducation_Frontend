@@ -144,6 +144,24 @@
     word-break: break-word;
   }
 
+  &__interpret-code {
+    margin-top: 16px;
+  }
+
+  &__interpret-code-label {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    margin-bottom: 8px;
+
+    color: #7b1fa2;
+
+    font-size: 13px;
+    font-weight: 700;
+  }
+
   /*
    * ==========================================================
    * Description
@@ -388,12 +406,28 @@
     font-weight: 700;
   }
 
+  &__result-score {
+    margin-top: 4px;
+
+    font-size: 14px;
+    font-weight: 600;
+  }
+
   &__result-description {
     margin-top: 4px;
 
     font-size: 14px;
 
     line-height: 1.6;
+  }
+
+  &__post-submit-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &__post-submit-actions-list-button {
+    margin: 15px 0 0 10px;
   }
 }
 

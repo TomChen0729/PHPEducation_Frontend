@@ -213,6 +213,63 @@
   }
 }
 
+
+/*
+ * ============================================================
+ * Fill Answer
+ * ============================================================
+ */
+
+.student-fill-answer {
+  &__form {
+    width: 100%;
+  }
+
+  &__fields {
+    display: flex;
+    flex-direction: column;
+
+    gap: 14px;
+  }
+
+  &__field {
+    padding: 16px;
+
+    background-color: #fffaf2;
+
+    border: 1px solid #ffe0b2;
+    border-radius: 10px;
+  }
+
+  &__field-label {
+    margin-bottom: 10px;
+
+    color: #ef6c00;
+
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: 22px;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 30px;
+
+    color: #90a4ae;
+  }
+}
+
 /*
  * ============================================================
  * Mobile
@@ -233,6 +290,302 @@
       grid-template-columns: 1fr;
     }
 
+    &__actions {
+      .q-btn {
+        width: 100%;
+      }
+    }
+  }
+
+  .student-fill-answer {
+    &__field {
+      padding: 14px;
+    }
+
+    &__actions {
+      .q-btn {
+        width: 100%;
+      }
+    }
+  }
+}
+
+/*
+ * ============================================================
+ * Interpret Answer
+ * ============================================================
+ */
+
+.student-interpret-answer {
+  &__form {
+    width: 100%;
+  }
+
+  &__fields {
+    display: flex;
+    flex-direction: column;
+
+    gap: 14px;
+  }
+
+  &__field {
+    padding: 16px;
+
+    background-color: #faf5ff;
+
+    border: 1px solid #e1bee7;
+    border-radius: 10px;
+  }
+
+  &__field-label {
+    margin-bottom: 10px;
+
+    color: #7b1fa2;
+
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: 22px;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 30px;
+
+    color: #90a4ae;
+  }
+}
+
+@media (max-width: 600px) {
+  .student-interpret-answer {
+    &__field {
+      padding: 14px;
+    }
+
+    &__actions {
+      .q-btn {
+        width: 100%;
+      }
+    }
+  }
+}
+
+/*
+ * ============================================================
+ * Debug Answer
+ * ============================================================
+ */
+
+.student-debug-answer {
+  width: 100%;
+
+  &__form {
+    width: 100%;
+  }
+
+  &__notice {
+    margin-bottom: 18px;
+
+    color: #bf360c;
+
+    background-color: #fff3e0;
+
+    border: 1px solid #ffcc80;
+  }
+
+  &__notice-title {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  &__notice-text {
+    margin-top: 3px;
+
+    color: #e65100;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+  }
+
+  &__fields {
+    display: flex;
+    flex-direction: column;
+
+    gap: 16px;
+  }
+
+  &__field {
+    padding: 18px;
+
+    background-color: #fffaf7;
+
+    border: 1px solid #ffccbc;
+    border-radius: 12px;
+  }
+
+  &__field-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 14px;
+  }
+
+  &__field-title {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    color: #d84315;
+
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  &__field-grid {
+    display: grid;
+
+    grid-template-columns: minmax(150px, 0.32fr) minmax(0, 1fr);
+
+    gap: 14px;
+
+    min-width: 0;
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    margin-top: 14px;
+
+    color: #c62828;
+
+    font-size: 13px;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: 22px;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 30px;
+
+    color: #90a4ae;
+  }
+}
+
+@media (max-width: 700px) {
+  .student-debug-answer {
+    &__field {
+      padding: 14px;
+    }
+
+    &__field-grid {
+      grid-template-columns: 1fr;
+    }
+
+    &__actions {
+      .q-btn {
+        width: 100%;
+      }
+    }
+  }
+}
+
+/*
+ * ============================================================
+ * Coding Answer
+ * ============================================================
+ */
+
+.student-coding-answer {
+  width: 100%;
+
+  &__notice {
+    margin-bottom: 18px;
+
+    color: #283593;
+
+    background-color: #f3f4ff;
+
+    border: 1px solid #c5cae9;
+  }
+
+  &__notice-title {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  &__notice-text {
+    margin-top: 3px;
+
+    color: #5c6bc0;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+  }
+
+  &__editor-label {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    margin-bottom: 9px;
+
+    color: #37474f;
+
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    margin-top: 10px;
+
+    color: #c62828;
+
+    font-size: 13px;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: 22px;
+  }
+}
+
+@media (max-width: 600px) {
+  .student-coding-answer {
     &__actions {
       .q-btn {
         width: 100%;

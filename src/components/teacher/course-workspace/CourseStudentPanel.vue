@@ -83,6 +83,7 @@
       </template>
 
       此名單尚待管理員審核。審核通過後，學生會自動移至「已開通」名單。
+      若本次有新建立的學生帳號，系統會將帳號名單寄到教師信箱；若未收到，請檢查垃圾郵件。
     </q-banner>
 
     <!-- =========================
@@ -218,6 +219,15 @@
             <div class="course-student-panel__hint">
               匯入後學生會先進入「待審核」名單，需由管理員開通。
             </div>
+
+            <q-banner rounded dense class="bg-amber-1 text-brown-9">
+              <template #avatar>
+                <q-icon name="mark_email_unread" color="amber-9" />
+              </template>
+
+              管理員開通後，若本次有新建立的學生帳號，系統會將學生帳號名單寄到教師信箱。
+              若收件匣中沒有看到，請檢查垃圾郵件。
+            </q-banner>
           </div>
         </q-card-section>
 
@@ -259,6 +269,15 @@
         <q-card-section class="course-student-panel__dialog-content">
           <q-banner rounded class="bg-blue-1 text-blue-9 q-mb-md">
             學號直接輸入數字即可，不需要輸入前綴 s。新增後需等待管理員審核。
+          </q-banner>
+
+          <q-banner rounded dense class="bg-amber-1 text-brown-9 q-mb-md">
+            <template #avatar>
+              <q-icon name="mark_email_unread" color="amber-9" />
+            </template>
+
+            管理員開通後，若本次有新建立的學生帳號，系統會將學生帳號名單寄到教師信箱。
+            若收件匣中沒有看到，請檢查垃圾郵件。
           </q-banner>
 
           <!-- Header -->

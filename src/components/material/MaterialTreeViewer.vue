@@ -30,7 +30,6 @@
         <q-expansion-item
           v-for="(chapter, chapterIndex) in sortedChapters"
           :key="chapter.id"
-          default-opened
           expand-separator
           class="material-tree-viewer__chapter"
         >
@@ -94,7 +93,6 @@
             <q-expansion-item
               v-for="(unit, unitIndex) in sortedUnits(chapter)"
               :key="unit.id"
-              default-opened
               class="material-tree-viewer__unit"
             >
               <template #header>
