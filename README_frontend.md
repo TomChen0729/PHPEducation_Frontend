@@ -3,7 +3,7 @@
 PHPEducation 教學網站前端專案。
 
 本專案使用 **Vue 3 + Quasar + TypeScript** 開發，採前後端分離架構。  
-本 README 依 **2026-09-09 最新前端 `src` 程式碼與本次已完成修改**整理，內容以目前已完成並實際存在於前端的功能為主。
+本 README 依 **2026-09-11 最新前端 `src` 程式碼與目前已完成修改**整理，內容以目前已完成並實際存在於前端的功能為主。
 
 ---
 
@@ -74,7 +74,10 @@ src/
 │  │  ├─ MaterialGraphViewer.vue
 │  │  └─ MaterialTreeViewer.vue
 │  ├─ navigation/
-│  │  └─ AppNavbar.vue
+│  │  ├─ AppNavbar.vue
+│  │  └─ ChangePasswordDialog.vue
+│  ├─ profile/
+│  │  └─ UserProfilePage.vue
 │  ├─ student/question/
 │  │  ├─ ChoiceAnswer.vue
 │  │  ├─ TrueFalseAnswer.vue
@@ -261,7 +264,92 @@ resetValidation()
 
 ---
 
-## 7. 共用 Navbar 與 Router Guard
+## 7. 登入後變更密碼
+
+登入中的使用者已完成變更密碼功能，串接：
+
+```text
+POST /auth/change-password
+```
+
+共用元件：
+
+```text
+src/components/navigation/ChangePasswordDialog.vue
+```
+
+送出資料：
+
+```json
+{
+  "current_password": "目前密碼",
+  "new_password": "新密碼",
+  "new_password_confirmation": "再次輸入新密碼"
+}
+```
+
+前端目前已完成：
+
+```text
+目前密碼驗證錯誤顯示
+新密碼欄位錯誤顯示
+兩次新密碼一致性檢查
+密碼顯示 / 隱藏
+on-demand validation
+送出 Loading
+成功 Notify
+```
+
+依目前 Backend 行為，修改密碼成功後會維持目前登入狀態，不會強制登出。
+
+---
+
+## 8. 教師 / 學生個人資料與帳號中心
+
+教師與學生可由 Navbar 的「頭像 + 姓名」進入個人資料頁：
+
+```text
+Teacher → /teacher/profile
+Student → /student/profile
+```
+
+頁面共用：
+
+```text
+src/components/profile/UserProfilePage.vue
+```
+
+目前可查看：
+
+```text
+姓名
+角色
+登入帳號
+學生學號（Student）
+學生班級（Student）
+```
+
+帳號安全區目前提供：
+
+```text
+修改密碼
+登出
+```
+
+其中修改密碼直接共用 `ChangePasswordDialog.vue`；登出會顯示處理中的 Loading 狀態。
+
+管理員 **沒有個人資料頁**。Admin 仍在 Navbar 上直接提供：
+
+```text
+修改密碼
+登出
+```
+
+目前 Backend 尚未提供姓名 / Email 等個人資料修改 API，因此個人資料頁目前只負責「資料查看 + 帳號安全設定」，不提供假性的個人資料編輯功能。
+
+---
+
+## 9. 共用 Navbar 與 Router Guard
 
 共用 Navbar：
 
@@ -270,6 +358,15 @@ src/components/navigation/AppNavbar.vue
 ```
 
 不同角色使用不同導覽項目與主題色。
+
+教師 / 學生的頭像與姓名目前為個人資料入口：
+
+```text
+Teacher → /teacher/profile
+Student → /student/profile
+```
+
+管理員沒有 Profile Route，維持 Navbar 直接操作修改密碼與登出。
 
 Router Guard 會依：
 
@@ -283,7 +380,7 @@ Router Guard 會依：
 
 ---
 
-## 8. 教師帳號申請
+## 10. 教師帳號申請
 
 公開頁面：
 
@@ -313,7 +410,7 @@ Eportal 信箱
 
 ---
 
-## 9. 管理員－使用者管理
+## 11. 管理員－使用者管理
 
 管理員使用者管理頁已完成：
 
@@ -339,7 +436,7 @@ components/admin/user-management/
 
 ---
 
-## 10. 教師－課程管理
+## 12. 教師－課程管理
 
 教師可管理自己的課程：
 
@@ -373,7 +470,7 @@ src/pages/teacher/course/[courseId].vue
 
 ---
 
-## 11. 教師－班級學生管理
+## 13. 教師－班級學生管理
 
 單一課程內已完成學生名冊管理：
 
@@ -406,7 +503,7 @@ Excel 匯入 Dialog
 
 ---
 
-## 12. 教師－教材管理
+## 14. 教師－教材管理
 
 教材資料層級：
 
@@ -433,7 +530,7 @@ Knowledge Card CRUD
 
 ---
 
-## 13. 教材 Excel 匯入
+## 15. 教材 Excel 匯入
 
 教師可下載公版 Excel 範本，再匯入指定課程。
 
@@ -455,7 +552,7 @@ overwrite=true
 
 ---
 
-## 14. MaterialEditor
+## 16. MaterialEditor
 
 共用教材編輯器：
 
@@ -483,7 +580,7 @@ HTML 內容
 
 ---
 
-## 15. RichTextEditor / RichContentViewer
+## 17. RichTextEditor / RichContentViewer
 
 教材內容編輯使用 TipTap。
 
@@ -510,7 +607,7 @@ RichContentViewer.vue
 
 ---
 
-## 16. MaterialTreeViewer
+## 18. MaterialTreeViewer
 
 教師與學生共用：
 
@@ -552,7 +649,7 @@ Chapter 與 Unit 的 `q-expansion-item` 目前預設都是關閉狀態。
 
 ---
 
-## 17. MaterialGraphViewer
+## 19. MaterialGraphViewer
 
 教材可切換成知識圖譜顯示，使用：
 
@@ -585,7 +682,7 @@ Hover Tooltip 顯示完整路徑
 
 ---
 
-## 18. CodeMirror 共用元件
+## 20. CodeMirror 共用元件
 
 目前有兩個 CodeMirror 共用元件：
 
@@ -618,14 +715,19 @@ CodeMirror 已改成依內容自然調整高度：
 填空題題目
 除錯題程式碼
 程式解讀題程式碼
+教師程式實作題 starter_code
+教師程式實作題 expected_output
+教師程式實作題 reference_answer
 學生程式實作答案
 ```
+
+教師與學生端共用相同的自動高度行為，避免單行程式碼仍留下大型空白編輯區。
 
 並分為 Teacher / Student Theme。
 
 ---
 
-## 19. 教師－題庫管理
+## 21. 教師－題庫管理
 
 教師可以在自己的課程內：
 
@@ -652,9 +754,21 @@ interpret    程式解讀題
 coding       程式實作題
 ```
 
+建立 / 修改題目時，`QuestionFormDialog` 會接收 `submitting` 狀態：
+
+```text
+送出題目
+↓
+儲存按鈕顯示 Loading
+↓
+表單欄位暫時 Disable
+↓
+API 完成後恢復操作
+```
+
 ---
 
-## 20. 教師出題－選擇題 / 是非題
+## 22. 教師出題－選擇題 / 是非題
 
 選擇題可建立多個選項，並指定正確答案。
 
@@ -664,7 +778,7 @@ coding       程式實作題
 
 ---
 
-## 21. 教師出題－填空題
+## 23. 教師出題－填空題
 
 填空題題幹目前使用 **CodeMirror** 編輯。
 
@@ -694,7 +808,7 @@ coding       程式實作題
 
 ---
 
-## 22. 教師出題－除錯題
+## 24. 教師出題－除錯題
 
 除錯題的完整待除錯程式使用可編輯 **CodeMirror**。
 
@@ -728,7 +842,7 @@ Debug 題目的程式內容儲存時會保留原始行數，避免 `.trim()` 導
 
 ---
 
-## 23. 教師出題－程式解讀題
+## 25. 教師出題－程式解讀題
 
 程式解讀題用來：
 
@@ -762,7 +876,7 @@ Frontend 會在送出前將：
 
 ---
 
-## 24. 教師出題－程式實作題
+## 26. 教師出題－程式實作題
 
 Coding 題已支援 Backend 的：
 
@@ -782,9 +896,19 @@ reference_answer
 
 新增與編輯題目時都會正確載入與送出這三個欄位。
 
+三個欄位目前都使用可編輯 **CodeMirror**：
+
+```text
+starter_code     → CodeEditor
+expected_output  → CodeEditor
+reference_answer → CodeEditor
+```
+
+並共用依程式碼行數自然調整高度的行為。
+
 ---
 
-## 25. 學生－我的課程與教材
+## 27. 學生－我的課程與教材
 
 學生登入後可查看自己已選修的課程。
 
@@ -805,9 +929,34 @@ RichContentViewer
 CodeExampleViewer
 ```
 
+### 題目練習－知識卡範例
+
+老師建立任何題型時，只要開啟「顯示知識卡範例」，且關聯的 Knowledge Card 有 `example`，學生單題頁就會顯示範例區。
+
+適用全部 6 種題型：
+
+```text
+Choice
+True / False
+Fill
+Debug
+Interpret
+Coding
+```
+
+Frontend 只依 Backend 回傳的：
+
+```text
+examples
+```
+
+判斷是否顯示，不再依賴題目是否有 `description`。
+
+學生可自行展開 / 收起範例，程式碼使用 `CodeExampleViewer.vue` 唯讀顯示。
+
 ---
 
-## 26. 學生－題目列表
+## 28. 學生－題目列表
 
 題目練習列表目前改為 **條列式 / List** 顯示。
 
@@ -828,11 +977,11 @@ Mobile 會縮成較適合小螢幕的資訊排列。
 
 ### 作答次數欄位
 
-Frontend 已預留「作答次數」欄位與型別位置；目前 Backend 尚未提供 `attempt_count`，因此目前不顯示實際次數資料。
+Frontend 題目列表已預留「作答次數」顯示欄位；目前 Backend 尚未提供 `attempt_count`，因此目前不綁定實際次數資料。等 Backend 正式提供欄位後再接上型別與資料顯示。
 
 ---
 
-## 27. 學生－選擇題 / 是非題作答
+## 29. 學生－選擇題 / 是非題作答
 
 學生可直接點選選項並送出：
 
@@ -853,7 +1002,7 @@ wrong
 
 ---
 
-## 28. 學生－填空題作答
+## 30. 學生－填空題作答
 
 填空題題目會以 **CodeMirror 唯讀模式**顯示，保留老師輸入的程式格式與換行。
 
@@ -880,7 +1029,7 @@ sub_ids
 
 ---
 
-## 29. 學生－除錯題作答
+## 31. 學生－除錯題作答
 
 除錯題的待除錯程式以 **CodeMirror 唯讀模式**顯示，因此學生可以直接對照行號。
 
@@ -919,7 +1068,7 @@ debug_error_count
 
 ---
 
-## 30. 學生－程式解讀題作答
+## 32. 學生－程式解讀題作答
 
 學生會看到：
 
@@ -943,7 +1092,7 @@ Interpret 固定只有一個答案，不產生多組答案欄位。
 
 ---
 
-## 31. 學生－程式實作題作答
+## 33. 學生－程式實作題作答
 
 Coding 題目前已完成可編輯 CodeMirror 作答介面。
 
@@ -967,7 +1116,7 @@ Coding 題送出後依 Backend 設計顯示 `pending` 狀態，等待後續教�
 
 ---
 
-## 32. 學生－作答結果
+## 34. 學生－作答結果
 
 單題頁目前可處理：
 
@@ -996,7 +1145,7 @@ description
 
 ---
 
-## 33. 作答完成後導覽
+## 35. 作答完成後導覽
 
 學生成功送出答案後，頁面會顯示：
 
@@ -1023,7 +1172,7 @@ description
 
 ---
 
-## 34. 已串接的主要 API
+## 36. 已串接的主要 API
 
 ### Authentication
 
@@ -1031,6 +1180,7 @@ description
 POST /auth/login
 POST /auth/logout
 GET  /auth/me
+POST /auth/change-password
 POST /auth/student/forgot-password
 POST /auth/teacher/forgot-password
 ```
@@ -1127,7 +1277,7 @@ POST /student/questions/{questionId}/submit
 
 ---
 
-## 35. CSS / SCSS 架構
+## 37. CSS / SCSS 架構
 
 主要樣式：
 
@@ -1138,6 +1288,8 @@ src/css/
 └─ components/
    ├─ admin/
    ├─ common/
+   │  ├─ _change-password-dialog.scss
+   │  └─ _user-profile-page.scss
    ├─ material/
    ├─ student/
    └─ teacher/
@@ -1160,7 +1312,7 @@ Student → Teal / Green
 
 ---
 
-## 36. RWD
+## 38. RWD
 
 目前主要頁面與共用元件都有針對：
 
@@ -1182,6 +1334,8 @@ Dialog
 教材 Graph
 題目列表
 學生作答介面
+個人資料頁
+變更密碼 Dialog
 CodeMirror
 ```
 
@@ -1189,7 +1343,7 @@ CodeMirror
 
 ---
 
-## 37. 已完成功能摘要
+## 39. 已完成功能摘要
 
 | 功能                                   | 狀態 |
 | -------------------------------------- | ---: |
@@ -1199,6 +1353,9 @@ CodeMirror
 | Token 401 自動清除與回登入頁           |   ✅ |
 | Student Forgot Password                |   ✅ |
 | Teacher Forgot Password                |   ✅ |
+| Change Password (Admin / Teacher / Student) |   ✅ |
+| Teacher / Student Profile Page         |   ✅ |
+| Navbar Profile Entry                   |   ✅ |
 | Teacher Application                    |   ✅ |
 | Teacher Application Email 垃圾郵件提醒 |   ✅ |
 | Admin Teacher Approval                 |   ✅ |
@@ -1229,6 +1386,9 @@ CodeMirror
 | Teacher Debug 出題                     |   ✅ |
 | Teacher Interpret 出題                 |   ✅ |
 | Teacher Coding 出題                    |   ✅ |
+| Teacher Question Submit Loading          |   ✅ |
+| Teacher Coding CodeMirror                |   ✅ |
+| Student Knowledge Card Examples (All Types) |   ✅ |
 | Student Question List                  |   ✅ |
 | Student Question List 條列式顯示       |   ✅ |
 | Student Choice 作答                    |   ✅ |
@@ -1243,7 +1403,7 @@ CodeMirror
 
 ---
 
-## 38. 已完成核心流程
+## 40. 已完成核心流程
 
 ### 使用者流程
 
@@ -1254,6 +1414,20 @@ CodeMirror
 ↓
 教師登入
 ```
+
+### 帳號設定
+
+```text
+Teacher / Student 點擊 Navbar 頭像或姓名
+↓
+進入個人資料頁
+↓
+查看帳號資料
+↓
+修改密碼 / 登出
+```
+
+Admin 不使用個人資料頁，直接由 Navbar 修改密碼或登出。
 
 ### 課程與學生
 
@@ -1301,7 +1475,7 @@ Choice / True False / Fill / Debug / Interpret / Coding
 
 ---
 
-## 39. 開發原則
+## 41. 開發原則
 
 目前前端持續採用以下原則：
 

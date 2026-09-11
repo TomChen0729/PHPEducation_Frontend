@@ -8,6 +8,7 @@ import { useAuthStore } from '../stores/auth';
 import { getHomePathByRole } from '../utils/auth-route';
 
 import type {
+  ChangePasswordRequest,
   ForgotPasswordRole,
   LoginErrorResponse,
   LoginRequest,
@@ -24,6 +25,13 @@ export function useAuth() {
 
   const forgotPasswordLoading = ref(false);
   const forgotPasswordErrorMessage = ref('');
+
+  const changePasswordLoading = ref(false);
+  const changePasswordErrorMessage = ref('');
+  const changePasswordFieldErrors = ref<{
+    current_password?: string | undefined;
+    new_password?: string | undefined;
+  }>({});
 
   async function login(data: LoginRequest) {
     loading.value = true;
@@ -97,6 +105,66 @@ export function useAuth() {
     }
   }
 
+  async function changePassword(data: ChangePasswordRequest): Promise<boolean> {
+    changePasswordLoading.value = true;
+    changePasswordErrorMessage.value = '';
+    changePasswordFieldErrors.value = {};
+
+    try {
+      const response = await authApi.changePassword(data);
+
+      Notify.create({
+        type: 'positive',
+        message: response.data.message || '密碼修改成功',
+        position: 'top',
+        timeout: 2000,
+      });
+
+      return true;
+    } catch (error: unknown) {
+      if (axios.isAxiosError<ValidationErrorResponse>(error)) {
+        const responseData = error.response?.data;
+        const errors = responseData?.errors ?? {};
+
+        changePasswordFieldErrors.value = {
+          current_password: errors.current_password?.[0],
+          new_password:
+            errors.new_password?.[0] ??
+            errors.new_password_confirmation?.[0],
+        };
+
+        changePasswordErrorMessage.value =
+          errors.current_password?.[0] ||
+          errors.new_password?.[0] ||
+          errors.new_password_confirmation?.[0] ||
+          responseData?.message ||
+          '無法修改密碼，請確認輸入內容後再試一次';
+      } else {
+        changePasswordErrorMessage.value = '無法修改密碼，請稍後再試';
+      }
+
+      return false;
+    } finally {
+      changePasswordLoading.value = false;
+    }
+  }
+
+  function clearChangePasswordError(
+    field?: 'current_password' | 'new_password',
+  ) {
+    changePasswordErrorMessage.value = '';
+
+    if (!field) {
+      changePasswordFieldErrors.value = {};
+      return;
+    }
+
+    changePasswordFieldErrors.value = {
+      ...changePasswordFieldErrors.value,
+      [field]: undefined,
+    };
+  }
+
   async function logout() {
     try {
       const response = await authApi.logout();
@@ -140,9 +208,15 @@ export function useAuth() {
     forgotPasswordLoading,
     forgotPasswordErrorMessage,
 
+    changePasswordLoading,
+    changePasswordErrorMessage,
+    changePasswordFieldErrors,
+
     login,
     forgotPassword,
     clearForgotPasswordError,
+    changePassword,
+    clearChangePasswordError,
     logout,
   };
 }

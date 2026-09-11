@@ -3,6 +3,8 @@
 @use './components/confirmDialog';
 @use './components/common/rich-text-editor';
 @use './components/common/rich-content-viewer';
+@use './components/common/_change-password-dialog.scss';
+@use './components/common/_user-profile-page.scss';
 
 // login page css
 @use './components/login';

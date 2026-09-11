@@ -1,6 +1,8 @@
 import { api } from '../boot/axios';
 
 import type {
+  ChangePasswordRequest,
+  ChangePasswordResponse,
   ForgotPasswordResponse,
   LoginRequest,
   LoginResponse,
@@ -21,6 +23,10 @@ export const authApi = {
 
   me() {
     return api.get<MeResponse>('/auth/me');
+  },
+
+  changePassword(data: ChangePasswordRequest) {
+    return api.post<ChangePasswordResponse>('/auth/change-password', data);
   },
 
   studentForgotPassword(data: StudentForgotPasswordRequest) {

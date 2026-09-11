@@ -7,6 +7,8 @@ export interface User {
   account: string;
   name: string;
   role: UserRole;
+  student_no?: string;
+  class_name?: string | null;
 }
 
 export interface LoginRequest {
@@ -42,6 +44,16 @@ export interface TeacherForgotPasswordRequest {
 }
 
 export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+  new_password_confirmation: string;
+}
+
+export interface ChangePasswordResponse {
   message: string;
 }
 

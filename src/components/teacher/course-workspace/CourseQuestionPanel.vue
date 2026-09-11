@@ -178,7 +178,7 @@
       :question="editingQuestion"
       :blooms="blooms"
       :knowledge-cards="knowledgeCards"
-      :saving="saving"
+      :submitting="saving"
       :error-message="formErrorMessage"
       @submit="handleSubmitQuestion"
       @clear-error="clearFormError"

@@ -38,6 +38,36 @@
     gap: 8px;
   }
 
+  &__profile-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 999px;
+
+    color: inherit;
+    background: transparent;
+    font: inherit;
+
+    cursor: pointer;
+
+    transition: background-color 0.18s ease;
+
+    &:hover,
+    &:focus-visible {
+      background: rgb(255 255 255 / 16%);
+      outline: none;
+    }
+  }
+
+  &__admin-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   /* Mobile Menu */
   &__mobile-menu {
     display: none;
