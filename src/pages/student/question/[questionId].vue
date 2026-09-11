@@ -150,11 +150,12 @@
             <div>
               {{ selectedQuestion.description }}
             </div>
+          </div>
 
-            <!-- ===============================================
-     Knowledge Card Examples
-=============================================== -->
-            <div v-if="hasExamples" class="student-question-answer-page__examples">
+          <!-- ===============================================
+               Knowledge Card Examples
+          ================================================ -->
+          <div v-if="hasExamples" class="student-question-answer-page__examples">
               <!-- Header -->
               <div class="student-question-answer-page__examples-header">
                 <div>
@@ -198,7 +199,6 @@
                 </div>
               </q-slide-transition>
             </div>
-          </div>
         </q-card-section>
       </q-card>
 

@@ -2,7 +2,7 @@
   <section class="teacher-approval-panel">
     <div class="teacher-approval-panel__header">
       <div>
-        <h5>教師申請核准</h5>
+        <h5>開通教師帳號</h5>
 
         <p>審核待申請的教師帳號</p>
       </div>

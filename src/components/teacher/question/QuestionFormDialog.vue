@@ -74,7 +74,7 @@
                 <div class="text-subtitle2 q-mb-xs">填空題題目 *</div>
 
                 <div class="text-caption text-grey-7 q-mb-sm">
-                  請在要作答的位置使用（1）、（2）標示空格；學生端會以相同的 CodeMirror 顯示。
+                  請在要作答的位置使用（1）、（2）標示空格。
                 </div>
 
                 <CodeEditor
@@ -567,57 +567,59 @@
                Coding
           ========================== -->
           <section v-if="form.type === 'coding'" class="question-form-dialog__section">
-            <!-- =========================
-     Coding
-========================== -->
-            <section v-if="form.type === 'coding'" class="question-form-dialog__section">
-              <div class="question-form-dialog__section-header">
-                <div>
-                  <div class="question-form-dialog__section-title">程式實作設定</div>
+            <div class="question-form-dialog__section-header">
+              <div>
+                <div class="question-form-dialog__section-title">程式實作設定</div>
 
-                  <div class="question-form-dialog__section-description">
-                    設定學生可看到的初始程式碼，以及只提供教師查看的期望輸出與參考答案。
-                  </div>
+                <div class="question-form-dialog__section-description">
+                  設定學生可看到的初始程式碼，以及只提供教師查看的希望的答案與參考答案。
                 </div>
               </div>
+            </div>
 
-              <q-banner rounded class="bg-blue-1 text-blue-9 q-mb-md">
-                <template #avatar>
-                  <q-icon name="code" color="blue" />
-                </template>
+            <q-banner rounded class="bg-blue-1 text-blue-9 q-mb-md">
+              <template #avatar>
+                <q-icon name="code" color="blue" />
+              </template>
 
-                初始程式碼會提供給學生； 期望輸出與參考答案只供教師覆核使用。
-              </q-banner>
+              初始程式碼會提供給學生；希望的答案與參考答案只供教師覆核使用。
+            </q-banner>
 
-              <div class="question-form-dialog__coding-fields">
-                <q-input
-                  v-model="form.starter_code"
-                  outlined
-                  type="textarea"
-                  label="初始程式碼 / 已知條件（選填）"
-                  hint="學生作答時可以看到這段內容"
-                  :disable="submitting"
-                />
+            <div class="question-form-dialog__coding-fields">
+              <div class="question-form-dialog__coding-editor">
+                <div class="text-subtitle2 q-mb-xs">初始程式碼 / 已知條件（選填）</div>
 
-                <q-input
-                  v-model="form.expected_output"
-                  outlined
-                  type="textarea"
-                  label="期望輸出（選填）"
-                  hint="只供教師查看，不回傳給學生"
-                  :disable="submitting"
-                />
+                <div class="text-caption text-grey-7 q-mb-sm">
+                  學生作答時會看到這段內容，並可直接在此基礎上繼續完成程式。
+                </div>
 
-                <q-input
+                <CodeEditor v-model="form.starter_code" theme="teacher" :disabled="submitting" />
+              </div>
+
+              <div class="question-form-dialog__coding-editor">
+                <div class="text-subtitle2 q-mb-xs">希望的答案（選填）</div>
+
+                <div class="text-caption text-grey-7 q-mb-sm">
+                  只供教師覆核使用，不會回傳給學生。
+                </div>
+
+                <CodeEditor v-model="form.expected_output" theme="teacher" :disabled="submitting" />
+              </div>
+
+              <div class="question-form-dialog__coding-editor">
+                <div class="text-subtitle2 q-mb-xs">參考答案（選填）</div>
+
+                <div class="text-caption text-grey-7 q-mb-sm">
+                  只供教師覆核使用，不會回傳給學生。
+                </div>
+
+                <CodeEditor
                   v-model="form.reference_answer"
-                  outlined
-                  type="textarea"
-                  label="參考答案（選填）"
-                  hint="只供教師查看，不回傳給學生"
-                  :disable="submitting"
+                  theme="teacher"
+                  :disabled="submitting"
                 />
               </div>
-            </section>
+            </div>
           </section>
         </q-form>
       </q-card-section>

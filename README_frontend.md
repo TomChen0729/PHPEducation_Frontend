@@ -26,17 +26,17 @@ SCSS
 
 各套件主要用途：
 
-| 技術 | 用途 |
-|---|---|
-| Vue 3 | 頁面與元件開發 |
-| Quasar | UI 元件、Dialog、Notify、RWD |
-| TypeScript | API / Component 型別管理 |
-| Pinia | 登入狀態管理 |
-| Axios | REST API 串接 |
-| TipTap | 教材 HTML 富文字編輯 |
-| vis-network | 教材知識圖譜 |
-| CodeMirror 6 | 程式碼顯示與編輯 |
-| SCSS | 元件樣式與 RWD |
+| 技術         | 用途                         |
+| ------------ | ---------------------------- |
+| Vue 3        | 頁面與元件開發               |
+| Quasar       | UI 元件、Dialog、Notify、RWD |
+| TypeScript   | API / Component 型別管理     |
+| Pinia        | 登入狀態管理                 |
+| Axios        | REST API 串接                |
+| TipTap       | 教材 HTML 富文字編輯         |
+| vis-network  | 教材知識圖譜                 |
+| CodeMirror 6 | 程式碼顯示與編輯             |
+| SCSS         | 元件樣式與 RWD               |
 
 ---
 
@@ -125,7 +125,7 @@ src/boot/axios.ts
 Base URL 由環境變數取得：
 
 ```ts
-import.meta.env.QCLI_API_BASE_URL
+import.meta.env.QCLI_API_BASE_URL;
 ```
 
 開發環境 Backend 通常為：
@@ -774,11 +774,11 @@ reference_answer
 
 用途：
 
-| 欄位 | 說明 |
-|---|---|
-| `starter_code` | 學生可看到的初始程式 / 已知條件 |
-| `expected_output` | 教師端期望輸出 |
-| `reference_answer` | 教師端參考程式 |
+| 欄位               | 說明                            |
+| ------------------ | ------------------------------- |
+| `starter_code`     | 學生可看到的初始程式 / 已知條件 |
+| `expected_output`  | 教師端希望的答案                |
+| `reference_answer` | 教師端參考程式                  |
 
 新增與編輯題目時都會正確載入與送出這三個欄位。
 
@@ -1191,55 +1191,55 @@ CodeMirror
 
 ## 37. 已完成功能摘要
 
-| 功能 | 狀態 |
-|---|---:|
-| Login / Logout | ✅ |
-| Session Restore | ✅ |
-| Role-based Router Guard | ✅ |
-| Token 401 自動清除與回登入頁 | ✅ |
-| Student Forgot Password | ✅ |
-| Teacher Forgot Password | ✅ |
-| Teacher Application | ✅ |
-| Teacher Application Email 垃圾郵件提醒 | ✅ |
-| Admin Teacher Approval | ✅ |
-| Admin Student Activation | ✅ |
-| Teacher Course CRUD | ✅ |
-| Teacher Student Roster | ✅ |
-| Student Roster Excel Upload | ✅ |
-| Student Account Email 垃圾郵件提醒 | ✅ |
-| Material Excel Import | ✅ |
-| Chapter CRUD | ✅ |
-| Unit CRUD | ✅ |
-| Knowledge Card CRUD | ✅ |
-| RichText Editor | ✅ |
-| Editor Image Upload | ✅ |
-| Material Tree Viewer | ✅ |
-| Material Tree 預設收合 | ✅ |
-| Material Graph Viewer | ✅ |
-| Graph Search / Zoom / Fit / Drag | ✅ |
-| Graph Path Ellipsis + Tooltip | ✅ |
-| Graph Detail Panel Resize | ✅ |
-| CodeMirror 唯讀 Viewer | ✅ |
-| CodeMirror 可編輯 Editor | ✅ |
-| CodeMirror 依內容自動高度 | ✅ |
-| Teacher Question CRUD | ✅ |
-| Teacher Choice 出題 | ✅ |
-| Teacher True / False 出題 | ✅ |
-| Teacher Fill 出題 | ✅ |
-| Teacher Debug 出題 | ✅ |
-| Teacher Interpret 出題 | ✅ |
-| Teacher Coding 出題 | ✅ |
-| Student Question List | ✅ |
-| Student Question List 條列式顯示 | ✅ |
-| Student Choice 作答 | ✅ |
-| Student True / False 作答 | ✅ |
-| Student Fill 作答 | ✅ |
-| Student Debug 作答 | ✅ |
-| Student Interpret 作答 | ✅ |
-| Student Coding 作答 | ✅ |
-| Student Submit Result | ✅ |
-| 回答下一題 | ✅ |
-| 返回題目列表 | ✅ |
+| 功能                                   | 狀態 |
+| -------------------------------------- | ---: |
+| Login / Logout                         |   ✅ |
+| Session Restore                        |   ✅ |
+| Role-based Router Guard                |   ✅ |
+| Token 401 自動清除與回登入頁           |   ✅ |
+| Student Forgot Password                |   ✅ |
+| Teacher Forgot Password                |   ✅ |
+| Teacher Application                    |   ✅ |
+| Teacher Application Email 垃圾郵件提醒 |   ✅ |
+| Admin Teacher Approval                 |   ✅ |
+| Admin Student Activation               |   ✅ |
+| Teacher Course CRUD                    |   ✅ |
+| Teacher Student Roster                 |   ✅ |
+| Student Roster Excel Upload            |   ✅ |
+| Student Account Email 垃圾郵件提醒     |   ✅ |
+| Material Excel Import                  |   ✅ |
+| Chapter CRUD                           |   ✅ |
+| Unit CRUD                              |   ✅ |
+| Knowledge Card CRUD                    |   ✅ |
+| RichText Editor                        |   ✅ |
+| Editor Image Upload                    |   ✅ |
+| Material Tree Viewer                   |   ✅ |
+| Material Tree 預設收合                 |   ✅ |
+| Material Graph Viewer                  |   ✅ |
+| Graph Search / Zoom / Fit / Drag       |   ✅ |
+| Graph Path Ellipsis + Tooltip          |   ✅ |
+| Graph Detail Panel Resize              |   ✅ |
+| CodeMirror 唯讀 Viewer                 |   ✅ |
+| CodeMirror 可編輯 Editor               |   ✅ |
+| CodeMirror 依內容自動高度              |   ✅ |
+| Teacher Question CRUD                  |   ✅ |
+| Teacher Choice 出題                    |   ✅ |
+| Teacher True / False 出題              |   ✅ |
+| Teacher Fill 出題                      |   ✅ |
+| Teacher Debug 出題                     |   ✅ |
+| Teacher Interpret 出題                 |   ✅ |
+| Teacher Coding 出題                    |   ✅ |
+| Student Question List                  |   ✅ |
+| Student Question List 條列式顯示       |   ✅ |
+| Student Choice 作答                    |   ✅ |
+| Student True / False 作答              |   ✅ |
+| Student Fill 作答                      |   ✅ |
+| Student Debug 作答                     |   ✅ |
+| Student Interpret 作答                 |   ✅ |
+| Student Coding 作答                    |   ✅ |
+| Student Submit Result                  |   ✅ |
+| 回答下一題                             |   ✅ |
+| 返回題目列表                           |   ✅ |
 
 ---
 
@@ -1314,4 +1314,3 @@ UI 拆成可重用 components
 角色權限以前端 Guard + Backend Middleware 雙重限制
 實際判分與資料權限以 Backend 為準
 ```
-
