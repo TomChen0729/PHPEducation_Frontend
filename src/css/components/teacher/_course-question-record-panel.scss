@@ -1,0 +1,151 @@
+@use 'quasar/src/css/variables' as q;
+
+.course-question-record-panel {
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    h5 {
+      margin: 0;
+    }
+
+    p {
+      margin: 6px 0 0;
+
+      color: #78909c;
+
+      font-size: 13px;
+      line-height: 1.6;
+    }
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+  }
+
+  &__toolbar {
+    display: grid;
+
+    grid-template-columns:
+      minmax(260px, 1fr)
+      150px
+      170px
+      auto;
+
+    align-items: center;
+
+    gap: 12px;
+  }
+
+  &__search {
+    min-width: 0;
+  }
+
+  &__filter {
+    min-width: 0;
+  }
+
+  &__count {
+    color: #607d8b;
+
+    font-size: 13px;
+
+    white-space: nowrap;
+  }
+
+  &__table {
+    border-radius: 10px;
+
+    overflow: hidden;
+  }
+
+  &__student,
+  &__question {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+
+    strong {
+      color: #263238;
+    }
+
+    span {
+      color: #78909c;
+
+      font-size: 12px;
+    }
+  }
+
+  &__result-summary {
+    max-width: 220px;
+
+    color: #455a64;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__empty {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    min-height: 260px;
+
+    color: #78909c;
+  }
+}
+
+@media (max-width: 1023px) {
+  .course-question-record-panel {
+    &__toolbar {
+      grid-template-columns:
+        minmax(0, 1fr)
+        140px
+        160px;
+    }
+
+    &__count {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .course-question-record-panel {
+    &__header {
+      align-items: center;
+    }
+
+    &__toolbar {
+      grid-template-columns: 1fr;
+    }
+
+    &__count {
+      grid-column: auto;
+    }
+
+    &__table {
+      .q-table__middle {
+        overflow-x: auto;
+      }
+    }
+  }
+}

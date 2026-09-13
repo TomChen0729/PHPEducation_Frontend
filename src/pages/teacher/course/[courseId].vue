@@ -42,6 +42,8 @@
         <q-tab name="materials" label="教材管理" />
 
         <q-tab name="questions" label="題庫管理" />
+
+        <q-tab name="records" label="作答紀錄" />
       </q-tabs>
 
       <q-separator />
@@ -99,6 +101,11 @@
         <!-- Questions -->
         <q-tab-panel name="questions">
           <CourseQuestionPanel v-if="courseId !== null" :course-id="courseId" />
+        </q-tab-panel>
+
+        <!-- Question Records -->
+        <q-tab-panel name="records">
+          <CourseQuestionRecordPanel v-if="courseId !== null" :course-id="courseId" />
         </q-tab-panel>
       </q-tab-panels>
     </q-card>
@@ -165,6 +172,8 @@ import CourseStudentPanel from '../../../components/teacher/course-workspace/Cou
 import CourseMaterialPanel from '../../../components/teacher/course-workspace/CourseMaterialPanel.vue';
 
 import CourseQuestionPanel from '../../../components/teacher/course-workspace/CourseQuestionPanel.vue';
+
+import CourseQuestionRecordPanel from '../../../components/teacher/course-workspace/CourseQuestionRecordPanel.vue';
 
 import MaterialEditor from '../../../components/teacher/course-workspace/MaterialEditor.vue';
 

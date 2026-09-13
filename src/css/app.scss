@@ -27,6 +27,8 @@
 @use './components/teacher/course-workspace';
 @use './components/teacher/course-student-panel';
 @use './components/teacher/course-question-panel';
+@use './components/teacher/course-question-record-panel';
+@use './components/teacher/question-record-review-dialog';
 @use './components/teacher/question-form-dialog';
 @use './components/teacher/material-editor';
 
