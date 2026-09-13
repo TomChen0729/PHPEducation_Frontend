@@ -189,7 +189,6 @@
 
     grid-template-columns:
       minmax(0, 1fr)
-      minmax(0, 1fr)
       40px;
 
     gap: 12px;
@@ -207,7 +206,6 @@
     display: grid;
 
     grid-template-columns:
-      minmax(0, 1fr)
       minmax(0, 1fr)
       40px;
 
@@ -307,14 +305,12 @@
       border: 1px solid #eceff1;
       border-radius: 8px;
 
-      > :first-child,
-      > :nth-child(2) {
+      > :first-child {
         grid-column: 1;
       }
 
       > :last-child {
         grid-column: 2;
-        grid-row: 1 / 3;
       }
     }
   }

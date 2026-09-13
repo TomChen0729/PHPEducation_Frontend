@@ -7,8 +7,8 @@ import type {
 
 import type {
   AdminCourseListResponse,
-  ApproveStudentsRequest,
-  ApproveStudentsResponse,
+  ApproveCoursesRequest,
+  ApproveCoursesResponse,
   PendingStudentListResponse,
   UserStatsApiResponse,
 } from '../types/user-management';
@@ -74,10 +74,17 @@ export const adminUserManagementApi = {
 
   /*
    * =========================
-   * Approve Students
+   * Approve Courses
    * =========================
+   *
+   * source_course_id：
+   * → 申請來源課程
+   * → Backend 自動抓該課全部 pending 學生
+   *
+   * course_ids：
+   * → 欲加入的一門或多門課程
    */
-  approveStudents(data: ApproveStudentsRequest) {
-    return api.post<ApproveStudentsResponse>('/student-applications/approve', data);
+  approveCourses(data: ApproveCoursesRequest) {
+    return api.post<ApproveCoursesResponse>('/student-applications/approve', data);
   },
 };

@@ -7,7 +7,7 @@
       <div>
         <h3 class="user-management-page__title">使用者管理</h3>
 
-        <p class="user-management-page__description">管理教師申請與學生帳號開通</p>
+        <p class="user-management-page__description">管理教師申請與課程開通</p>
       </div>
 
       <q-badge
@@ -54,19 +54,13 @@
       <!-- Student -->
       <CourseActivationPanel
         :courses="pendingCourses"
-        :selected-course-id="selectedCourseId"
-        :selected-course="selectedCourse"
-        :students="pendingStudents"
-        :selected-student-ids="selectedStudentIds"
-        :courses-loading="coursesLoading"
-        :students-loading="studentsLoading"
-        :approving-students="approvingStudents"
-        :search-keyword="studentSearchKeyword"
-        @select-course="handleSelectCourse"
-        @search="handleSearchStudents"
-        @clear-search="handleClearSearch"
-        @update:selected-student-ids="setSelectedStudentIds"
-        @request-approve="requestApproveStudents"
+        :selected-course-ids="selectedPendingCourseIds"
+        :pending-student-count-by-course="pendingStudentCountByCourse"
+        :selected-student-total="selectedPendingStudentTotal"
+        :loading="coursesLoading || pendingCoursesLoading"
+        :approving="approvingCourses"
+        @update:selected-course-ids="setSelectedPendingCourseIds"
+        @request-approve="requestApproveCourses"
       />
     </section>
 
@@ -98,11 +92,11 @@ import TeacherApprovalPanel from '../../components/admin/user-management/Teacher
 
 import UserStatsCards from '../../components/admin/user-management/UserStatsCards.vue';
 
-import { useUserManagement } from '../../composables/useUserManagement';
+import { useUserManagement } from '../../composables/useUserManagement.js';
 
-import type { TeacherApplication } from '../../types/teacher-application';
+import type { TeacherApplication } from '../../types/teacher-application.js';
 
-type ConfirmAction = 'approveTeacher' | 'approveStudents' | null;
+type ConfirmAction = 'approveTeacher' | 'approveCourses' | null;
 
 const {
   /*
@@ -120,27 +114,24 @@ const {
   approveTeacherApplication,
 
   /*
-   * Courses
+   * Course Activation
    */
   coursesLoading,
-  selectedCourseId,
-  selectedCourse,
-  selectCourse,
+  pendingCoursesLoading,
 
-  /*
-   * Students
-   */
-  pendingStudents,
-  studentsLoading,
-  selectedStudentIds,
-  studentSearchKeyword,
-  approvingStudents,
   pendingCourses,
 
-  searchStudents,
-  clearStudentSearch,
-  setSelectedStudentIds,
-  approveSelectedStudents,
+  pendingStudentCountByCourse,
+
+  selectedPendingCourseIds,
+  selectedPendingCourses,
+  selectedPendingStudentTotal,
+
+  approvingCourses,
+
+  setSelectedPendingCourseIds,
+
+  approveSelectedPendingCourses,
 
   /*
    * Common
@@ -178,8 +169,8 @@ const confirmLoading = computed(() => {
     case 'approveTeacher':
       return approvingTeacherId.value !== null;
 
-    case 'approveStudents':
-      return approvingStudents.value;
+    case 'approveCourses':
+      return approvingCourses.value;
 
     default:
       return false;
@@ -248,54 +239,39 @@ async function handleApproveTeacher() {
 
 /*
  * ============================================================
- * Course
+ * Approve Courses
  * ============================================================
  */
-async function handleSelectCourse(courseId: number) {
-  clearErrorMessage();
-
-  await selectCourse(courseId);
-}
-
-/*
- * ============================================================
- * Search Student
- * ============================================================
- */
-async function handleSearchStudents(keyword: string) {
-  clearErrorMessage();
-
-  await searchStudents(keyword);
-}
-
-async function handleClearSearch() {
-  clearErrorMessage();
-
-  await clearStudentSearch();
-}
-
-/*
- * ============================================================
- * Approve Students
- * ============================================================
- */
-function requestApproveStudents() {
-  if (selectedStudentIds.value.length === 0 || !selectedCourse.value) {
+function requestApproveCourses() {
+  if (selectedPendingCourseIds.value.length === 0) {
     return;
   }
 
   clearErrorMessage();
 
-  confirmDialog.action = 'approveStudents';
+  /*
+   * Dialog 最多先顯示前三門課名。
+   */
+  const coursePreview = selectedPendingCourses.value
+    .slice(0, 3)
+    .map((course) => `「${course.name}」`)
+    .join('、');
+
+  const extraCount = Math.max(0, selectedPendingCourses.value.length - 3);
+
+  const extraText = extraCount > 0 ? `等 ${selectedPendingCourses.value.length} 門課程` : '';
+
+  confirmDialog.action = 'approveCourses';
 
   confirmDialog.teacher = null;
 
-  confirmDialog.title = '確認開通學生';
+  confirmDialog.title = '確認開通課程';
 
   confirmDialog.message =
-    `確定要開通「${selectedCourse.value.name}」中已選擇的 ` +
-    `${selectedStudentIds.value.length} 位學生嗎？` +
-    '尚未有帳號的學生會建立新帳號，所有選取學生都會加入此課程。';
+    `確定要開通 ${coursePreview}${extraText}？` +
+    `本次共選擇 ${selectedPendingCourseIds.value.length} 門課程，` +
+    `約包含 ${selectedPendingStudentTotal.value} 筆待審核學生資料。` +
+    '每門課程會開通自己的待審核學生。';
 
   confirmDialog.confirmLabel = '確認開通';
 
@@ -304,8 +280,8 @@ function requestApproveStudents() {
   confirmDialog.open = true;
 }
 
-async function handleApproveStudents() {
-  const result = await approveSelectedStudents();
+async function handleApproveCourses() {
+  const result = await approveSelectedPendingCourses();
 
   if (!result) {
     return;
@@ -317,13 +293,14 @@ async function handleApproveStudents() {
     type: 'positive',
 
     message:
-      `開通完成：共 ${result.activatedCount} 位，` +
+      `已開通 ${result.courseCount} 門課程：` +
+      `處理 ${result.activatedCount} 筆學生資料，` +
       `新建立 ${result.createdCount} 個帳號，` +
-      `${result.enrolledCount} 位已加入課程`,
+      `新增 ${result.enrolledCount} 筆選課`,
 
     position: 'top',
 
-    timeout: 2600,
+    timeout: 3200,
   });
 
   resetConfirmDialog();
@@ -341,8 +318,8 @@ async function handleConfirm() {
 
       break;
 
-    case 'approveStudents':
-      await handleApproveStudents();
+    case 'approveCourses':
+      await handleApproveCourses();
 
       break;
   }

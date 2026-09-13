@@ -3,7 +3,7 @@
 PHPEducation 教學網站前端專案。
 
 本專案使用 **Vue 3 + Quasar + TypeScript** 開發，採前後端分離架構。  
-本 README 依 **2026-09-11 最新前端 `src` 程式碼與目前已完成修改**整理，內容以目前已完成並實際存在於前端的功能為主。
+本 README 依 **2026-09-13 最新前端 `src` 程式碼與目前已完成修改**整理，內容以目前已完成並實際存在於前端的功能為主。
 
 ---
 
@@ -412,29 +412,142 @@ Eportal 信箱
 
 ## 11. 管理員－使用者管理
 
-管理員使用者管理頁已完成：
+管理員使用者管理頁目前以「教師申請核准」與「待開通課程」為主要工作區。
+
+目前已完成：
 
 ```text
 教師申請列表
 教師申請核准
-學生帳號申請列表
-課程篩選
-學生搜尋
-學生批次勾選開通
+待開通課程列表
+課程 Checkbox 多選
+課程全選 / 取消全選
+每門課顯示待審核學生數
+開通前確認 Dialog
+批次開通完成 Notify
 教師 / 學生 / 課程統計
 ```
 
-相關元件：
+主要相關元件：
 
 ```text
 components/admin/user-management/
 ├─ TeacherApprovalPanel.vue
 ├─ CourseActivationPanel.vue
-├─ CourseStudentListDialog.vue
 └─ UserStatsCards.vue
 ```
 
----
+### 待開通課程清單
+
+Frontend 會先取得：
+
+```text
+GET /courses
+GET /student-applications?status=pending
+```
+
+`/student-applications` 回傳的是待審核學生明細，因此前端會依：
+
+```text
+course_id
+```
+
+進行分組與統計，只列出目前真的有 Pending Student 的課程。
+
+每門待開通課程顯示：
+
+```text
+課程名稱
+學期
+班級
+申請教師
+待審核學生數
+```
+
+例如：
+
+```text
+☐ PHP 程式設計
+   115上｜資應二甲｜王老師
+   35 位待審核
+
+☐ 資料庫系統
+   115上｜資應二甲｜王老師
+   28 位待審核
+```
+
+### Checkbox 多選 / 全選
+
+管理員不再逐一搜尋或勾選學生。
+
+目前操作流程：
+
+```text
+直接看到所有待開通課程
+↓
+Checkbox 勾選一門或多門課程
+↓
+也可以使用「全選」
+↓
+顯示已選課程數與待審核學生資料總筆數
+↓
+點擊「開通已選課程」
+↓
+ConfirmDialog 再次確認
+```
+
+如果只選部分課程，全選 Checkbox 會呈現部分選取狀態。
+
+### 課程開通
+
+目前 Backend 一次以一個 `source_course_id` 處理來源課程，因此前端對管理員勾選的多門課程採 **循序送出**，不使用 `Promise.all`。
+
+單門課程 Request：
+
+```json
+{
+  "source_course_id": 1,
+  "course_ids": [1]
+}
+```
+
+如果管理員一次選三門課程：
+
+```text
+PHP
+Database
+Web
+```
+
+Frontend 會依序送出三次開通 Request。
+
+這樣可以降低同一位學生同時出現在多個來源課程時，同時建立帳號造成競態的風險。
+
+開通完成後會重新取得：
+
+```text
+Pending Courses
+Stats
+```
+
+已沒有 Pending Student 的課程會自動從待開通清單消失。
+
+成功通知會統計：
+
+```text
+完成課程數
+處理學生資料筆數
+新建立學生帳號數
+新增選課筆數
+```
+
+管理員頁「待處理 N 件」目前計算方式為：
+
+```text
+待審核教師申請數
++
+待開通課程數
+```
 
 ## 12. 教師－課程管理
 
@@ -476,6 +589,7 @@ src/pages/teacher/course/[courseId].vue
 
 ```text
 查看課程學生
+搜尋學號 / 姓名 / Email
 下載 Excel 名冊範本
 Excel 批次上傳
 手動新增一位或多位學生
@@ -483,9 +597,85 @@ Excel 批次上傳
 移除課程學生
 ```
 
+### 手動新增學生
+
+老師手動把學生加入課程時，現在 **只需要輸入學號**，不再要求輸入學生姓名。
+
+畫面可一次新增多筆：
+
+```text
+學號
+[ 1411131001 ]
+
+學號
+[ 1411131002 ]
+```
+
+Frontend Request：
+
+```json
+{
+  "students": [
+    {
+      "student_no": "1411131001"
+    },
+    {
+      "student_no": "1411131002"
+    }
+  ]
+}
+```
+
+前端會檢查：
+
+```text
+學號不可空白
+同一批新增資料不可有重複學號
+不需要輸入前綴 s
+```
+
+新增成功後學生會先進入：
+
+```text
+pending
+```
+
+並自動切換至「待審核」名單，等管理員以課程為單位開通。
+
+### Excel 匯入
+
+目前 Excel 匯入流程維持既有格式，範本仍使用：
+
+```text
+學號
+姓名
+```
+
+Frontend 不解析 Excel，而是直接以 `multipart/form-data` 上傳 Backend。
+
+### 名單狀態
+
+課程學生名單可切換：
+
+```text
+pending   → 待審核
+approved  → 已開通
+```
+
+移除學生時：
+
+```text
+Pending Student
+→ 移除申請名冊資料
+
+Approved Student
+→ 移除該門課 enrollment
+→ 學生帳號本身保留
+```
+
 ### Email 提醒
 
-老師送出學生帳號申請時，目前在：
+老師送出學生申請時，目前在：
 
 ```text
 學生名冊頁
@@ -496,12 +686,10 @@ Excel 匯入 Dialog
 都會提醒：
 
 ```text
-管理員開通後，若本次有新建立的學生帳號，
+管理員開通課程後，若本次有新建立的學生帳號，
 系統會將學生帳號名單寄到教師信箱；
 若未收到，請檢查垃圾郵件。
 ```
-
----
 
 ## 14. 教師－教材管理
 
@@ -1202,6 +1390,17 @@ GET  /student-applications
 POST /student-applications/approve
 ```
 
+管理員課程開通使用：
+
+```json
+{
+  "source_course_id": 1,
+  "course_ids": [1]
+}
+```
+
+Frontend 的多選 / 全選是以多門待開通來源課程為操作單位；實際送出時會逐門循序呼叫 `/student-applications/approve`。
+
 ### Teacher Course
 
 ```text
@@ -1359,9 +1558,11 @@ CodeMirror
 | Teacher Application                    |   ✅ |
 | Teacher Application Email 垃圾郵件提醒 |   ✅ |
 | Admin Teacher Approval                 |   ✅ |
-| Admin Student Activation               |   ✅ |
+| Admin Course Activation                |   ✅ |
+| Admin Pending Course Checkbox Multi-select / Select All |   ✅ |
 | Teacher Course CRUD                    |   ✅ |
 | Teacher Student Roster                 |   ✅ |
+| Teacher Manual Add Student No Only     |   ✅ |
 | Student Roster Excel Upload            |   ✅ |
 | Student Account Email 垃圾郵件提醒     |   ✅ |
 | Material Excel Import                  |   ✅ |
@@ -1434,9 +1635,20 @@ Admin 不使用個人資料頁，直接由 Navbar 修改密碼或登出。
 ```text
 教師建立課程
 ↓
-教師匯入 / 新增學生名冊
+教師 Excel 匯入學生名冊
+或手動只輸入學號新增學生
 ↓
-管理員開通學生
+學生先進入 Pending 名單
+↓
+管理員直接查看待開通課程
+↓
+Checkbox 多選 / 全選課程
+↓
+確認後循序開通所選課程
+↓
+建立學生帳號（如尚未存在）
++
+建立 enrollments
 ↓
 學生登入並看到已選課程
 ```
@@ -1482,6 +1694,7 @@ Choice / True False / Fill / Debug / Interpret / Coding
 ```text
 API 集中於 src/api
 型別集中於 src/types
+Backend Response 型別與 Frontend View Model 分開定義
 頁面流程集中於 composables
 UI 拆成可重用 components
 共用題目 / 教材元件避免重複實作

@@ -1,300 +1,354 @@
 <template>
   <section class="course-activation-panel">
-    <!-- Header -->
+    <!-- =========================
+         Header
+    ========================== -->
     <div class="course-activation-panel__header">
       <div>
-        <h5>學生帳號開通</h5>
+        <h5>開通課程學生</h5>
 
-        <p>依課程選擇並開通學生</p>
+        <p>直接勾選目前待開通的課程，可一次多選或全選開通。</p>
       </div>
 
-      <q-badge color="teal" :label="`${students.length} 位待開通`" />
+      <q-badge color="teal" :label="`${courses.length} 門待開通`" />
     </div>
 
-    <!-- Course -->
-    <q-select
-      :model-value="selectedCourseId"
-      outlined
-      emit-value
-      map-options
-      behavior="menu"
-      options-dense
-      :options="courseOptions"
-      label="選擇課程"
-      :loading="coursesLoading"
-      :disable="approvingStudents"
-      popup-content-class="course-activation-panel__course-menu"
-      class="course-activation-panel__course-select"
-      @update:model-value="handleCourseChange"
-    >
-      <template #prepend>
-        <q-icon name="menu_book" />
-      </template>
+    <!-- =========================
+         Content
+    ========================== -->
+    <div v-if="courses.length > 0 || loading" class="course-activation-panel__content">
+      <!-- =========================
+           Select All
+      ========================== -->
+      <div class="course-activation-panel__toolbar">
+        <q-checkbox
+          :model-value="selectAllState"
+          :indeterminate-value="null"
+          color="teal"
+          label="全選"
+          :disable="loading || approving"
+          @update:model-value="handleSelectAllChange"
+        />
 
-      <template #no-option>
-        <q-item>
-          <q-item-section class="text-grey"> 目前沒有待開通學生的課程 </q-item-section>
-        </q-item>
-      </template>
-    </q-select>
+        <div class="course-activation-panel__toolbar-summary">
+          已選擇
 
-    <!-- Search -->
-    <div class="course-activation-panel__search">
-      <q-input
-        v-model="searchKeyword"
-        outlined
-        dense
-        clearable
-        debounce="0"
-        label="搜尋學號或姓名"
-        :disable="selectedCourseId === null || approvingStudents"
-        @keyup.enter="submitSearch"
-        @clear="handleClearSearch"
-      >
-        <template #prepend>
-          <q-icon name="search" />
-        </template>
-      </q-input>
+          <strong>
+            {{ selectedCourseIds.length }}
+          </strong>
 
-      <q-btn
-        unelevated
-        color="teal"
-        icon="search"
-        label="搜尋"
-        :disable="selectedCourseId === null || approvingStudents"
-        @click="submitSearch"
-      />
-    </div>
-
-    <!-- Selected Course -->
-    <!-- <div v-if="selectedCourse" class="course-activation-panel__course-info">
-      <div>
-        <strong>
-          {{ selectedCourse.name }}
-        </strong>
-
-        <span>
-          {{ formatSemester(selectedCourse.semester) }}
-        </span>
+          / {{ courses.length }} 門
+        </div>
       </div>
-    </div> -->
 
-    <!-- Toolbar -->
-    <div v-if="selectedCourseId !== null" class="course-activation-panel__toolbar">
-      <q-checkbox
-        :model-value="allSelected"
-        label="全選"
-        color="teal"
-        :disable="students.length === 0 || approvingStudents"
-        @update:model-value="toggleAll"
-      />
+      <q-separator />
 
-      <span>
-        已選擇
-        <strong>
-          {{ selectedStudentIds.length }}
-        </strong>
-        位
-      </span>
-    </div>
+      <!-- =========================
+           Loading
+      ========================== -->
+      <div v-if="loading" class="course-activation-panel__loading">
+        <q-spinner color="teal" size="32px" />
 
-    <!-- No Course -->
-    <div v-if="selectedCourseId === null && !coursesLoading" class="course-activation-panel__empty">
-      <q-icon name="menu_book" size="44px" color="grey-5" />
+        <span> 載入待開通課程... </span>
+      </div>
 
-      <div>目前沒有待開通學生</div>
-    </div>
-
-    <!-- Loading -->
-    <div v-else-if="studentsLoading" class="course-activation-panel__loading">
-      <q-spinner color="teal" size="36px" />
-    </div>
-
-    <!-- Empty -->
-    <div v-else-if="students.length === 0" class="course-activation-panel__empty">
-      <div>目前沒有待開通學生</div>
-    </div>
-
-    <!-- Students -->
-    <q-scroll-area v-else class="course-activation-panel__scroll">
-      <div class="course-activation-panel__list">
-        <div v-for="student in students" :key="student.id" class="course-activation-panel__item">
+      <!-- =========================
+           Course List
+      ========================== -->
+      <div v-else class="course-activation-panel__course-list">
+        <div
+          v-for="course in courses"
+          :key="course.id"
+          class="course-activation-panel__course-row"
+          :class="{
+            'course-activation-panel__course-row--selected': selectedCourseIds.includes(course.id),
+          }"
+        >
+          <!-- Checkbox -->
           <q-checkbox
-            :model-value="selectedStudentIds.includes(student.id)"
+            :model-value="selectedCourseIds.includes(course.id)"
             color="teal"
-            :disable="approvingStudents"
-            @update:model-value="(checked) => toggleStudent(student.id, Boolean(checked))"
+            :disable="approving"
+            @update:model-value="(value) => handleCourseToggle(course.id, Boolean(value))"
           />
 
-          <div class="course-activation-panel__student-info">
-            <div class="course-activation-panel__student-top">
+          <!-- Course Info -->
+          <div class="course-activation-panel__course-info">
+            <div class="course-activation-panel__course-title-row">
               <strong>
-                {{ student.name }}
+                {{ course.name }}
               </strong>
 
-              <q-badge v-if="student.hasAccount" color="blue-grey" label="已有帳號" />
-
-              <q-badge v-else color="orange" label="需建立帳號" />
+              <q-badge
+                color="orange-2"
+                text-color="orange-10"
+                :label="`${pendingCount(course.id)} 位待審核`"
+              />
             </div>
 
-            <div class="course-activation-panel__student-meta">
+            <div class="course-activation-panel__course-meta">
+              <!-- Semester -->
               <span>
-                學號：
-                {{ student.studentNo }}
+                <q-icon name="event" />
+
+                {{ formatSemester(course.semester) }}
               </span>
 
+              <!-- Class -->
               <span>
-                {{ student.email }}
-              </span>
-            </div>
+                <q-icon name="groups" />
 
-            <div class="course-activation-panel__student-extra">
-              <span v-if="student.className">
-                班級：
-                {{ student.className }}
+                {{ course.class_name || '未設定班級' }}
               </span>
 
-              <span v-if="student.providerTeacherName">
-                申請教師：
-                {{ student.providerTeacherName }}
+              <!-- Teacher -->
+              <span v-if="course.teacherName">
+                <q-icon name="person" />
+
+                {{ course.teacherName }}
               </span>
             </div>
           </div>
         </div>
       </div>
-    </q-scroll-area>
 
-    <!-- Footer -->
+      <!-- =========================
+           Selected Summary
+      ========================== -->
+      <q-banner v-if="selectedCourseIds.length > 0" rounded class="course-activation-panel__notice">
+        <template #avatar>
+          <q-icon name="info" color="teal-8" />
+        </template>
+
+        將開通
+
+        <strong>
+          {{ selectedCourseIds.length }}
+        </strong>
+
+        門課程，共處理約
+
+        <strong>
+          {{ selectedStudentTotal }}
+        </strong>
+
+        筆待審核學生資料。 尚未有帳號者會建立學生帳號； 已有帳號者只會加入對應課程。
+      </q-banner>
+    </div>
+
+    <!-- =========================
+         Empty
+    ========================== -->
+    <div v-if="courses.length === 0 && !loading" class="course-activation-panel__empty">
+      <q-icon name="task_alt" size="48px" color="teal-4" />
+
+      <div>目前沒有待開通課程</div>
+    </div>
+
+    <!-- =========================
+         Footer
+    ========================== -->
     <div class="course-activation-panel__footer">
       <div class="course-activation-panel__selection-summary">
         已選擇
-        {{ selectedStudentIds.length }}
-        位學生
+
+        <strong>
+          {{ selectedCourseIds.length }}
+        </strong>
+
+        門課程
       </div>
 
       <q-btn
         unelevated
         color="teal"
         icon="how_to_reg"
-        label="開通已選學生"
-        :loading="approvingStudents"
-        :disable="selectedCourseId === null || selectedStudentIds.length === 0"
-        @click="$emit('request-approve')"
+        :label="approveButtonLabel"
+        :loading="approving"
+        :disable="selectedCourseIds.length === 0 || loading || approving"
+        @click="emit('request-approve')"
       />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 
-import type { AdminCourse, PendingStudentItem } from '../../../types/user-management';
+import type { AdminCourse } from '../../../types/user-management';
 
+/*
+ * ============================================================
+ * Props
+ * ============================================================
+ */
 const props = defineProps<{
+  /*
+   * 只傳目前有 Pending Student 的課程。
+   */
   courses: AdminCourse[];
 
-  selectedCourseId: number | null;
+  /*
+   * Checkbox 已勾選的 Course ID。
+   */
+  selectedCourseIds: number[];
 
-  selectedCourse: AdminCourse | null;
+  /*
+   * 每一門課有多少 Pending Student。
+   *
+   * Example：
+   *
+   * {
+   *   1: 35,
+   *   2: 28,
+   * }
+   */
+  pendingStudentCountByCourse: Record<number, number>;
 
-  students: PendingStudentItem[];
+  /*
+   * 所有已勾選課程的 Pending Student
+   * 總筆數。
+   */
+  selectedStudentTotal: number;
 
-  selectedStudentIds: number[];
+  /*
+   * 課程 / Pending Courses Loading。
+   */
+  loading: boolean;
 
-  coursesLoading: boolean;
-
-  studentsLoading: boolean;
-
-  approvingStudents: boolean;
-
-  searchKeyword: string;
+  /*
+   * 課程開通中。
+   */
+  approving: boolean;
 }>();
 
+/*
+ * ============================================================
+ * Emits
+ * ============================================================
+ */
 const emit = defineEmits<{
-  'select-course': [courseId: number];
+  /*
+   * Checkbox 更新。
+   */
+  'update:selected-course-ids': [ids: number[]];
 
-  search: [keyword: string];
-
-  'clear-search': [];
-
-  'update:selected-student-ids': [ids: number[]];
-
+  /*
+   * Parent 開啟 ConfirmDialog。
+   */
   'request-approve': [];
 }>();
 
-const searchKeyword = ref(props.searchKeyword);
+/*
+ * ============================================================
+ * Computed
+ * ============================================================
+ */
 
-watch(
-  () => props.searchKeyword,
-
-  (value) => {
-    searchKeyword.value = value;
-  },
-);
-
-const courseOptions = computed(() => {
-  return props.courses.map((course) => ({
-    label: `${formatSemester(course.semester)}｜${course.name}｜${course.class_name}`,
-
-    value: course.id,
-  }));
-});
-
-const allSelected = computed(() => {
-  if (props.students.length === 0) {
+/*
+ * 全選 Checkbox：
+ *
+ * false
+ * → 完全沒有選
+ *
+ * true
+ * → 全部選取
+ *
+ * null
+ * → 部分選取
+ */
+const selectAllState = computed<boolean | null>(() => {
+  if (props.courses.length === 0 || props.selectedCourseIds.length === 0) {
     return false;
   }
 
-  return props.students.every((student) => props.selectedStudentIds.includes(student.id));
-});
+  /*
+   * 不直接只比較 length，
+   * 再確認每一門目前的 course
+   * 都真的存在 selected 中。
+   */
+  const allSelected = props.courses.every((course) => {
+    return props.selectedCourseIds.includes(course.id);
+  });
 
-function handleCourseChange(value: number | null) {
-  if (value === null) {
-    return;
+  if (allSelected) {
+    return true;
   }
 
-  searchKeyword.value = '';
+  return null;
+});
 
-  emit('select-course', value);
-}
+/*
+ * 開通按鈕文字。
+ */
+const approveButtonLabel = computed(() => {
+  if (props.selectedCourseIds.length === 0) {
+    return '開通已選課程';
+  }
 
-function submitSearch() {
-  emit('search', searchKeyword.value.trim());
-}
+  return `開通已選課程 (${props.selectedCourseIds.length})`;
+});
 
-function handleClearSearch() {
-  searchKeyword.value = '';
-
-  emit('clear-search');
-}
-
-function toggleAll(checked: boolean | null) {
-  if (checked) {
+/*
+ * ============================================================
+ * Select All
+ * ============================================================
+ */
+function handleSelectAllChange(value: boolean | null) {
+  /*
+   * 如果目前不是全選，
+   * 點一下 → 全選。
+   */
+  if (value === true) {
     emit(
-      'update:selected-student-ids',
-      props.students.map((student) => student.id),
+      'update:selected-course-ids',
+
+      props.courses.map((course) => {
+        return course.id;
+      }),
     );
 
     return;
   }
 
-  emit('update:selected-student-ids', []);
+  /*
+   * 取消全選。
+   */
+  emit('update:selected-course-ids', []);
 }
 
-function toggleStudent(studentId: number, checked: boolean) {
-  if (checked) {
-    emit('update:selected-student-ids', [...new Set([...props.selectedStudentIds, studentId])]);
+/*
+ * ============================================================
+ * Single Course Checkbox
+ * ============================================================
+ */
+function handleCourseToggle(courseId: number, selected: boolean) {
+  const ids = new Set(props.selectedCourseIds);
 
-    return;
+  if (selected) {
+    ids.add(courseId);
+  } else {
+    ids.delete(courseId);
   }
 
-  emit(
-    'update:selected-student-ids',
-    props.selectedStudentIds.filter((id) => id !== studentId),
-  );
+  emit('update:selected-course-ids', [...ids]);
 }
 
-function formatSemester(semester: string) {
+/*
+ * ============================================================
+ * Pending Count
+ * ============================================================
+ */
+function pendingCount(courseId: number): number {
+  return props.pendingStudentCountByCourse[courseId] ?? 0;
+}
+
+/*
+ * ============================================================
+ * Semester
+ * ============================================================
+ */
+function formatSemester(semester: string): string {
   const [year, term] = semester.split('-');
 
   if (term === '1') {

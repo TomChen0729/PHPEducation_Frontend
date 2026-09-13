@@ -82,7 +82,7 @@
         <q-icon name="schedule" color="orange-8" />
       </template>
 
-      此名單尚待管理員審核。審核通過後，學生會自動移至「已開通」名單。
+      此名單尚待管理員審核。管理員開通來源課程後，學生會自動移至「已開通」名單。
       若本次有新建立的學生帳號，系統會將帳號名單寄到教師信箱；若未收到，請檢查垃圾郵件。
     </q-banner>
 
@@ -217,7 +217,7 @@
             </q-file>
 
             <div class="course-student-panel__hint">
-              匯入後學生會先進入「待審核」名單，需由管理員開通。
+              匯入後學生會先進入「待審核」名單，需由管理員開通來源課程。
             </div>
 
             <q-banner rounded dense class="bg-amber-1 text-brown-9">
@@ -225,7 +225,7 @@
                 <q-icon name="mark_email_unread" color="amber-9" />
               </template>
 
-              管理員開通後，若本次有新建立的學生帳號，系統會將學生帳號名單寄到教師信箱。
+              管理員開通課程後，若本次有新建立的學生帳號，系統會將學生帳號名單寄到教師信箱。
               若收件匣中沒有看到，請檢查垃圾郵件。
             </q-banner>
           </div>
@@ -258,7 +258,7 @@
           <div>
             <div class="text-h6">新增學生</div>
 
-            <div class="text-caption text-grey-7">可一次輸入多筆學生資料</div>
+            <div class="text-caption text-grey-7">可一次輸入多筆學生學號</div>
           </div>
 
           <q-btn flat round dense icon="close" :disable="adding" @click="closeAddDialog" />
@@ -268,7 +268,7 @@
 
         <q-card-section class="course-student-panel__dialog-content">
           <q-banner rounded class="bg-blue-1 text-blue-9 q-mb-md">
-            學號直接輸入數字即可，不需要輸入前綴 s。新增後需等待管理員審核。
+            只需輸入學生學號，不需要填寫姓名。學號直接輸入數字即可，不需要輸入前綴 s；新增後需等待管理員審核。
           </q-banner>
 
           <q-banner rounded dense class="bg-amber-1 text-brown-9 q-mb-md">
@@ -276,15 +276,13 @@
               <q-icon name="mark_email_unread" color="amber-9" />
             </template>
 
-            管理員開通後，若本次有新建立的學生帳號，系統會將學生帳號名單寄到教師信箱。
+            管理員開通課程後，若本次有新建立的學生帳號，系統會將學生帳號名單寄到教師信箱。
             若收件匣中沒有看到，請檢查垃圾郵件。
           </q-banner>
 
           <!-- Header -->
           <div class="course-student-panel__student-row-header">
             <div>學號</div>
-
-            <div>姓名</div>
 
             <div></div>
           </div>
@@ -303,15 +301,6 @@
               maxlength="20"
               :disable="adding"
               @update:model-value="(value) => updateInputStudentNo(row, value)"
-            />
-
-            <q-input
-              v-model="row.name"
-              outlined
-              dense
-              label="姓名"
-              maxlength="50"
-              :disable="adding"
             />
 
             <q-btn
@@ -669,8 +658,6 @@ interface StudentInputRow {
   key: number;
 
   studentNo: string;
-
-  name: string;
 }
 
 const addDialogOpen = ref(false);
@@ -686,8 +673,6 @@ function createInputRow(): StudentInputRow {
     key: nextInputRowKey++,
 
     studentNo: '',
-
-    name: '',
   };
 }
 
@@ -755,12 +740,10 @@ function validateAddStudents(): string | null {
   /*
    * 必填。
    */
-  const incompleteRow = addStudentRows.value.find(
-    (row) => !row.studentNo.trim() || !row.name.trim(),
-  );
+  const incompleteRow = addStudentRows.value.find((row) => !row.studentNo.trim());
 
   if (incompleteRow) {
-    return '請完整填寫每一位學生的學號與姓名。';
+    return '請完整填寫每一位學生的學號。';
   }
 
   /*
@@ -793,8 +776,6 @@ async function submitAddStudents() {
 
     addStudentRows.value.map((row) => ({
       student_no: row.studentNo,
-
-      name: row.name.trim(),
     })),
   );
 

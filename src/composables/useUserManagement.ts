@@ -6,14 +6,16 @@ import { adminUserManagementApi } from '../api/admin-user-management.api';
 
 import type { TeacherApplication } from '../types/teacher-application';
 
-import type {
-  AdminCourse,
-  PendingStudentApiItem,
-  PendingStudentItem,
-  UserStats,
-} from '../types/user-management';
+import type { AdminCourse, AdminCourseApiItem, UserStats } from '../types/user-management';
 
 export function useUserManagement() {
+  /*
+   * ============================================================
+   * Common
+   * ============================================================
+   */
+  const errorMessage = ref('');
+
   /*
    * ============================================================
    * Stats
@@ -21,13 +23,9 @@ export function useUserManagement() {
    */
   const stats = ref<UserStats>({
     teacherCount: 0,
-
     studentCount: 0,
-
     courseCount: 0,
-
     semesterCourseCount: 0,
-
     semester: null,
   });
 
@@ -42,129 +40,117 @@ export function useUserManagement() {
 
   const teacherApplicationsLoading = ref(false);
 
-  /*
-   * 記錄目前正在核准哪一位教師
-   */
   const approvingTeacherId = ref<number | null>(null);
 
   /*
    * ============================================================
-   * Courses
+   * Course Activation
    * ============================================================
    */
   const courses = ref<AdminCourse[]>([]);
 
   const coursesLoading = ref(false);
 
-  const selectedCourseId = ref<number | null>(null);
-
   /*
-   * 有 Pending 學生的 Course ID
+   * 目前有 Pending Student 的來源課程 ID。
    */
   const pendingCourseIds = ref<number[]>([]);
 
+  const pendingCoursesLoading = ref(false);
+
   /*
-   * 學生帳號開通區只顯示
-   * 有 Pending Student 的課程。
+   * 每一門課目前有多少位待審核學生。
+   *
+   * Example：
+   *
+   * {
+   *   1: 35,
+   *   2: 28,
+   * }
    */
-  const pendingCourses = computed(() => {
+  const pendingStudentCountByCourse = ref<Record<number, number>>({});
+
+  /*
+   * 管理員 Checkbox 目前勾選的課程 ID。
+   */
+  const selectedPendingCourseIds = ref<number[]>([]);
+
+  /*
+   * 課程開通 Loading。
+   */
+  const approvingCourses = ref(false);
+
+  /*
+   * ============================================================
+   * Computed
+   * ============================================================
+   */
+
+  /*
+   * 只顯示目前真的還有 Pending Student 的課程。
+   */
+  const pendingCourses = computed<AdminCourse[]>(() => {
     const idSet = new Set(pendingCourseIds.value);
 
-    return courses.value.filter((course) => idSet.has(course.id));
+    return courses.value.filter((course) => {
+      return idSet.has(course.id);
+    });
   });
 
   /*
-   * ============================================================
-   * Student Applications
-   * ============================================================
+   * 目前被管理員勾選的課程資料。
    */
-  const pendingStudents = ref<PendingStudentItem[]>([]);
+  const selectedPendingCourses = computed<AdminCourse[]>(() => {
+    const idSet = new Set(selectedPendingCourseIds.value);
 
-  const studentsLoading = ref(false);
+    return pendingCourses.value.filter((course) => {
+      return idSet.has(course.id);
+    });
+  });
 
   /*
-   * 管理員目前勾選的學生 Application Item ID
-   */
-  const selectedStudentIds = ref<number[]>([]);
-
-  const studentSearchKeyword = ref('');
-
-  /*
-   * 全站 pending Student Item 數量
+   * 已勾選課程總共有多少筆 Pending Student。
    *
-   * 用於頁面右上角「待處理」。
+   * 注意：
+   * 這裡代表「待審核學生資料筆數」，
+   * 不一定等於不重複學生人數。
    */
-  const pendingStudentTotal = ref(0);
-
-  /*
-   * 批次開通 Loading
-   */
-  const approvingStudents = ref(false);
-
-  /*
-   * ============================================================
-   * Common
-   * ============================================================
-   */
-  const errorMessage = ref('');
-
-  /*
-   * 教師申請 + 待開通學生
-   */
-  const pendingCount = computed(() => {
-    return teacherApplications.value.length + pendingStudentTotal.value;
+  const selectedPendingStudentTotal = computed<number>(() => {
+    return selectedPendingCourseIds.value.reduce((total, courseId) => {
+      return total + (pendingStudentCountByCourse.value[courseId] ?? 0);
+    }, 0);
   });
 
   /*
-   * 目前選擇的課程
+   * 管理員首頁「待處理」數量。
+   *
+   * 一筆教師申請算 1 件。
+   * 一門待開通課程算 1 件。
    */
-  const selectedCourse = computed(() => {
-    if (selectedCourseId.value === null) {
-      return null;
-    }
-
-    return courses.value.find((course) => course.id === selectedCourseId.value) ?? null;
+  const pendingCount = computed<number>(() => {
+    return teacherApplications.value.length + pendingCourses.value.length;
   });
 
   /*
    * ============================================================
-   * Init
+   * Initialize
    * ============================================================
    */
   async function initialize(): Promise<void> {
     errorMessage.value = '';
 
     /*
-     * 第一批資料平行取得。
+     * courses 與 pending applications 可以平行取得。
+     *
+     * pendingCourses 是 computed，
+     * 等兩邊資料回來後會自動更新。
      */
     await Promise.all([
       fetchStats(),
-
       fetchTeacherApplications(),
-
       fetchCourses(),
-
-      fetchPendingStudentTotal(),
+      fetchPendingCourses(),
     ]);
-
-    /*
-     * 學生帳號開通：
-     * 只從有 Pending Student
-     * 的課程中選擇。
-     */
-    if (pendingCourses.value.length > 0) {
-      const firstCourse = pendingCourses.value[0];
-
-      if (firstCourse) {
-        await selectCourse(firstCourse.id);
-      }
-    } else {
-      selectedCourseId.value = null;
-
-      pendingStudents.value = [];
-
-      selectedStudentIds.value = [];
-    }
   }
 
   /*
@@ -180,13 +166,9 @@ export function useUserManagement() {
 
       stats.value = {
         teacherCount: response.data.teacher_count,
-
         studentCount: response.data.student_count,
-
         courseCount: response.data.course_count,
-
         semesterCourseCount: response.data.semester_course_count,
-
         semester: response.data.semester,
       };
     } catch (error: unknown) {
@@ -224,14 +206,14 @@ export function useUserManagement() {
       await adminUserManagementApi.approveTeacher(applicationId);
 
       /*
-       * 成功後從 Pending 清單移除。
+       * 成功後直接從 Pending List 移除。
        */
       teacherApplications.value = teacherApplications.value.filter(
         (application) => application.id !== applicationId,
       );
 
       /*
-       * Teacher 數量已增加。
+       * 教師總數會改變，所以重新取得統計。
        */
       await fetchStats();
 
@@ -256,18 +238,14 @@ export function useUserManagement() {
     try {
       const response = await adminUserManagementApi.getCourses();
 
-      courses.value = response.data.courses.map((course) => ({
+      courses.value = response.data.courses.map((course: AdminCourseApiItem): AdminCourse => ({
         id: course.id,
-
         name: course.name,
-
         description: course.description,
-
         semester: course.semester,
-
         class_name: course.class_name,
-
-        teacherId: course.teacherId,
+        teacherId: course.teacher_id,
+        teacherName: course.teacher_name,
       }));
     } catch (error: unknown) {
       setError(error, '課程資料取得失敗');
@@ -278,222 +256,269 @@ export function useUserManagement() {
 
   /*
    * ============================================================
-   * Select Course
+   * Pending Courses
    * ============================================================
    */
-  async function selectCourse(courseId: number): Promise<void> {
-    selectedCourseId.value = courseId;
-
-    /*
-     * 換課程時：
-     * 搜尋條件、選取狀態全部重設。
-     */
-    studentSearchKeyword.value = '';
-
-    selectedStudentIds.value = [];
-
-    await fetchStudentsForCourse();
-  }
-
-  /*
-   * ============================================================
-   * Students
-   * ============================================================
-   */
-  async function fetchStudentsForCourse(keyword = studentSearchKeyword.value): Promise<void> {
-    if (selectedCourseId.value === null) {
-      pendingStudents.value = [];
-
-      selectedStudentIds.value = [];
-
-      return;
-    }
-
-    studentsLoading.value = true;
-
-    errorMessage.value = '';
+  async function fetchPendingCourses(): Promise<void> {
+    pendingCoursesLoading.value = true;
 
     try {
-      studentSearchKeyword.value = keyword;
-
+      /*
+       * 一次取得全部 Pending Student Applications。
+       *
+       * Backend 回傳的是學生明細，
+       * Frontend 再依 course_id 分組。
+       */
       const response = await adminUserManagementApi.getStudentApplications({
-        courseId: selectedCourseId.value,
-
         status: 'pending',
-
-        keyword: keyword.trim(),
       });
 
-      pendingStudents.value = response.data.items.map(mapPendingStudent);
+      const counts: Record<number, number> = {};
+
+      for (const item of response.data.items) {
+        /*
+         * 理論上 Pending Application 應該都有 course_id。
+         * 為避免異常資料造成錯誤，仍先略過 null。
+         */
+        if (item.course_id === null) {
+          continue;
+        }
+
+        counts[item.course_id] = (counts[item.course_id] ?? 0) + 1;
+      }
 
       /*
-       * 搜尋 / 重新載入後，
-       * 清除之前勾選。
+       * 儲存每一門課 Pending Student 數量。
        */
-      selectedStudentIds.value = [];
+      pendingStudentCountByCourse.value = counts;
+
+      /*
+       * counts 的 key 就是目前待開通課程。
+       */
+      pendingCourseIds.value = Object.keys(counts).map(Number);
+
+      /*
+       * 如果某門課已經被其他操作開通完成，
+       * Refresh 後從 selected 中自動移除。
+       */
+      const pendingIdSet = new Set(pendingCourseIds.value);
+
+      selectedPendingCourseIds.value = selectedPendingCourseIds.value.filter((courseId) => {
+        return pendingIdSet.has(courseId);
+      });
     } catch (error: unknown) {
-      setError(error, '待開通學生取得失敗');
+      pendingCourseIds.value = [];
+
+      pendingStudentCountByCourse.value = {};
+
+      selectedPendingCourseIds.value = [];
+
+      setError(error, '待開通課程資料取得失敗');
     } finally {
-      studentsLoading.value = false;
+      pendingCoursesLoading.value = false;
     }
   }
 
   /*
    * ============================================================
-   * Pending Student Overview
+   * Course Checkbox
    * ============================================================
-   *
-   * 一次取得所有 Pending Student，
-   * 用來：
-   *
-   * 1. 計算全站待開通學生數量
-   * 2. 找出哪些課程目前有待開通學生
    */
-  async function fetchPendingStudentTotal(): Promise<void> {
-    try {
-      const response = await adminUserManagementApi.getStudentApplications({
-        status: 'pending',
-      });
 
-      const items = response.data.items;
+  /*
+   * 直接更新 Checkbox 選取結果。
+   *
+   * 只允許目前 Pending Course ID 進入 Selected。
+   */
+  function setSelectedPendingCourseIds(ids: number[]) {
+    const pendingIdSet = new Set(pendingCourseIds.value);
 
-      /*
-       * 全站 Pending Student 數量
-       */
-      pendingStudentTotal.value = items.length;
+    selectedPendingCourseIds.value = [
+      ...new Set(
+        ids.filter((courseId) => {
+          return pendingIdSet.has(courseId);
+        }),
+      ),
+    ];
+  }
 
-      /*
-       * 找出所有有 Pending Student
-       * 的 Course ID。
-       */
-      pendingCourseIds.value = [
-        ...new Set(
-          items
-            .map((item) => item.course_id)
-            .filter((courseId): courseId is number => courseId !== null),
-        ),
-      ];
-    } catch (error: unknown) {
-      setError(error, '待開通學生資料取得失敗');
+  /*
+   * 單一課程 Checkbox。
+   */
+  function togglePendingCourse(courseId: number, selected: boolean) {
+    const idSet = new Set(selectedPendingCourseIds.value);
+
+    if (selected) {
+      idSet.add(courseId);
+    } else {
+      idSet.delete(courseId);
     }
+
+    setSelectedPendingCourseIds([...idSet]);
+  }
+
+  /*
+   * 全選目前所有待開通課程。
+   */
+  function selectAllPendingCourses() {
+    selectedPendingCourseIds.value = pendingCourses.value.map((course) => course.id);
+  }
+
+  /*
+   * 清除全部 Checkbox。
+   */
+  function clearPendingCourseSelection() {
+    selectedPendingCourseIds.value = [];
   }
 
   /*
    * ============================================================
-   * Student Selection
+   * Approve Selected Pending Courses
    * ============================================================
+   *
+   * Backend 目前一次使用一個：
+   *
+   * source_course_id
+   *
+   * 所以：
+   *
+   * Admin 勾選：
+   *
+   * PHP
+   * Database
+   * Web
+   *
+   * Frontend 會循序送三次 API。
+   *
+   * PHP：
+   * {
+   *   source_course_id: 1,
+   *   course_ids: [1]
+   * }
+   *
+   * Database：
+   * {
+   *   source_course_id: 2,
+   *   course_ids: [2]
+   * }
    */
-  function setSelectedStudentIds(ids: number[]) {
-    selectedStudentIds.value = [...new Set(ids)];
-  }
+  async function approveSelectedPendingCourses(): Promise<{
+    courseCount: number;
 
-  function clearStudentSelection() {
-    selectedStudentIds.value = [];
-  }
-
-  /*
-   * ============================================================
-   * Approve Students
-   * ============================================================
-   */
-  async function approveSelectedStudents(): Promise<{
     activatedCount: number;
 
     createdCount: number;
 
     enrolledCount: number;
   } | null> {
-    if (selectedCourseId.value === null || selectedStudentIds.value.length === 0) {
+    /*
+     * 再次去重。
+     */
+    const courseIds = [...new Set(selectedPendingCourseIds.value)];
+
+    if (courseIds.length === 0) {
       return null;
     }
 
-    approvingStudents.value = true;
+    approvingCourses.value = true;
 
     errorMessage.value = '';
 
+    let completedCourseCount = 0;
+
+    let activatedCount = 0;
+
+    let createdCount = 0;
+
+    let enrolledCount = 0;
+
     try {
-      const response = await adminUserManagementApi.approveStudents({
-        course_id: selectedCourseId.value,
-
-        item_ids: [...selectedStudentIds.value],
-      });
-
       /*
-       * 先重新取得：
+       * 不使用 Promise.all。
        *
-       * 1. 全站 Pending
-       * 2. Stats
+       * 原因：
+       * 同一位學生有可能同時出現在不同課程申請。
+       *
+       * 第一門課可能建立 students 帳號，
+       * 後面的課只需要建立 enrollment。
+       *
+       * 循序執行可以避免同時建立同一學生帳號。
        */
-      await Promise.all([fetchPendingStudentTotal(), fetchStats()]);
+      for (const courseId of courseIds) {
+        const response = await adminUserManagementApi.approveCourses({
+          source_course_id: courseId,
 
-      /*
-       * 檢查目前課程
-       * 是否還有 Pending Student。
-       */
-      const currentCourseStillPending = pendingCourses.value.some(
-        (course) => course.id === selectedCourseId.value,
-      );
-
-      if (currentCourseStillPending) {
-        /*
-         * 目前課程還有 Pending，
-         * 重新取得這門課學生。
-         */
-        await fetchStudentsForCourse(studentSearchKeyword.value);
-      } else {
-        /*
-         * 目前課程已經全部處理完。
-         *
-         * 自動切到下一門
-         * 有 Pending Student 的課程。
-         */
-        const nextCourse = pendingCourses.value[0];
-
-        if (nextCourse) {
-          await selectCourse(nextCourse.id);
-        } else {
           /*
-           * 全部 Pending 都處理完。
+           * 目前需求：
+           *
+           * 每一門來源課程的學生，
+           * 開通到自己的來源課程。
            */
-          selectedCourseId.value = null;
+          course_ids: [courseId],
+        });
 
-          pendingStudents.value = [];
+        completedCourseCount += 1;
 
-          selectedStudentIds.value = [];
+        activatedCount += response.data.activated_count;
 
-          studentSearchKeyword.value = '';
-        }
+        createdCount += response.data.created_count;
+
+        enrolledCount += response.data.enrolled_count;
       }
 
+      /*
+       * 全部成功後取消 Checkbox。
+       */
+      clearPendingCourseSelection();
+
+      /*
+       * 重新取得：
+       *
+       * - Pending Courses
+       * - 系統統計
+       *
+       * 已經沒有 Pending Student 的課程
+       * 就會自動畫面消失。
+       */
+      await Promise.all([fetchPendingCourses(), fetchStats()]);
+
       return {
-        activatedCount: response.data.activated_count,
+        courseCount: completedCourseCount,
 
-        createdCount: response.data.created_count,
+        activatedCount,
 
-        enrolledCount: response.data.enrolled_count,
+        createdCount,
+
+        enrolledCount,
       };
     } catch (error: unknown) {
-      setError(error, '學生帳號開通失敗');
+      /*
+       * 假設：
+       *
+       * PHP 成功
+       * Database 成功
+       * Web 失敗
+       *
+       * 前面成功的 Backend 資料不會 Rollback。
+       *
+       * 所以這裡先重新抓最新狀態，
+       * 避免畫面還顯示已成功的課程。
+       */
+      await Promise.all([fetchPendingCourses(), fetchStats()]);
+
+      if (completedCourseCount > 0) {
+        setError(
+          error,
+          `已完成 ${completedCourseCount} 門課程，但後續課程開通失敗，請確認待開通清單後再試一次`,
+        );
+      } else {
+        setError(error, '課程開通失敗');
+      }
 
       return null;
     } finally {
-      approvingStudents.value = false;
+      approvingCourses.value = false;
     }
-  }
-
-  /*
-   * ============================================================
-   * Search
-   * ============================================================
-   */
-  async function searchStudents(keyword: string) {
-    await fetchStudentsForCourse(keyword);
-  }
-
-  async function clearStudentSearch() {
-    studentSearchKeyword.value = '';
-
-    await fetchStudentsForCourse('');
   }
 
   /*
@@ -507,35 +532,6 @@ export function useUserManagement() {
 
   function setError(error: unknown, fallback: string) {
     errorMessage.value = getApiErrorMessage(error, fallback);
-  }
-
-  /*
-   * ============================================================
-   * Backend Student → Frontend Student
-   * ============================================================
-   */
-  function mapPendingStudent(item: PendingStudentApiItem): PendingStudentItem {
-    return {
-      id: item.id,
-
-      studentNo: item.student_no,
-
-      name: item.name,
-
-      email: item.email,
-
-      applicationId: item.application_id,
-
-      className: item.class_name,
-
-      status: item.status,
-
-      courseId: item.course_id,
-
-      providerTeacherName: item.provider_teacher_name,
-
-      hasAccount: item.has_account,
-    };
   }
 
   /*
@@ -556,6 +552,16 @@ export function useUserManagement() {
         }
       | undefined;
 
+    /*
+     * Laravel Validation：
+     *
+     * {
+     *   message: "...",
+     *   errors: {
+     *     course_ids: ["..."]
+     *   }
+     * }
+     */
     const validationMessage = data?.errors
       ? Object.values(data.errors).flat().find(Boolean)
       : undefined;
@@ -563,60 +569,92 @@ export function useUserManagement() {
     return validationMessage ?? data?.message ?? fallback;
   }
 
+  /*
+   * ============================================================
+   * Return
+   * ============================================================
+   */
   return {
     /*
      * Stats
      */
     stats,
+
     statsLoading,
+
     fetchStats,
 
     /*
-     * Teacher
+     * Teacher Applications
      */
     teacherApplications,
+
     teacherApplicationsLoading,
+
     approvingTeacherId,
+
     fetchTeacherApplications,
+
     approveTeacherApplication,
 
     /*
-     * Course
+     * All Courses
      */
     courses,
+
     coursesLoading,
-    selectedCourseId,
-    selectedCourse,
+
     fetchCourses,
-    selectCourse,
 
     /*
-     * Student
+     * Pending Courses
      */
-    pendingStudents,
-    studentsLoading,
-    selectedStudentIds,
-    studentSearchKeyword,
-    pendingStudentTotal,
-    pendingCourseIds,
-    approvingStudents,
     pendingCourses,
 
-    fetchStudentsForCourse,
-    fetchPendingStudentTotal,
-    searchStudents,
-    clearStudentSearch,
-    setSelectedStudentIds,
-    clearStudentSelection,
-    approveSelectedStudents,
+    pendingCourseIds,
+
+    pendingCoursesLoading,
+
+    pendingStudentCountByCourse,
+
+    fetchPendingCourses,
+
+    /*
+     * Checkbox
+     */
+    selectedPendingCourseIds,
+
+    selectedPendingCourses,
+
+    selectedPendingStudentTotal,
+
+    setSelectedPendingCourseIds,
+
+    togglePendingCourse,
+
+    selectAllPendingCourses,
+
+    clearPendingCourseSelection,
+
+    /*
+     * Approve
+     */
+    approvingCourses,
+
+    approveSelectedPendingCourses,
 
     /*
      * Common
      */
     pendingCount,
+
     errorMessage,
+
     clearErrorMessage,
 
+    /*
+     * Init
+     */
     initialize,
   };
 }

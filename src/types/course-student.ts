@@ -40,8 +40,6 @@ export interface CourseStudentListResponse {
  */
 export interface CourseStudentInput {
   student_no: string;
-
-  name: string;
 }
 
 /*
