@@ -34,11 +34,16 @@ export function useAuth() {
   }>({});
 
   async function login(data: LoginRequest) {
+    const normalizedData: LoginRequest = {
+      account: data.account.trim(),
+      password: data.password.trim(),
+    };
+
     loading.value = true;
     errorMessage.value = '';
 
     try {
-      const response = await authApi.login(data);
+      const response = await authApi.login(normalizedData);
 
       authStore.setAuth(response.data);
 

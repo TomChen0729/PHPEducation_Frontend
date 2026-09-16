@@ -17,7 +17,7 @@
                 outlined
                 label="帳號"
                 autocomplete="username"
-                :rules="[(value) => !!value || '請輸入帳號']"
+                :rules="[(value) => !!String(value ?? '').trim() || '請輸入帳號']"
               >
                 <template #prepend>
                   <q-icon name="person" />
@@ -31,7 +31,7 @@
                 label="密碼"
                 :type="showPassword ? 'text' : 'password'"
                 autocomplete="current-password"
-                :rules="[(value) => !!value || '請輸入密碼']"
+                :rules="[(value) => !!String(value ?? '').trim() || '請輸入密碼']"
               >
                 <template #prepend>
                   <q-icon name="lock" />
@@ -228,6 +228,10 @@ const forgotPasswordRoleOptions: Array<{
 ];
 
 async function handleLogin() {
+  // 登入前移除帳號與密碼前後多餘空白
+  account.value = account.value.trim();
+  password.value = password.value.trim();
+
   await login({
     account: account.value,
     password: password.value,
