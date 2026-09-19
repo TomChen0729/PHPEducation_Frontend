@@ -180,6 +180,16 @@
               @click="editSelectedNode"
             />
 
+            <q-btn
+              v-if="theme === 'student' && selectedMeta.kind === 'card'"
+              outline
+              color="teal"
+              icon="open_in_full"
+              label="完整檢視"
+              no-caps
+              @click="viewSelectedCard"
+            />
+
             <q-btn flat round dense icon="close" @click="clearSelection" />
           </div>
         </div>
@@ -276,7 +286,7 @@ import type {
   MaterialCourseTree,
   MaterialKnowledgeCardNode,
   MaterialUnitNode,
-} from '../../types/material';
+} from '../../types/material.js';
 
 type GraphNodeKind = 'topic' | 'chapter' | 'unit' | 'card';
 
@@ -321,6 +331,14 @@ const emit = defineEmits<{
   'edit-unit': [chapter: MaterialChapterNode, unit: MaterialUnitNode];
 
   'edit-card': [
+    chapter: MaterialChapterNode,
+
+    unit: MaterialUnitNode,
+
+    card: MaterialKnowledgeCardNode,
+  ];
+
+  'view-card': [
     chapter: MaterialChapterNode,
 
     unit: MaterialUnitNode,
@@ -1028,8 +1046,6 @@ function focusSearchResult(result: GraphNodeMeta) {
     return;
   }
 
-  selectedNodeId.value = result.id;
-
   network.selectNodes([result.id]);
 
   network.focus(result.id, {
@@ -1041,6 +1057,8 @@ function focusSearchResult(result: GraphNodeMeta) {
       easingFunction: 'easeInOutQuad',
     },
   });
+
+  selectedNodeId.value = result.id;
 }
 
 function clearSearch() {
@@ -1125,6 +1143,23 @@ function clearSelection() {
   selectedNodeId.value = null;
 
   network?.unselectAll();
+}
+
+function viewSelectedCard() {
+  const meta = selectedMeta.value;
+
+  if (
+    props.theme !== 'student' ||
+    !meta ||
+    meta.kind !== 'card' ||
+    !meta.chapter ||
+    !meta.unit ||
+    !meta.card
+  ) {
+    return;
+  }
+
+  emit('view-card', meta.chapter, meta.unit, meta.card);
 }
 
 function editSelectedNode() {

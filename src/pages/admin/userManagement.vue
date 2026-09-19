@@ -22,7 +22,7 @@
     <!-- =========================
          Stats
     ========================== -->
-    <UserStatsCards :stats="stats" :loading="statsLoading" />
+    <!-- <UserStatsCards :stats="stats" :loading="statsLoading" /> -->
 
     <!-- =========================
          Error
@@ -90,7 +90,7 @@ import CourseActivationPanel from '../../components/admin/user-management/Course
 
 import TeacherApprovalPanel from '../../components/admin/user-management/TeacherApprovalPanel.vue';
 
-import UserStatsCards from '../../components/admin/user-management/UserStatsCards.vue';
+// import UserStatsCards from '../../components/admin/user-management/UserStatsCards.vue';
 
 import { useUserManagement } from '../../composables/useUserManagement.js';
 
@@ -102,8 +102,8 @@ const {
   /*
    * Stats
    */
-  stats,
-  statsLoading,
+  // stats,
+  // statsLoading,
 
   /*
    * Teacher

@@ -4,6 +4,7 @@
     :class="{
       'material-editor--compact': context?.kind === 'chapter' || context?.kind === 'unit',
       'material-editor--card': context?.kind === 'card',
+      'material-editor--readonly': readonly,
     }"
   >
     <q-banner v-if="errorMessage" rounded class="bg-red-1 text-negative material-editor__error">
@@ -22,7 +23,10 @@
           </div>
         </div>
 
+        <q-badge v-if="readonly" color="teal" label="唯讀" />
+
         <q-badge
+          v-else
           :color="context.mode === 'create' ? 'blue' : 'positive'"
           :label="context.mode === 'create' ? '新增' : '正式教材'"
         />
@@ -30,7 +34,13 @@
 
       <!-- Chapter -->
       <div v-if="context.kind === 'chapter'" class="material-editor__form">
-        <q-input v-model="nameForm.name" outlined label="章節名稱 *" :disable="editing" />
+        <q-input
+          v-model="nameForm.name"
+          outlined
+          label="章節名稱 *"
+          :readonly="readonly"
+          :disable="editing"
+        />
 
         <q-input
           v-model.number="nameForm.sortOrder"
@@ -38,6 +48,7 @@
           type="number"
           min="1"
           label="排序 *"
+          :readonly="readonly"
           :disable="editing"
         >
           <template #prepend>
@@ -48,7 +59,13 @@
 
       <!-- Unit -->
       <div v-else-if="context.kind === 'unit'" class="material-editor__form">
-        <q-input v-model="nameForm.name" outlined label="單元名稱 *" :disable="editing" />
+        <q-input
+          v-model="nameForm.name"
+          outlined
+          label="單元名稱 *"
+          :readonly="readonly"
+          :disable="editing"
+        />
 
         <q-input
           v-model.number="nameForm.sortOrder"
@@ -56,6 +73,7 @@
           type="number"
           min="1"
           label="排序 *"
+          :readonly="readonly"
           :disable="editing"
         >
           <template #prepend>
@@ -66,77 +84,122 @@
 
       <!-- Knowledge Card -->
       <div v-else class="material-editor__card-form">
-        <q-input v-model="cardForm.title" outlined label="知識卡名稱 *" :disable="editing" />
+        <!-- Student / Readonly View -->
+        <template v-if="readonly">
+          <div class="material-editor__readonly-summary">
+            <div class="material-editor__readonly-item">
+              <span>知識卡名稱</span>
 
-        <div class="material-editor__form-grid">
-          <q-select
-            v-model="cardForm.type"
-            outlined
-            use-input
-            fill-input
-            hide-selected
-            new-value-mode="add-unique"
-            input-debounce="0"
-            label="類別 *"
-            :options="filteredTypeOptions"
-            :disable="editing"
-            @filter="filterTypes"
-            @new-value="createType"
-          >
-            <template #prepend>
-              <q-icon name="category" />
-            </template>
-          </q-select>
+              <strong>{{ cardForm.title }}</strong>
+            </div>
 
-          <q-input
-            v-model.number="cardForm.sortOrder"
-            outlined
-            type="number"
-            min="1"
-            label="排序 *"
-            :disable="editing"
-          >
-            <template #prepend>
-              <q-icon name="format_list_numbered" />
-            </template>
-          </q-input>
-        </div>
+            <div class="material-editor__readonly-item">
+              <span>類別</span>
 
-        <div class="material-editor__field">
-          <div class="material-editor__field-label">教材內容 *</div>
+              <q-badge outline color="teal-8" :label="cardForm.type || 'keyword'" />
+            </div>
+          </div>
 
-          <div class="material-editor__field-caption">可使用文字格式、表格、連結與圖片</div>
+          <div class="material-editor__field">
+            <div class="material-editor__field-label">教材內容</div>
 
-          <RichTextEditor
-            v-model="cardForm.content"
-            :disabled="editing"
-            :upload-image="uploadImage"
-          />
-        </div>
+            <div class="material-editor__readonly-content">
+              <RichContentViewer :content="cardForm.content" />
+            </div>
+          </div>
 
-        <div class="material-editor__field">
-          <div class="material-editor__field-label">程式範例</div>
+          <div v-if="cardForm.example" class="material-editor__field">
+            <div class="material-editor__field-label">程式範例</div>
 
-          <q-input
-            v-model="cardForm.example"
-            outlined
-            type="textarea"
-            autogrow
-            label="程式範例（選填）"
-            :disable="editing"
-            class="material-editor__example"
-          >
-            <template #prepend>
-              <q-icon name="code" />
-            </template>
-          </q-input>
-        </div>
+            <div class="material-editor__readonly-example">
+              <CodeExampleViewer :code="cardForm.example" theme="student" />
+            </div>
+          </div>
+        </template>
+
+        <!-- Teacher Edit View -->
+        <template v-else>
+          <q-input v-model="cardForm.title" outlined label="知識卡名稱 *" :disable="editing" />
+
+          <div class="material-editor__form-grid">
+            <q-select
+              v-model="cardForm.type"
+              outlined
+              use-input
+              fill-input
+              hide-selected
+              new-value-mode="add-unique"
+              input-debounce="0"
+              label="類別 *"
+              :options="filteredTypeOptions"
+              :disable="editing"
+              @filter="filterTypes"
+              @new-value="createType"
+            >
+              <template #prepend>
+                <q-icon name="category" />
+              </template>
+            </q-select>
+
+            <q-input
+              v-model.number="cardForm.sortOrder"
+              outlined
+              type="number"
+              min="1"
+              label="排序 *"
+              :disable="editing"
+            >
+              <template #prepend>
+                <q-icon name="format_list_numbered" />
+              </template>
+            </q-input>
+          </div>
+
+          <div class="material-editor__field">
+            <div class="material-editor__field-label">教材內容 *</div>
+
+            <div class="material-editor__field-caption">可使用文字格式、表格、連結與圖片</div>
+
+            <RichTextEditor
+              v-if="uploadImage"
+              v-model="cardForm.content"
+              :disabled="editing"
+              :upload-image="uploadImage"
+            />
+
+            <RichTextEditor v-else v-model="cardForm.content" :disabled="editing" />
+          </div>
+
+          <div class="material-editor__field">
+            <div class="material-editor__field-label">程式範例</div>
+
+            <q-input
+              v-model="cardForm.example"
+              outlined
+              type="textarea"
+              autogrow
+              label="程式範例（選填）"
+              :disable="editing"
+              class="material-editor__example"
+            >
+              <template #prepend>
+                <q-icon name="code" />
+              </template>
+            </q-input>
+          </div>
+        </template>
       </div>
 
       <div class="material-editor__actions">
-        <q-btn flat label="取消" :disable="editing" @click="emit('cancel')" />
+        <q-btn
+          flat
+          :label="readonly ? '關閉' : '取消'"
+          :disable="editing"
+          @click="emit('cancel')"
+        />
 
         <q-btn
+          v-if="!readonly"
           unelevated
           color="blue"
           icon="save"
@@ -153,6 +216,8 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
 
+import CodeExampleViewer from '../../common/CodeExampleViewer.vue';
+import RichContentViewer from '../../common/RichContentViewer.vue';
 import RichTextEditor from '../../common/RichTextEditor.vue';
 
 import type { MaterialEditorContext, MaterialEditorSubmitPayload } from '../../../types/material';
@@ -167,10 +232,13 @@ const props = withDefaults(
 
     errorMessage?: string;
 
-    uploadImage: (file: File) => Promise<string | null>;
+    readonly?: boolean;
+
+    uploadImage?: (file: File) => Promise<string | null>;
   }>(),
   {
     errorMessage: '',
+    readonly: false,
   },
 );
 
@@ -204,6 +272,19 @@ const editorTitle = computed(() => {
 
   if (!context) {
     return '';
+  }
+
+  if (props.readonly) {
+    switch (context.kind) {
+      case 'chapter':
+        return '檢視章節';
+
+      case 'unit':
+        return '檢視單元';
+
+      case 'card':
+        return '檢視知識卡';
+    }
   }
 
   const action = context.mode === 'create' ? '新增' : '編輯';
@@ -278,7 +359,6 @@ watch(
     if (context.kind === 'chapter') {
       if (context.mode === 'edit') {
         nameForm.name = context.chapter.name;
-
         nameForm.sortOrder = context.chapter.sort_order;
       } else {
         nameForm.sortOrder = context.nextOrder;
@@ -288,7 +368,6 @@ watch(
     if (context.kind === 'unit') {
       if (context.mode === 'edit') {
         nameForm.name = context.unit.name;
-
         nameForm.sortOrder = context.unit.sort_order;
       } else {
         nameForm.sortOrder = context.nextOrder;
@@ -298,13 +377,9 @@ watch(
     if (context.kind === 'card') {
       if (context.mode === 'edit') {
         cardForm.title = context.card.title;
-
         cardForm.type = context.card.type || 'keyword';
-
         cardForm.content = context.card.content;
-
         cardForm.example = context.card.example ?? '';
-
         cardForm.sortOrder = context.card.sort_order;
 
         addTypeOption(cardForm.type);
@@ -324,14 +399,13 @@ watch(
 function submit() {
   const context = props.context;
 
-  if (!context || !formValid.value) {
+  if (!context || !formValid.value || props.readonly) {
     return;
   }
 
   if (context.kind === 'chapter') {
     const data = {
       name: nameForm.name.trim(),
-
       sort_order: nameForm.sortOrder,
     };
 
@@ -359,7 +433,6 @@ function submit() {
   if (context.kind === 'unit') {
     const data = {
       name: nameForm.name.trim(),
-
       sort_order: nameForm.sortOrder,
     };
 
@@ -386,13 +459,9 @@ function submit() {
 
   const data = {
     title: cardForm.title.trim(),
-
     type: cardForm.type.trim(),
-
     content: cardForm.content,
-
     example: cardForm.example.trim() || null,
-
     sort_order: cardForm.sortOrder,
   };
 
@@ -438,26 +507,21 @@ function serializeForm() {
   if (context.kind !== 'card') {
     return JSON.stringify({
       name: nameForm.name,
-
       sortOrder: nameForm.sortOrder,
     });
   }
 
   return JSON.stringify({
     title: cardForm.title,
-
     type: cardForm.type,
-
     content: cardForm.content,
-
     example: cardForm.example,
-
     sortOrder: cardForm.sortOrder,
   });
 }
 
 function hasUnsavedChanges() {
-  if (!props.context) {
+  if (!props.context || props.readonly) {
     return false;
   }
 
@@ -472,15 +536,10 @@ function addTypeOption(value: string) {
   }
 
   typeOptions.value.push(type);
-
   filteredTypeOptions.value = [...typeOptions.value];
 }
 
-function filterTypes(
-  value: string,
-
-  update: (callback: () => void) => void,
-) {
+function filterTypes(value: string, update: (callback: () => void) => void) {
   update(() => {
     const search = value.trim().toLowerCase();
 
@@ -498,7 +557,6 @@ function filterTypes(
 
 function createType(
   value: string,
-
   done: (item?: string, mode?: 'add' | 'add-unique' | 'toggle') => void,
 ) {
   const type = value.trim();

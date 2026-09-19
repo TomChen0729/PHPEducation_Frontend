@@ -50,7 +50,15 @@ declare module 'vue-router/auto-routes' {
       '/admin',
       Record<never, never>,
       Record<never, never>,
+      | '/admin/'
       | '/admin/userManagement'
+    >,
+    '/admin/': RouteRecordInfo<
+      '/admin/',
+      '/admin',
+      Record<never, never>,
+      Record<never, never>,
+      | never
     >,
     '/admin/userManagement': RouteRecordInfo<
       '/admin/userManagement',
@@ -71,11 +79,19 @@ declare module 'vue-router/auto-routes' {
       '/student',
       Record<never, never>,
       Record<never, never>,
+      | '/student/'
       | '/student/course/[courseId]/'
       | '/student/course/[courseId]/questions'
       | '/student/courses'
       | '/student/profile'
       | '/student/question/[questionId]'
+    >,
+    '/student/': RouteRecordInfo<
+      '/student/',
+      '/student',
+      Record<never, never>,
+      Record<never, never>,
+      | never
     >,
     '/student/course/[courseId]/': RouteRecordInfo<
       '/student/course/[courseId]/',
@@ -189,9 +205,18 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin.vue': {
       routes:
         | '/admin'
+        | '/admin/'
         | '/admin/userManagement'
       views:
         | 'default'
+      pathParamNames:
+        | never
+    }
+    'src/pages/admin/index.vue': {
+      routes:
+        | '/admin/'
+      views:
+        | never
       pathParamNames:
         | never
     }
@@ -214,6 +239,7 @@ declare module 'vue-router/auto-routes' {
     'src/pages/student.vue': {
       routes:
         | '/student'
+        | '/student/'
         | '/student/course/[courseId]/'
         | '/student/course/[courseId]/questions'
         | '/student/courses'
@@ -221,6 +247,14 @@ declare module 'vue-router/auto-routes' {
         | '/student/question/[questionId]'
       views:
         | 'default'
+      pathParamNames:
+        | never
+    }
+    'src/pages/student/index.vue': {
+      routes:
+        | '/student/'
+      views:
+        | never
       pathParamNames:
         | never
     }

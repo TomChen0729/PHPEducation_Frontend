@@ -1,0 +1,156 @@
+.admin-dashboard-page {
+  min-height: 100%;
+
+  padding: 24px;
+
+  background: #f7f5fb;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 22px;
+  }
+
+  &__title {
+    margin: 0;
+
+    color: #2f2a36;
+
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  &__description {
+    margin: 5px 0 0;
+
+    color: #746f7c;
+
+    line-height: 1.6;
+  }
+
+  &__pending-badge {
+    padding: 9px 12px;
+
+    font-size: 13px;
+  }
+
+  &__error {
+    margin-top: 18px;
+  }
+
+  &__pending-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+
+    margin-top: 22px;
+  }
+
+  &__pending-card {
+    border-radius: 12px;
+
+    .q-card__section {
+      display: flex;
+      align-items: center;
+
+      gap: 14px;
+
+      padding: 20px;
+    }
+  }
+
+  &__pending-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 50px;
+    height: 50px;
+
+    flex-shrink: 0;
+
+    border-radius: 14px;
+
+    &--teacher {
+      color: #6a1b9a;
+      background: #f3e5f5;
+    }
+
+    &--course {
+      color: #4527a0;
+      background: #ede7f6;
+    }
+  }
+
+  &__pending-label {
+    color: #746f7c;
+
+    font-size: 13px;
+  }
+
+  &__pending-value {
+    margin-top: 3px;
+
+    color: #2f2a36;
+
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  &__action-card {
+    margin-top: 20px;
+
+    border-radius: 12px;
+  }
+
+  &__action-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 18px;
+
+    padding: 20px;
+  }
+
+  &__action-title {
+    color: #2f2a36;
+
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  &__action-description {
+    margin-top: 4px;
+
+    color: #746f7c;
+
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-dashboard-page {
+    padding: 16px;
+
+    &__header,
+    &__action-content {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__pending-grid {
+      grid-template-columns: 1fr;
+    }
+
+    &__action-content .q-btn {
+      width: 100%;
+    }
+  }
+}

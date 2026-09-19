@@ -140,8 +140,6 @@
          Empty
     ========================== -->
     <div v-if="courses.length === 0 && !loading" class="course-activation-panel__empty">
-      <q-icon name="task_alt" size="48px" color="teal-4" />
-
       <div>目前沒有待開通課程</div>
     </div>
 

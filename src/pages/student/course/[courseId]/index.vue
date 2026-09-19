@@ -112,9 +112,38 @@
 
       <!-- Graph -->
       <q-card-section v-else class="student-material-page__graph">
-        <MaterialGraphViewer :tree="courseTree" theme="student" />
+        <MaterialGraphViewer :tree="courseTree" theme="student" @view-card="handleViewCard" />
       </q-card-section>
     </q-card>
+
+    <!-- Knowledge Card Full View Dialog -->
+    <q-dialog v-model="cardDialogOpen" @hide="clearCardDialog">
+      <q-card class="student-material-page__card-dialog">
+        <q-card-section class="student-material-page__card-dialog-header">
+          <div>
+            <div class="text-h6">知識卡完整檢視</div>
+
+            <div class="text-caption text-grey-7">
+              {{ course?.name ?? courseTree?.name ?? '課程教材' }}
+            </div>
+          </div>
+
+          <q-btn flat round dense icon="close" @click="closeCardDialog" />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section class="student-material-page__card-dialog-content">
+          <MaterialEditor
+            :context="cardDialogContext"
+            :course-name="course?.name ?? courseTree?.name ?? ''"
+            :editing="false"
+            readonly
+            @cancel="closeCardDialog"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -127,15 +156,28 @@ import MaterialTreeViewer from '../../../../components/material/MaterialTreeView
 
 import MaterialGraphViewer from '../../../../components/material/MaterialGraphViewer.vue';
 
-import { useDashboard } from '../../../../composables/useDashboard';
+import MaterialEditor from '../../../../components/teacher/course-workspace/MaterialEditor.vue';
 
-import { useStudentMaterial } from '../../../../composables/useStudentMaterial';
+import { useDashboard } from '../../../../composables/useDashboard.js';
+
+import { useStudentMaterial } from '../../../../composables/useStudentMaterial.js';
+
+import type {
+  MaterialChapterNode,
+  MaterialEditorContext,
+  MaterialKnowledgeCardNode,
+  MaterialUnitNode,
+} from '../../../../types/material.js';
 
 type MaterialViewMode = 'tree' | 'graph';
 
 const route = useRoute();
 
 const viewMode = ref<MaterialViewMode>('tree');
+
+const cardDialogOpen = ref(false);
+
+const cardDialogContext = ref<MaterialEditorContext | null>(null);
 
 const courseId = computed<number | null>(() => {
   const raw = (
@@ -189,6 +231,8 @@ watch(
   async (id) => {
     clearMaterial();
 
+    clearCardDialog();
+
     viewMode.value = 'tree';
 
     if (id === null) {
@@ -202,6 +246,30 @@ watch(
     immediate: true,
   },
 );
+
+function handleViewCard(
+  chapter: MaterialChapterNode,
+  unit: MaterialUnitNode,
+  card: MaterialKnowledgeCardNode,
+) {
+  cardDialogContext.value = {
+    kind: 'card',
+    mode: 'edit',
+    chapter,
+    unit,
+    card,
+  };
+
+  cardDialogOpen.value = true;
+}
+
+function closeCardDialog() {
+  cardDialogOpen.value = false;
+}
+
+function clearCardDialog() {
+  cardDialogContext.value = null;
+}
 
 function formatSemester(semester: string) {
   const [year, term] = semester.split('-');

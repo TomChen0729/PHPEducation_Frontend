@@ -38,11 +38,6 @@ export const navigationByRole: Record<UserRole, NavigationItem[]> = {
       icon: 'home',
       to: '/teacher',
     },
-    {
-      label: '課程管理',
-      icon: 'school',
-      to: '/teacher/courseManagement',
-    },
     // {
     //   label: '教材管理',
     //   icon: 'menu_book',
@@ -71,11 +66,6 @@ export const navigationByRole: Record<UserRole, NavigationItem[]> = {
       label: '首頁',
       icon: 'home',
       to: '/student',
-    },
-    {
-      label: '我的課程',
-      icon: 'school',
-      to: '/student/courses',
     },
     // {
     //   label: '學習進度',

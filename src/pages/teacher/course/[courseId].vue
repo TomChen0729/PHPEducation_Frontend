@@ -9,7 +9,7 @@
           icon="arrow_back"
           label="返回課程管理"
           color="blue"
-          to="/teacher/courseManagement"
+          to="/teacher"
           class="course-workspace-page__back"
         />
 
