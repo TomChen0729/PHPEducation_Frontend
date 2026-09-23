@@ -143,156 +143,6 @@
                 :rules="[requiredTextRule]"
                 lazy-rules
               />
-
-              <!-- 題目說明 -->
-              <q-input
-                v-model="form.description"
-                outlined
-                type="textarea"
-                label="題目說明（選填）"
-                hint="可填寫教師備註、解題方向或補充說明"
-                class="question-form-dialog__full"
-                :disable="submitting"
-              />
-            </div>
-          </section>
-
-          <!-- =========================
-               Bloom
-          ========================== -->
-          <section class="question-form-dialog__section">
-            <div class="question-form-dialog__section-header">
-              <div>
-                <div class="question-form-dialog__section-title">Bloom 認知分類</div>
-
-                <div class="question-form-dialog__section-description">
-                  指定此題希望評量的認知層級與知識向度。
-                </div>
-              </div>
-            </div>
-
-            <q-select
-              v-model="form.bloom_id"
-              outlined
-              label="Bloom 編碼 *"
-              :options="bloomSelectOptions"
-              option-value="value"
-              option-label="label"
-              emit-value
-              map-options
-              behavior="menu"
-              :loading="bloomsLoading"
-              :disable="submitting"
-              :rules="[requiredSelectRule]"
-              lazy-rules
-            >
-              <template #option="scope">
-                <q-item v-bind="scope.itemProps">
-                  <q-item-section>
-                    <q-item-label>
-                      {{ scope.opt.label }}
-                    </q-item-label>
-
-                    <q-item-label v-if="scope.opt.caption" caption>
-                      {{ scope.opt.caption }}
-                    </q-item-label>
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </section>
-
-          <!-- =========================
-               Knowledge Cards
-          ========================== -->
-          <section class="question-form-dialog__section">
-            <div class="question-form-dialog__section-header">
-              <div>
-                <div class="question-form-dialog__section-title">關聯知識卡</div>
-
-                <div class="question-form-dialog__section-description">
-                  一道題目可以關聯一張或多張知識卡。
-                </div>
-              </div>
-            </div>
-
-            <q-select
-              v-model="form.knowledge_card_ids"
-              outlined
-              multiple
-              use-chips
-              emit-value
-              map-options
-              behavior="menu"
-              label="關聯知識卡 *"
-              :options="knowledgeCardSelectOptions"
-              option-value="id"
-              option-label="label"
-              :loading="knowledgeCardsLoading"
-              :disable="submitting"
-              :rules="[requiredKnowledgeCardsRule]"
-              lazy-rules
-            >
-              <template #option="scope">
-                <q-item v-bind="scope.itemProps">
-                  <q-item-section>
-                    <q-item-label>
-                      {{ scope.opt.title }}
-                    </q-item-label>
-
-                    <q-item-label v-if="scope.opt.path" caption>
-                      {{ scope.opt.path }}
-                    </q-item-label>
-                  </q-item-section>
-
-                  <q-item-section side>
-                    <q-badge
-                      v-if="scope.opt.example"
-                      color="blue-1"
-                      text-color="blue-8"
-                      label="有範例"
-                    />
-                  </q-item-section>
-                </q-item>
-              </template>
-
-              <template #selected-item="scope">
-                <q-chip
-                  removable
-                  dense
-                  color="blue-1"
-                  text-color="blue-9"
-                  @remove="scope.removeAtIndex(scope.index)"
-                >
-                  {{ scope.opt.title }}
-                </q-chip>
-              </template>
-            </q-select>
-
-            <!-- =========================
-                 show_example
-            ========================== -->
-            <div class="question-form-dialog__example-setting">
-              <div class="question-form-dialog__example-setting-content">
-                <div class="question-form-dialog__example-setting-title">顯示知識卡範例</div>
-
-                <div class="question-form-dialog__example-setting-description">
-                  開啟後，學生作答此題時可以查看關聯知識卡的範例。
-                </div>
-
-                <div
-                  v-if="form.knowledge_card_ids.length > 0"
-                  class="question-form-dialog__example-setting-hint"
-                >
-                  目前選擇
-                  {{ form.knowledge_card_ids.length }}
-                  張知識卡，其中
-                  {{ selectedExampleCount }}
-                  張有範例。
-                </div>
-              </div>
-
-              <q-toggle v-model="form.show_example" color="blue" keep-color :disable="submitting" />
             </div>
           </section>
 
@@ -619,6 +469,170 @@
                   :disabled="submitting"
                 />
               </div>
+            </div>
+          </section>
+          <!-- =========================
+               Explanation
+          ========================== -->
+          <section class="question-form-dialog__section">
+            <div class="question-form-dialog__section-header">
+              <div>
+                <div class="question-form-dialog__section-title">解題說明</div>
+
+                <div class="question-form-dialog__section-description">
+                  補充解題方向、答案解析或其他說明。
+                </div>
+              </div>
+            </div>
+
+            <q-input
+              v-model="form.description"
+              outlined
+              type="textarea"
+              autogrow
+              label="解題說明（選填）"
+              hint="可填寫解題方向、答案解析或補充說明"
+              class="question-form-dialog__full"
+              :disable="submitting"
+            />
+          </section>
+
+          <!-- =========================
+               Bloom
+          ========================== -->
+          <section class="question-form-dialog__section">
+            <div class="question-form-dialog__section-header">
+              <div>
+                <div class="question-form-dialog__section-title">Bloom 認知分類</div>
+
+                <div class="question-form-dialog__section-description">
+                  指定此題希望評量的認知層級與知識向度。
+                </div>
+              </div>
+            </div>
+
+            <q-select
+              v-model="form.bloom_id"
+              outlined
+              label="Bloom 編碼 *"
+              :options="bloomSelectOptions"
+              option-value="value"
+              option-label="label"
+              emit-value
+              map-options
+              behavior="menu"
+              :loading="bloomsLoading"
+              :disable="submitting"
+              :rules="[requiredSelectRule]"
+              lazy-rules
+            >
+              <template #option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>
+                      {{ scope.opt.label }}
+                    </q-item-label>
+
+                    <q-item-label v-if="scope.opt.caption" caption>
+                      {{ scope.opt.caption }}
+                    </q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </section>
+
+          <!-- =========================
+               Knowledge Cards
+          ========================== -->
+          <section class="question-form-dialog__section">
+            <div class="question-form-dialog__section-header">
+              <div>
+                <div class="question-form-dialog__section-title">關聯知識卡</div>
+
+                <div class="question-form-dialog__section-description">
+                  一道題目可以關聯一張或多張知識卡。
+                </div>
+              </div>
+            </div>
+
+            <q-select
+              v-model="form.knowledge_card_ids"
+              outlined
+              multiple
+              use-chips
+              emit-value
+              map-options
+              behavior="menu"
+              label="關聯知識卡 *"
+              :options="knowledgeCardSelectOptions"
+              option-value="id"
+              option-label="label"
+              :loading="knowledgeCardsLoading"
+              :disable="submitting"
+              :rules="[requiredKnowledgeCardsRule]"
+              lazy-rules
+            >
+              <template #option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>
+                      {{ scope.opt.title }}
+                    </q-item-label>
+
+                    <q-item-label v-if="scope.opt.path" caption>
+                      {{ scope.opt.path }}
+                    </q-item-label>
+                  </q-item-section>
+
+                  <q-item-section side>
+                    <q-badge
+                      v-if="scope.opt.example"
+                      color="blue-1"
+                      text-color="blue-8"
+                      label="有程式範例"
+                    />
+                  </q-item-section>
+                </q-item>
+              </template>
+
+              <template #selected-item="scope">
+                <q-chip
+                  removable
+                  dense
+                  color="blue-1"
+                  text-color="blue-9"
+                  @remove="scope.removeAtIndex(scope.index)"
+                >
+                  {{ scope.opt.title }}
+                </q-chip>
+              </template>
+            </q-select>
+
+            <!-- =========================
+                 show_example
+            ========================== -->
+            <div class="question-form-dialog__example-setting">
+              <div class="question-form-dialog__example-setting-content">
+                <div class="question-form-dialog__example-setting-title">顯示知識卡程式範例</div>
+
+                <div class="question-form-dialog__example-setting-description">
+                  開啟後，學生作答此題時可以查看關聯知識卡的程式範例。
+                </div>
+
+                <div
+                  v-if="form.knowledge_card_ids.length > 0"
+                  class="question-form-dialog__example-setting-hint"
+                >
+                  目前選擇
+                  {{ form.knowledge_card_ids.length }}
+                  張知識卡，其中
+                  {{ selectedExampleCount }}
+                  張有程式範例。
+                </div>
+              </div>
+
+              <q-toggle v-model="form.show_example" color="blue" keep-color :disable="submitting" />
             </div>
           </section>
         </q-form>

@@ -218,7 +218,7 @@
                     </div>
 
                     <div v-if="card.example" class="material-tree-viewer__card-example">
-                      <div class="material-tree-viewer__card-label">範例</div>
+                      <div class="material-tree-viewer__card-label">程式範例</div>
 
                       <CodeExampleViewer :code="card.example" :theme="theme" />
                     </div>

@@ -156,49 +156,49 @@
                Knowledge Card Examples
           ================================================ -->
           <div v-if="hasExamples" class="student-question-answer-page__examples">
-              <!-- Header -->
-              <div class="student-question-answer-page__examples-header">
-                <div>
-                  <div class="student-question-answer-page__examples-title">
-                    <q-icon name="lightbulb" color="amber-8" size="20px" />
+            <!-- Header -->
+            <div class="student-question-answer-page__examples-header">
+              <div>
+                <div class="student-question-answer-page__examples-title">
+                  <q-icon name="lightbulb" color="amber-8" size="20px" />
 
-                    知識卡範例
-                  </div>
-
-                  <div class="student-question-answer-page__examples-caption">
-                    老師已允許你在作答時查看相關知識卡範例
-                  </div>
+                  知識卡程式範例
                 </div>
 
-                <q-btn
-                  flat
-                  color="teal"
-                  :icon="showExamples ? 'visibility_off' : 'visibility'"
-                  :label="showExamples ? '收起範例' : '查看範例'"
-                  @click="showExamples = !showExamples"
-                />
+                <div class="student-question-answer-page__examples-caption">
+                  老師已允許你在作答時查看相關知識卡程式範例
+                </div>
               </div>
 
-              <!-- Examples -->
-              <q-slide-transition>
-                <div v-if="showExamples" class="student-question-answer-page__examples-content">
-                  <div
-                    v-for="(example, index) in selectedQuestion.examples"
-                    :key="index"
-                    class="student-question-answer-page__example"
-                  >
-                    <div
-                      v-if="(selectedQuestion.examples?.length ?? 0) > 1"
-                      class="student-question-answer-page__example-label"
-                    >
-                      範例 {{ index + 1 }}
-                    </div>
-
-                    <CodeExampleViewer :code="example" theme="student" />
-                  </div>
-                </div>
-              </q-slide-transition>
+              <q-btn
+                flat
+                color="teal"
+                :icon="showExamples ? 'visibility_off' : 'visibility'"
+                :label="showExamples ? '收起程式範例' : '查看程式範例'"
+                @click="showExamples = !showExamples"
+              />
             </div>
+
+            <!-- Examples -->
+            <q-slide-transition>
+              <div v-if="showExamples" class="student-question-answer-page__examples-content">
+                <div
+                  v-for="(example, index) in selectedQuestion.examples"
+                  :key="index"
+                  class="student-question-answer-page__example"
+                >
+                  <div
+                    v-if="(selectedQuestion.examples?.length ?? 0) > 1"
+                    class="student-question-answer-page__example-label"
+                  >
+                    程式範例 {{ index + 1 }}
+                  </div>
+
+                  <CodeExampleViewer :code="example" theme="student" />
+                </div>
+              </div>
+            </q-slide-transition>
+          </div>
         </q-card-section>
       </q-card>
 
