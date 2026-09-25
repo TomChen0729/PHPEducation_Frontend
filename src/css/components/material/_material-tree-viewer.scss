@@ -137,6 +137,14 @@
 
     font-size: 15px;
     font-weight: 700;
+
+    &--header {
+      margin-bottom: 0;
+    }
+  }
+
+  &__card-body {
+    padding: 4px 16px 16px;
   }
 
   &__card-icon {
@@ -490,6 +498,41 @@
 
     &__card-content {
       font-size: 13px;
+    }
+  }
+}
+
+/*
+ * ============================================================
+ * Unit publish status / actions
+ * ============================================================
+ */
+.material-tree-viewer {
+  &__unit-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    gap: 8px;
+  }
+
+  &__unit-status {
+    flex-shrink: 0;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 4px;
+  }
+}
+
+@media (max-width: 720px) {
+  .material-tree-viewer {
+    &__actions {
+      flex-wrap: wrap;
     }
   }
 }

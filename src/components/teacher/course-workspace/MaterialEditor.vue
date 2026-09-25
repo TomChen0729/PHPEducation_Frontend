@@ -27,8 +27,8 @@
 
         <q-badge
           v-else
-          :color="context.mode === 'create' ? 'blue' : 'positive'"
-          :label="context.mode === 'create' ? '新增' : '正式教材'"
+          :color="editorBadgeColor"
+          :label="editorBadgeLabel"
         />
       </div>
 
@@ -80,6 +80,37 @@
             <q-icon name="format_list_numbered" />
           </template>
         </q-input>
+
+        <q-banner
+          v-if="!readonly"
+          rounded
+          dense
+          :class="
+            context.mode === 'create'
+              ? 'bg-grey-2 text-grey-8'
+              : context.unit.status === 'draft'
+                ? 'bg-grey-2 text-grey-8'
+                : 'bg-green-1 text-green-9'
+          "
+        >
+          <template #avatar>
+            <q-icon
+              :name="
+                context.mode === 'create' || context.unit.status === 'draft'
+                  ? 'drafts'
+                  : 'visibility'
+              "
+            />
+          </template>
+
+          <span v-if="context.mode === 'create'">
+            新增單元後預設存成草稿，只有老師看得到；建立後可在教材階層切換成「開放給學生」。
+          </span>
+
+          <span v-else>
+            目前狀態：{{ context.unit.status === 'draft' ? '草稿' : '開放給學生' }}。
+          </span>
+        </q-banner>
       </div>
 
       <!-- Knowledge Card -->
@@ -299,6 +330,38 @@ const editorTitle = computed(() => {
     case 'card':
       return `${action}知識卡`;
   }
+});
+
+const editorBadgeLabel = computed(() => {
+  const context = props.context;
+
+  if (!context) {
+    return '';
+  }
+
+  if (context.mode === 'create') {
+    return context.kind === 'unit' ? '新增・預設草稿' : '新增';
+  }
+
+  if (context.kind === 'unit') {
+    return context.unit.status === 'draft' ? '草稿' : '開放中';
+  }
+
+  return '正式教材';
+});
+
+const editorBadgeColor = computed(() => {
+  const context = props.context;
+
+  if (!context || context.mode === 'create') {
+    return 'blue';
+  }
+
+  if (context.kind === 'unit' && context.unit.status === 'draft') {
+    return 'grey-6';
+  }
+
+  return 'positive';
 });
 
 const breadcrumb = computed(() => {

@@ -181,7 +181,7 @@
             />
 
             <q-btn
-              v-if="theme === 'student' && selectedMeta.kind === 'card'"
+              v-if="theme === 'student' && selectedMeta.kind === 'card' && showFullViewButton"
               outline
               color="teal"
               icon="open_in_full"
@@ -319,9 +319,13 @@ const props = withDefaults(
     tree: MaterialCourseTree | null;
 
     theme?: 'teacher' | 'student';
+
+    showFullViewButton?: boolean;
   }>(),
   {
     theme: 'teacher',
+
+    showFullViewButton: true,
   },
 );
 

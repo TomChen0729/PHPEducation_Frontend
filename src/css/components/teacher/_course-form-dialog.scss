@@ -2,8 +2,11 @@
   display: flex;
   flex-direction: column;
 
-  width: 520px;
-  max-width: 90vw;
+  width: 620px;
+  max-width: 92vw;
+  max-height: 92vh;
+
+  overflow: hidden;
 
   border-radius: 12px;
 
@@ -20,7 +23,7 @@
     flex: 1;
     flex-direction: column;
 
-    gap: 8px;
+    gap: 10px;
 
     min-height: 0;
 
@@ -36,17 +39,78 @@
 
   &__description {
     .q-field__control {
-      height: 180px;
+      min-height: 130px;
     }
 
     .q-field__native {
-      height: 150px;
-      max-height: 150px;
+      min-height: 96px;
+      max-height: 140px;
 
       overflow-y: auto;
 
-      resize: none;
+      resize: vertical;
     }
+  }
+
+  &__section-title,
+  &__copy-title {
+    color: #263238;
+
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__build-mode {
+    display: flex;
+    flex-direction: column;
+
+    gap: 2px;
+  }
+
+  &__copy-panel {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+
+    margin-top: 2px;
+    padding: 14px;
+
+    background-color: #f7f9fc;
+
+    border: 1px solid #e4eaf2;
+    border-radius: 10px;
+  }
+
+  &__copy-options {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 4px 12px;
+  }
+
+  &__copy-help {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+
+    color: #78909c;
+
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  &__copy-warning {
+    color: #795548;
+
+    background-color: #fff8e1;
+  }
+
+  &__copy-error {
+    color: #c62828;
+
+    font-size: 12px;
   }
 
   .q-card__actions {
@@ -63,6 +127,7 @@
     width: calc(100vw - 32px);
     height: calc(100vh - 32px);
     max-width: none;
+    max-height: none;
 
     &__semester {
       grid-template-columns: 1fr;
@@ -70,15 +135,10 @@
       gap: 0;
     }
 
-    &__description {
-      .q-field__control {
-        height: 150px;
-      }
+    &__copy-options {
+      flex-direction: column;
 
-      .q-field__native {
-        height: 110px;
-        max-height: 110px;
-      }
+      gap: 0;
     }
 
     .q-card__actions {

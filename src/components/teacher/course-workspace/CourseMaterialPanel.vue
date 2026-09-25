@@ -90,10 +90,32 @@
           <div>
             <div class="course-material-panel__viewer-title">教材內容</div>
 
-            <div class="course-material-panel__viewer-caption">可切換階層與知識圖譜檢視</div>
+            <div class="course-material-panel__viewer-caption">
+              可切換老師／學生預覽，以及階層／圖譜檢視
+            </div>
           </div>
 
           <div class="course-material-panel__viewer-actions">
+            <q-btn-toggle
+              v-model="audienceMode"
+              unelevated
+              no-caps
+              color="grey-2"
+              text-color="blue-grey-8"
+              toggle-color="blue-grey-7"
+              toggle-text-color="white"
+              :options="[
+                {
+                  label: '老師檢視',
+                  value: 'teacher',
+                },
+                {
+                  label: '學生檢視（預覽）',
+                  value: 'student',
+                },
+              ]"
+            />
+
             <q-btn-toggle
               v-model="viewMode"
               unelevated
@@ -121,26 +143,54 @@
         <q-separator />
 
         <div class="course-material-panel__viewer-content">
+          <q-banner
+            v-if="audienceMode === 'teacher'"
+            rounded
+            class="course-material-panel__teacher-hint q-mb-md"
+          >
+            草稿單元只有老師看得到；切成「開放給學生」後，學生才會在課程教材中看到。
+          </q-banner>
+
+          <q-banner
+            v-else
+            rounded
+            class="course-material-panel__student-preview-hint q-mb-md"
+          >
+            這是預覽畫面；實際學生端只會取得已開放（published）的單元。
+          </q-banner>
+
+          <div
+            v-if="audienceMode === 'student' && publishedUnitCount === 0"
+            class="course-material-panel__preview-empty"
+          >
+            <q-icon name="visibility_off" size="42px" color="grey-5" />
+
+            <div>目前沒有已開放給學生的單元</div>
+          </div>
+
           <MaterialTreeViewer
-            v-if="viewMode === 'tree' && courseTree"
-            :tree="courseTree"
-            theme="teacher"
-            editable
+            v-else-if="viewMode === 'tree' && displayTree"
+            :tree="displayTree"
+            :theme="audienceMode === 'student' ? 'student' : 'teacher'"
+            :editable="audienceMode === 'teacher'"
+            :actions-disabled="editing"
             @create-chapter="emit('create-chapter')"
             @edit-chapter="(chapter) => emit('edit-chapter', chapter)"
             @delete-chapter="(chapter) => emit('delete-chapter', chapter)"
             @create-unit="(chapter) => emit('create-unit', chapter)"
             @edit-unit="(chapter, unit) => emit('edit-unit', chapter, unit)"
             @delete-unit="(unit) => emit('delete-unit', unit)"
+            @update-unit-status="(unit, status) => emit('update-unit-status', unit, status)"
             @create-card="(chapter, unit) => emit('create-card', chapter, unit)"
             @edit-card="(chapter, unit, card) => emit('edit-card', chapter, unit, card)"
             @delete-card="(card) => emit('delete-card', card)"
           />
 
           <MaterialGraphViewer
-            v-else-if="viewMode === 'graph' && courseTree"
-            :tree="courseTree"
-            theme="teacher"
+            v-else-if="viewMode === 'graph' && displayTree"
+            :tree="displayTree"
+            :theme="audienceMode === 'student' ? 'student' : 'teacher'"
+            :show-full-view-button="false"
             @edit-chapter="(chapter) => emit('edit-chapter', chapter)"
             @edit-unit="(chapter, unit) => emit('edit-unit', chapter, unit)"
             @edit-card="(chapter, unit, card) => emit('edit-card', chapter, unit, card)"
@@ -273,7 +323,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { Dialog } from 'quasar';
 
@@ -286,9 +336,12 @@ import type {
   MaterialCourseTree,
   MaterialKnowledgeCardNode,
   MaterialUnitNode,
+  MaterialUnitStatus,
 } from '../../../types/material';
 
 type MaterialViewMode = 'tree' | 'graph';
+
+type MaterialAudienceMode = 'teacher' | 'student';
 
 const props = withDefaults(
   defineProps<{
@@ -338,6 +391,8 @@ const emit = defineEmits<{
 
   'delete-unit': [unit: MaterialUnitNode];
 
+  'update-unit-status': [unit: MaterialUnitNode, status: MaterialUnitStatus];
+
   'create-card': [chapter: MaterialChapterNode, unit: MaterialUnitNode];
 
   'edit-card': [
@@ -352,6 +407,36 @@ const emit = defineEmits<{
 }>();
 
 const viewMode = ref<MaterialViewMode>('tree');
+
+const audienceMode = ref<MaterialAudienceMode>('teacher');
+
+const studentPreviewTree = computed<MaterialCourseTree | null>(() => {
+  if (!props.courseTree) {
+    return null;
+  }
+
+  return {
+    ...props.courseTree,
+    chapters: props.courseTree.chapters
+      .map((chapter) => ({
+        ...chapter,
+        units: chapter.units.filter((unit) => unit.status !== 'draft'),
+      }))
+      .filter((chapter) => chapter.units.length > 0),
+  };
+});
+
+const displayTree = computed(() => {
+  return audienceMode.value === 'student' ? studentPreviewTree.value : props.courseTree;
+});
+
+const publishedUnitCount = computed(() => {
+  return (
+    props.courseTree?.chapters.reduce((total, chapter) => {
+      return total + chapter.units.filter((unit) => unit.status !== 'draft').length;
+    }, 0) ?? 0
+  );
+});
 
 const importDialog = ref(false);
 

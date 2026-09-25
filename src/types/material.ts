@@ -12,6 +12,8 @@
 
 export type MaterialTimestamp = string | null;
 
+export type MaterialUnitStatus = 'draft' | 'published';
+
 /*
  * ============================================================
  * Knowledge Card
@@ -90,6 +92,12 @@ export interface MaterialUnitNode {
 
   sort_order: number;
 
+  /*
+   * draft     → 只有教師看得到
+   * published → 學生可看到
+   */
+  status: MaterialUnitStatus;
+
   knowledge_cards: MaterialKnowledgeCardNode[];
 }
 
@@ -153,7 +161,9 @@ export interface MaterialNamedNodeSummary {
 
 export type MaterialChapterSummary = MaterialNamedNodeSummary;
 
-export type MaterialUnitSummary = MaterialNamedNodeSummary;
+export interface MaterialUnitSummary extends MaterialNamedNodeSummary {
+  status: MaterialUnitStatus;
+}
 
 /*
  * ============================================================
@@ -165,6 +175,10 @@ export interface MaterialNamePayload {
   name: string;
 
   sort_order?: number | null;
+}
+
+export interface MaterialUnitPayload extends MaterialNamePayload {
+  status?: MaterialUnitStatus;
 }
 
 /*
@@ -356,13 +370,13 @@ export type MaterialEditorSubmitPayload =
       kind: 'unit';
       mode: 'create';
       chapterId: number;
-      data: MaterialNamePayload;
+      data: MaterialUnitPayload;
     }
   | {
       kind: 'unit';
       mode: 'edit';
       unitId: number;
-      data: MaterialNamePayload;
+      data: MaterialUnitPayload;
     }
   | {
       kind: 'card';

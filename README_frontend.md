@@ -3,7 +3,7 @@
 PHPEducation 教學網站前端專案。
 
 本專案使用 **Vue 3 + Quasar + TypeScript** 開發，採前後端分離架構。  
-本 README 依 **2026-09-13 最新前端 `src` 程式碼與目前已完成修改**整理，內容以目前已完成並實際存在於前端的功能為主。
+本 README 依 **2026-09-25 最新前端功能與目前已完成修改**整理，內容以目前已完成並實際存在於前端的功能為主。
 
 ---
 
@@ -55,6 +55,7 @@ src/
 │  ├─ teacher-course-student.api.ts
 │  ├─ teacher-material.api.ts
 │  ├─ teacher-question.api.ts
+│  ├─ teacher-question-record.api.ts
 │  ├─ student-material.api.ts
 │  └─ student-question.api.ts
 │
@@ -88,8 +89,11 @@ src/
 │  │  └─ StudentQuestionList.vue
 │  └─ teacher/
 │     ├─ course-workspace/
+│     │  ├─ CourseStudentPanel.vue
+│     │  └─ CourseQuestionRecordPanel.vue
 │     └─ question/
-│        └─ QuestionFormDialog.vue
+│        ├─ QuestionFormDialog.vue
+│        └─ QuestionRecordReviewDialog.vue
 │
 ├─ composables/
 ├─ config/
@@ -175,6 +179,27 @@ student
 ```
 
 學生登入時前端可直接輸入學號，不需自行加 `s` 或組完整校園信箱。
+
+### 登入欄位去空白
+
+登入送出前會對：
+
+```text
+account
+password
+```
+
+執行 `.trim()`，移除前後多餘空白。
+
+例如：
+
+```text
+"  1411131000  "
+→
+"1411131000"
+```
+
+如果欄位只包含空白，也會直接視為未輸入，不會把全空白內容送往 Backend。
 
 ---
 
@@ -412,6 +437,8 @@ Eportal 信箱
 
 ## 11. 管理員－使用者管理
 
+管理員首頁目前提供「資料總覽」，包含教師、學生、課程、本學期課程等統計資訊，並可直接前往使用者管理。
+
 管理員使用者管理頁目前以「教師申請核准」與「待開通課程」為主要工作區。
 
 目前已完成：
@@ -551,13 +578,16 @@ Stats
 
 ## 12. 教師－課程管理
 
-教師可管理自己的課程：
+教師首頁目前直接顯示「課程管理」，不需要再進入獨立的課程管理首頁。
+
+目前可：
 
 ```text
 查看課程列表
 建立課程
 修改課程
 刪除課程
+進入單一課程工作區
 ```
 
 課程資料包含：
@@ -569,16 +599,46 @@ semester
 class_name
 ```
 
-課程管理頁：
-
-```text
-src/pages/teacher/courseManagement.vue
-```
-
 單一課程工作區：
 
 ```text
 src/pages/teacher/course/[courseId].vue
+```
+
+### 建立空白課程 / 從既有課程帶入
+
+新增課程目前支援兩種建立方式：
+
+```text
+建立空白課程
+從既有課程帶入
+```
+
+選擇「從既有課程帶入」時，可選擇自己既有的一門課程作為來源，並勾選：
+
+```text
+教材（章節／單元／知識卡）
+題目（含選項／答案）
+```
+
+送出時可帶：
+
+```json
+{
+  "source_course_id": 12,
+  "copy_materials": true,
+  "copy_questions": true
+}
+```
+
+如果勾選「題目」，Frontend 會同步要求帶入教材，避免送出不符合 Backend 規則的組合。
+
+帶入內容會建立獨立副本，不共用原課程 ID，也不帶入：
+
+```text
+學生名冊
+學生作答紀錄
+審核資料
 ```
 
 ---
@@ -593,22 +653,19 @@ src/pages/teacher/course/[courseId].vue
 下載 Excel 名冊範本
 Excel 批次上傳
 手動新增一位或多位學生
-顯示待開通 / 已開通狀態
+顯示待審核 / 已開通狀態
+修改學生資料
 移除課程學生
 ```
 
 ### 手動新增學生
 
-老師手動把學生加入課程時，現在 **只需要輸入學號**，不再要求輸入學生姓名。
-
-畫面可一次新增多筆：
+老師手動新增學生時，每一筆可輸入：
 
 ```text
-學號
-[ 1411131001 ]
-
-學號
-[ 1411131002 ]
+學號      必填
+姓名      尚未有帳號時需填
+信箱      選填
 ```
 
 Frontend Request：
@@ -617,41 +674,129 @@ Frontend Request：
 {
   "students": [
     {
-      "student_no": "1411131001"
-    },
-    {
-      "student_no": "1411131002"
+      "student_no": "1411131001",
+      "name": "陳小華",
+      "email": "chen@example.com"
     }
   ]
 }
 ```
 
-前端會檢查：
+若尚未開通的學生沒有填信箱，系統會使用：
 
 ```text
-學號不可空白
-同一批新增資料不可有重複學號
-不需要輸入前綴 s
+s{學號}@nutc.edu.tw
 ```
 
-新增成功後學生會先進入：
+例如：
 
 ```text
-pending
+1411131001
+→
+s1411131001@nutc.edu.tw
 ```
 
-並自動切換至「待審核」名單，等管理員以課程為單位開通。
+### 已有帳號學生自動帶入
+
+新增學生 Dialog 已串接：
+
+```text
+GET /teacher/students/lookup
+```
+
+可使用學號或姓名查詢既有學生帳號。
+
+流程：
+
+```text
+輸入學號
+↓
+查詢 Backend
+↓
+已有帳號
+↓
+自動帶入姓名
+↓
+Backend lookup 若回傳 email，也會自動帶入既有信箱
+```
+
+也可以：
+
+```text
+輸入姓名
+↓
+查詢 Backend
+↓
+只有一筆
+→ 自動帶入學號 / 姓名 / email
+
+同名多人
+→ 顯示符合學生清單
+→ 選擇正確學生
+```
+
+Frontend 已先支援 lookup response 的：
+
+```text
+email
+```
+
+欄位，因此 Backend 後續正式回傳 `email` 後可直接使用。
+
+已有正式帳號的學生新增至課程時，Frontend 不會重新建立帳號；由 Backend 直接建立 enrollment 並沿用既有帳號資料。
+
+### 修改學生資料
+
+班級學生列表提供「修改」操作，串接：
+
+```text
+PUT /teacher/courses/{courseId}/student-applications/{itemId}
+```
+
+可修改：
+
+```text
+學號
+姓名
+信箱
+```
+
+Pending 學生可以修改申請資料。
+
+已開通學生可修改學號 / 信箱；姓名以正式學生帳號資料為準。
+
+如果原信箱就是預設格式：
+
+```text
+s{原學號}@nutc.edu.tw
+```
+
+老師修改學號時，Frontend 會同步更新成新的預設信箱。
+
+例如：
+
+```text
+1411131001
+s1411131001@nutc.edu.tw
+
+↓ 修改學號
+
+1411131099
+s1411131099@nutc.edu.tw
+```
+
+如果原本使用自訂信箱，則不會因修改學號而自動改掉。
 
 ### Excel 匯入
 
-目前 Excel 匯入流程維持既有格式，範本仍使用：
+Excel 匯入流程維持既有格式：
 
 ```text
 學號
 姓名
 ```
 
-Frontend 不解析 Excel，而是直接以 `multipart/form-data` 上傳 Backend。
+Frontend 不自行解析 Excel，而是以 `multipart/form-data` 上傳 Backend。
 
 ### 名單狀態
 
@@ -660,6 +805,18 @@ Frontend 不解析 Excel，而是直接以 `multipart/form-data` 上傳 Backend�
 ```text
 pending   → 待審核
 approved  → 已開通
+```
+
+新版流程中：
+
+```text
+已有學生帳號
+→ Backend 直接加入課程
+→ approved
+
+尚無學生帳號
+→ pending
+→ 等管理員開通
 ```
 
 移除學生時：
@@ -675,15 +832,7 @@ Approved Student
 
 ### Email 提醒
 
-老師送出學生申請時，目前在：
-
-```text
-學生名冊頁
-Excel 匯入 Dialog
-手動新增 Dialog
-```
-
-都會提醒：
+老師送出學生申請時會提醒：
 
 ```text
 管理員開通課程後，若本次有新建立的學生帳號，
@@ -713,8 +862,89 @@ Chapter CRUD
 Unit CRUD
 Knowledge Card CRUD
 圖片上傳
-正式教材立即更新
+單元 Draft / Published 狀態
+老師檢視 / 學生檢視（預覽）
+Tree / Graph 切換
 ```
+
+### 單元草稿 / 開放
+
+教材草稿的最小單位目前是：
+
+```text
+Unit
+```
+
+Unit 狀態：
+
+```text
+draft
+published
+```
+
+手動新增單元時預設為：
+
+```text
+draft
+```
+
+老師可以在教材階層中直接操作：
+
+```text
+開放給學生
+設為草稿
+```
+
+切換狀態前會顯示確認 Dialog。
+
+設為草稿後：
+
+```text
+教師端資料保留
+學生端立即看不到該 Unit
+該 Unit 底下的 Knowledge Cards 也不會出現在學生教材
+```
+
+重新開放後：
+
+```text
+學生端再次看到該 Unit 與底下教材
+```
+
+目前這不是「教材版本管理」：
+
+```text
+不會另外產生一份草稿檔案
+不會同時保存 published 版本與 draft 版本
+```
+
+而是同一筆 Unit 切換 `status`。
+
+### 老師檢視 / 學生檢視（預覽）
+
+教材管理目前可以切換：
+
+```text
+老師檢視
+學生檢視（預覽）
+```
+
+老師檢視：
+
+```text
+draft Unit      可見
+published Unit  可見
+可新增 / 修改 / 刪除 / 切換狀態
+```
+
+學生檢視（預覽）：
+
+```text
+只顯示 published Unit
+draft Unit 不顯示
+```
+
+如果一個 Chapter 底下全部 Unit 都是草稿，學生預覽也不顯示該 Chapter。
 
 ---
 
@@ -823,7 +1053,7 @@ Chapter 與 Unit 的 `q-expansion-item` 目前預設都是關閉狀態。
 ▶ 第三章
 ```
 
-由使用者自行展開章節，再展開單元查看知識卡。
+由使用者自行展開章節、單元，再展開個別 Knowledge Card 查看教材內容與程式範例。
 
 教師模式另外提供：
 
@@ -867,6 +1097,10 @@ Hover Tooltip 顯示完整路徑
 ```
 
 右側詳細資料區可以拖曳中間分隔線調整寬度，也可以雙擊恢復預設寬度。
+
+學生在圖譜點選 Knowledge Card 時，右側原有內容仍會照常顯示；右側另外提供「完整檢視」按鈕。
+
+點擊「完整檢視」後會開啟大型 Dialog，並共用 `MaterialEditor.vue` 的 readonly 模式，只供學生查看，不提供編輯與儲存。
 
 ---
 
@@ -941,6 +1175,26 @@ debug        除錯題
 interpret    程式解讀題
 coding       程式實作題
 ```
+
+所有題型的表單欄位目前統一排列為：
+
+```text
+題目名稱
+題型
+題目內容
+該題型答案 / 設定
+解題說明
+Bloom 認知分類
+關聯知識卡
+```
+
+原本的「題目說明」已改名為：
+
+```text
+解題說明
+```
+
+`Bloom 認知分類` 與 `關聯知識卡` 固定放在表單最下方。
 
 建立 / 修改題目時，`QuestionFormDialog` 會接收 `submitting` 狀態：
 
@@ -1096,9 +1350,85 @@ reference_answer → CodeEditor
 
 ---
 
-## 27. 學生－我的課程與教材
+## 27. 教師－作答紀錄與批改覆核
 
-學生登入後可查看自己已選修的課程。
+教師課程工作區已加入「作答紀錄」。
+
+主要元件：
+
+```text
+CourseQuestionRecordPanel.vue
+QuestionRecordReviewDialog.vue
+```
+
+主要資料流程：
+
+```text
+GET /teacher/courses/{courseId}/question-records
+PUT /teacher/question-records/{recordId}
+```
+
+目前可查看：
+
+```text
+學生姓名 / 學號
+題目名稱
+題型
+題目 Bloom
+系統判定
+教師覆核狀態
+作答時間
+歷次作答
+```
+
+列表支援：
+
+```text
+搜尋學生 / 學號 / 題目 / Bloom
+依題型篩選
+依教師覆核狀態篩選
+查看單筆作答詳情
+```
+
+Choice / True False 會利用 Option ID 對回完整題目選項。
+
+Fill / Debug / Interpret 可查看每個子答案與系統判定。
+
+Coding 題可查看：
+
+```text
+學生程式碼
+starter_code
+expected_output
+reference_answer
+題目要求 Bloom
+```
+
+一般題型覆核送：
+
+```json
+{
+  "solo": 2
+}
+```
+
+Coding 題則由老師選擇學生實際達到的 Bloom：
+
+```json
+{
+  "bloom_id": "B42"
+}
+```
+
+目前一般題型仍是「整筆 QuestionRecord」覆核，不支援逐格修改 Fill / Debug / Interpret 的個別判定。
+
+---
+
+## 29. 學生－我的課程與教材
+
+學生首頁目前直接顯示「我的課程」，登入後不需要再進入另一個課程列表頁。
+
+學生可直接查看自己已選修的課程。
 
 進入單一課程後可查看：
 
@@ -1144,7 +1474,7 @@ examples
 
 ---
 
-## 28. 學生－題目列表
+## 29. 學生－題目列表
 
 題目練習列表目前改為 **條列式 / List** 顯示。
 
@@ -1169,7 +1499,7 @@ Frontend 題目列表已預留「作答次數」顯示欄位；目前 Backend �
 
 ---
 
-## 29. 學生－選擇題 / 是非題作答
+## 30. 學生－選擇題 / 是非題作答
 
 學生可直接點選選項並送出：
 
@@ -1190,7 +1520,7 @@ wrong
 
 ---
 
-## 30. 學生－填空題作答
+## 31. 學生－填空題作答
 
 填空題題目會以 **CodeMirror 唯讀模式**顯示，保留老師輸入的程式格式與換行。
 
@@ -1217,7 +1547,7 @@ sub_ids
 
 ---
 
-## 31. 學生－除錯題作答
+## 32. 學生－除錯題作答
 
 除錯題的待除錯程式以 **CodeMirror 唯讀模式**顯示，因此學生可以直接對照行號。
 
@@ -1256,7 +1586,7 @@ debug_error_count
 
 ---
 
-## 32. 學生－程式解讀題作答
+## 33. 學生－程式解讀題作答
 
 學生會看到：
 
@@ -1280,7 +1610,7 @@ Interpret 固定只有一個答案，不產生多組答案欄位。
 
 ---
 
-## 33. 學生－程式實作題作答
+## 34. 學生－程式實作題作答
 
 Coding 題目前已完成可編輯 CodeMirror 作答介面。
 
@@ -1304,7 +1634,7 @@ Coding 題送出後依 Backend 設計顯示 `pending` 狀態，等待後續教�
 
 ---
 
-## 34. 學生－作答結果
+## 35. 學生－作答結果
 
 單題頁目前可處理：
 
@@ -1333,7 +1663,7 @@ description
 
 ---
 
-## 35. 作答完成後導覽
+## 36. 作答完成後導覽
 
 學生成功送出答案後，頁面會顯示：
 
@@ -1360,7 +1690,7 @@ description
 
 ---
 
-## 36. 已串接的主要 API
+## 37. 已串接的主要 API
 
 ### Authentication
 
@@ -1411,13 +1741,23 @@ PUT    /teacher/courses/{courseId}
 DELETE /teacher/courses/{courseId}
 ```
 
+建立課程時可額外送：
+
+```text
+source_course_id
+copy_materials
+copy_questions
+```
+
 ### Teacher Student Roster
 
 ```text
 GET    /teacher/student-applications/template
+GET    /teacher/students/lookup
 POST   /teacher/student-applications
 GET    /teacher/courses/{courseId}/student-applications
 POST   /teacher/courses/{courseId}/student-applications
+PUT    /teacher/courses/{courseId}/student-applications/{itemId}
 DELETE /teacher/courses/{courseId}/student-applications/{itemId}
 ```
 
@@ -1439,6 +1779,12 @@ POST   /teacher/chapters/{chapterId}/units
 PUT    /teacher/units/{unitId}
 DELETE /teacher/units/{unitId}
 
+Unit Request 可包含：
+
+```text
+status = draft | published
+```
+
 GET    /teacher/units/{unitId}/knowledge-cards
 POST   /teacher/units/{unitId}/knowledge-cards
 PUT    /teacher/knowledge-cards/{cardId}
@@ -1455,6 +1801,13 @@ POST   /teacher/courses/{courseId}/questions
 GET    /teacher/questions/{questionId}
 PUT    /teacher/questions/{questionId}
 DELETE /teacher/questions/{questionId}
+```
+
+### Teacher Question Record / Review
+
+```text
+GET /teacher/courses/{courseId}/question-records
+PUT /teacher/question-records/{recordId}
 ```
 
 ### Student Material
@@ -1476,7 +1829,7 @@ POST /student/questions/{questionId}/submit
 
 ---
 
-## 37. CSS / SCSS 架構
+## 38. CSS / SCSS 架構
 
 主要樣式：
 
@@ -1511,7 +1864,7 @@ Student → Teal / Green
 
 ---
 
-## 38. RWD
+## 39. RWD
 
 目前主要頁面與共用元件都有針對：
 
@@ -1531,7 +1884,9 @@ Dialog
 課程卡片
 教材 Tree
 教材 Graph
+教材完整檢視 Dialog
 題目列表
+教師作答紀錄 / 批改 Dialog
 學生作答介面
 個人資料頁
 變更密碼 Dialog
@@ -1542,7 +1897,7 @@ CodeMirror
 
 ---
 
-## 39. 已完成功能摘要
+## 40. 已完成功能摘要
 
 | 功能                                   | 狀態 |
 | -------------------------------------- | ---: |
@@ -1555,28 +1910,38 @@ CodeMirror
 | Change Password (Admin / Teacher / Student) |   ✅ |
 | Teacher / Student Profile Page         |   ✅ |
 | Navbar Profile Entry                   |   ✅ |
+| Student Home = My Courses              |   ✅ |
+| Teacher Home = Course Management       |   ✅ |
+| Admin Home Data Overview               |   ✅ |
 | Teacher Application                    |   ✅ |
 | Teacher Application Email 垃圾郵件提醒 |   ✅ |
 | Admin Teacher Approval                 |   ✅ |
 | Admin Course Activation                |   ✅ |
 | Admin Pending Course Checkbox Multi-select / Select All |   ✅ |
 | Teacher Course CRUD                    |   ✅ |
+| Teacher Create Course from Existing Course |   ✅ |
+| Teacher Copy Materials / Questions     |   ✅ |
 | Teacher Student Roster                 |   ✅ |
-| Teacher Manual Add Student No Only     |   ✅ |
+| Teacher Manual Add Student No / Name / Email |   ✅ |
+| Teacher Student Auto Lookup by No / Name |   ✅ |
+| Teacher Student Edit No / Name / Email |   ✅ |
 | Student Roster Excel Upload            |   ✅ |
 | Student Account Email 垃圾郵件提醒     |   ✅ |
 | Material Excel Import                  |   ✅ |
 | Chapter CRUD                           |   ✅ |
 | Unit CRUD                              |   ✅ |
+| Unit Draft / Published                 |   ✅ |
+| Teacher / Student Material Preview     |   ✅ |
 | Knowledge Card CRUD                    |   ✅ |
 | RichText Editor                        |   ✅ |
 | Editor Image Upload                    |   ✅ |
 | Material Tree Viewer                   |   ✅ |
-| Material Tree 預設收合                 |   ✅ |
+| Material Tree Chapter / Unit / Card 預設收合 |   ✅ |
 | Material Graph Viewer                  |   ✅ |
 | Graph Search / Zoom / Fit / Drag       |   ✅ |
 | Graph Path Ellipsis + Tooltip          |   ✅ |
 | Graph Detail Panel Resize              |   ✅ |
+| Student Graph Knowledge Card Full View Dialog |   ✅ |
 | CodeMirror 唯讀 Viewer                 |   ✅ |
 | CodeMirror 可編輯 Editor               |   ✅ |
 | CodeMirror 依內容自動高度              |   ✅ |
@@ -1589,6 +1954,9 @@ CodeMirror
 | Teacher Coding 出題                    |   ✅ |
 | Teacher Question Submit Loading          |   ✅ |
 | Teacher Coding CodeMirror                |   ✅ |
+| Teacher Question Record List            |   ✅ |
+| Teacher Answer Detail / Review Dialog   |   ✅ |
+| Teacher Coding Bloom Review             |   ✅ |
 | Student Knowledge Card Examples (All Types) |   ✅ |
 | Student Question List                  |   ✅ |
 | Student Question List 條列式顯示       |   ✅ |
@@ -1604,7 +1972,7 @@ CodeMirror
 
 ---
 
-## 40. 已完成核心流程
+## 41. 已完成核心流程
 
 ### 使用者流程
 
@@ -1633,12 +2001,18 @@ Admin 不使用個人資料頁，直接由 Navbar 修改密碼或登出。
 ### 課程與學生
 
 ```text
-教師建立課程
+教師建立空白課程
+或從既有課程深拷貝教材 / 題目
 ↓
 教師 Excel 匯入學生名冊
-或手動只輸入學號新增學生
+或手動輸入學號 / 姓名 / 選填信箱
 ↓
-學生先進入 Pending 名單
+已有帳號學生
+→ 直接建立 enrollment
+→ 已開通
+
+尚無帳號學生
+→ 進入 Pending
 ↓
 管理員直接查看待開通課程
 ↓
@@ -1646,11 +2020,11 @@ Checkbox 多選 / 全選課程
 ↓
 確認後循序開通所選課程
 ↓
-建立學生帳號（如尚未存在）
+建立學生帳號
 +
 建立 enrollments
 ↓
-學生登入並看到已選課程
+學生首頁看到已選課程
 ```
 
 ### 教材
@@ -1658,16 +2032,22 @@ Checkbox 多選 / 全選課程
 ```text
 教師下載教材 Excel 範本
 ↓
-匯入正式教材
+匯入教材 / 手動建立教材
 ↓
 Chapter / Unit / Knowledge Card 編輯
 ↓
-學生立即瀏覽正式教材
+Unit 預設可處於 draft
+↓
+老師檢視 / 學生檢視（預覽）
+↓
+確認後將 Unit 設為 published
+↓
+學生端只看到 published Unit
 ↓
 Tree / Graph 顯示
 ```
 
-### 題目與學生作答
+### 題目、學生作答與教師覆核
 
 ```text
 教師建立題目
@@ -1680,14 +2060,21 @@ Choice / True False / Fill / Debug / Interpret / Coding
 ↓
 送出答案
 ↓
-顯示作答結果或 pending
+Backend 建立 QuestionRecord
 ↓
-返回題目列表 / 回答下一題
+學生顯示作答結果或 pending
+↓
+教師進入「作答紀錄」
+↓
+查看學生歷次作答
+↓
+一般題型：教師覆核正確 / 錯誤
+Coding：教師選擇 Bloom 完成批改
 ```
 
 ---
 
-## 41. 開發原則
+## 42. 開發原則
 
 目前前端持續採用以下原則：
 

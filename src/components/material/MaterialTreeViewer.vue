@@ -107,6 +107,14 @@
                     }}
 
                     {{ unit.name }}
+
+                    <q-badge
+                      v-if="editable"
+                      :color="unitStatus(unit) === 'published' ? 'positive' : 'grey-5'"
+                      :text-color="unitStatus(unit) === 'published' ? 'white' : 'grey-8'"
+                      :label="unitStatus(unit) === 'published' ? '開放中' : '草稿'"
+                      class="material-tree-viewer__unit-status"
+                    />
                   </q-item-label>
 
                   <q-item-label caption>
@@ -118,11 +126,28 @@
                 <q-item-section v-if="editable" side>
                   <div class="material-tree-viewer__actions">
                     <q-btn
+                      outline
+                      dense
+                      no-caps
+                      :color="unitStatus(unit) === 'published' ? 'blue-grey-6' : 'blue'"
+                      :label="unitStatus(unit) === 'published' ? '設為草稿' : '開放給學生'"
+                      :disable="actionsDisabled"
+                      @click.stop="
+                        emit(
+                          'update-unit-status',
+                          unit,
+                          unitStatus(unit) === 'published' ? 'draft' : 'published',
+                        )
+                      "
+                    />
+
+                    <q-btn
                       flat
                       dense
                       round
                       icon="add"
                       color="blue"
+                      :disable="actionsDisabled"
                       @click.stop="emit('create-card', chapter, unit)"
                     >
                       <q-tooltip> 新增知識卡 </q-tooltip>
@@ -134,6 +159,7 @@
                       round
                       icon="edit"
                       color="blue-grey-7"
+                      :disable="actionsDisabled"
                       @click.stop="emit('edit-unit', chapter, unit)"
                     >
                       <q-tooltip> 編輯單元 </q-tooltip>
@@ -145,6 +171,7 @@
                       round
                       icon="delete"
                       color="negative"
+                      :disable="actionsDisabled"
                       @click.stop="emit('delete-unit', unit)"
                     >
                       <q-tooltip> 刪除單元 </q-tooltip>
@@ -154,44 +181,50 @@
               </template>
 
               <div class="material-tree-viewer__cards">
-                <q-card
+                <q-expansion-item
                   v-for="(card, cardIndex) in sortedCards(unit)"
                   :key="`${unit.id}-${card.id}`"
-                  flat
-                  bordered
+                  expand-separator
                   class="material-tree-viewer__card"
                 >
-                  <q-card-section>
-                    <div class="material-tree-viewer__card-header">
-                      <div class="material-tree-viewer__card-title">
-                        <q-icon name="description" class="material-tree-viewer__card-icon" />
+                  <template #header>
+                    <q-item-section avatar>
+                      <q-icon name="description" class="material-tree-viewer__card-icon" />
+                    </q-item-section>
 
-                        <span>
-                          {{
-                            getCardNumber(
-                              chapter.sort_order,
-                              chapterIndex,
-                              unit.sort_order,
-                              unitIndex,
-                              card.sort_order,
-                              cardIndex,
-                            )
-                          }}
+                    <q-item-section>
+                      <q-item-label
+                        class="material-tree-viewer__card-title material-tree-viewer__card-title--header"
+                      >
+                        {{
+                          getCardNumber(
+                            chapter.sort_order,
+                            chapterIndex,
+                            unit.sort_order,
+                            unitIndex,
+                            card.sort_order,
+                            cardIndex,
+                          )
+                        }}
 
-                          {{ card.title }}
-                        </span>
+                        {{ card.title }}
+                      </q-item-label>
 
-                        <q-badge v-if="card.type" outline color="blue-grey-7" :label="card.type" />
-                      </div>
+                      <q-item-label v-if="card.type" caption>
+                        {{ card.type }}
+                      </q-item-label>
+                    </q-item-section>
 
-                      <div v-if="editable" class="material-tree-viewer__actions">
+                    <q-item-section v-if="editable" side>
+                      <div class="material-tree-viewer__actions">
                         <q-btn
                           flat
                           dense
                           round
                           icon="edit"
                           color="blue"
-                          @click="emit('edit-card', chapter, unit, card)"
+                          :disable="actionsDisabled"
+                          @click.stop="emit('edit-card', chapter, unit, card)"
                         >
                           <q-tooltip> 編輯知識卡 </q-tooltip>
                         </q-btn>
@@ -202,13 +235,16 @@
                           round
                           icon="delete"
                           color="negative"
-                          @click="emit('delete-card', card)"
+                          :disable="actionsDisabled"
+                          @click.stop="emit('delete-card', card)"
                         >
                           <q-tooltip> 刪除知識卡 </q-tooltip>
                         </q-btn>
                       </div>
-                    </div>
+                    </q-item-section>
+                  </template>
 
+                  <div class="material-tree-viewer__card-body">
                     <div class="material-tree-viewer__card-block">
                       <div class="material-tree-viewer__card-label">內容</div>
 
@@ -222,8 +258,8 @@
 
                       <CodeExampleViewer :code="card.example" :theme="theme" />
                     </div>
-                  </q-card-section>
-                </q-card>
+                  </div>
+                </q-expansion-item>
 
                 <div
                   v-if="unit.knowledge_cards.length === 0"
@@ -256,7 +292,8 @@ import type {
   MaterialCourseTree,
   MaterialKnowledgeCardNode,
   MaterialUnitNode,
-} from '../../types/material';
+  MaterialUnitStatus,
+} from '../../types/material.js';
 
 const props = withDefaults(
   defineProps<{
@@ -265,11 +302,15 @@ const props = withDefaults(
     theme?: 'teacher' | 'student';
 
     editable?: boolean;
+
+    actionsDisabled?: boolean;
   }>(),
   {
     theme: 'teacher',
 
     editable: false,
+
+    actionsDisabled: false,
   },
 );
 
@@ -285,6 +326,8 @@ const emit = defineEmits<{
   'edit-unit': [chapter: MaterialChapterNode, unit: MaterialUnitNode];
 
   'delete-unit': [unit: MaterialUnitNode];
+
+  'update-unit-status': [unit: MaterialUnitNode, status: MaterialUnitStatus];
 
   'create-card': [chapter: MaterialChapterNode, unit: MaterialUnitNode];
 
@@ -311,6 +354,10 @@ const sortedChapters = computed(() => {
 
 function sortedUnits(chapter: MaterialChapterNode) {
   return [...chapter.units].sort((a, b) => a.sort_order - b.sort_order);
+}
+
+function unitStatus(unit: MaterialUnitNode): MaterialUnitStatus {
+  return unit.status === 'draft' ? 'draft' : 'published';
 }
 
 function sortedCards(unit: MaterialUnitNode) {

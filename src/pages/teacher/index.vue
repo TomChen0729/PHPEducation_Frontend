@@ -45,6 +45,7 @@
       v-model="courseDialogOpen"
       :mode="courseDialogMode"
       :course="editingCourse"
+      :courses="courses"
       :loading="loading"
       @submit="handleCourseSubmit"
     />

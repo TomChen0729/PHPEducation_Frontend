@@ -9,6 +9,7 @@ import type {
   MaterialCourseTree,
   MaterialKnowledgeCardNode,
   MaterialNamePayload,
+  MaterialUnitPayload,
 } from '../types/material';
 
 /*
@@ -491,7 +492,7 @@ export function useTeacherMaterialManagement() {
   async function createUnit(
     chapterId: number,
 
-    data: MaterialNamePayload,
+    data: MaterialUnitPayload,
   ): Promise<boolean> {
     editing.value = true;
 
@@ -515,7 +516,7 @@ export function useTeacherMaterialManagement() {
   async function updateUnit(
     unitId: number,
 
-    data: MaterialNamePayload,
+    data: MaterialUnitPayload,
   ): Promise<boolean> {
     editing.value = true;
 

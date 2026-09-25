@@ -13,6 +13,7 @@ import type {
   MaterialKnowledgeCardResponse,
   MaterialNamePayload,
   MaterialUnitListResponse,
+  MaterialUnitPayload,
   MaterialUnitResponse,
 } from '../types/material';
 
@@ -112,7 +113,7 @@ export const teacherMaterialApi = {
   createUnit(
     chapterId: number,
 
-    data: MaterialNamePayload,
+    data: MaterialUnitPayload,
   ) {
     return api.post<MaterialUnitResponse>(`/teacher/chapters/${chapterId}/units`, data);
   },
@@ -120,7 +121,7 @@ export const teacherMaterialApi = {
   updateUnit(
     unitId: number,
 
-    data: MaterialNamePayload,
+    data: MaterialUnitPayload,
   ) {
     return api.put<MaterialUnitResponse>(`/teacher/units/${unitId}`, data);
   },

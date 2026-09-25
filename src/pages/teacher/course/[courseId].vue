@@ -92,6 +92,7 @@
             @create-unit="openCreateUnit"
             @edit-unit="openEditUnit"
             @delete-unit="requestDeleteUnit"
+            @update-unit-status="handleUpdateUnitStatus"
             @create-card="openCreateCard"
             @edit-card="openEditCard"
             @delete-card="requestDeleteCard"
@@ -177,11 +178,11 @@ import CourseQuestionRecordPanel from '../../../components/teacher/course-worksp
 
 import MaterialEditor from '../../../components/teacher/course-workspace/MaterialEditor.vue';
 
-import { useTeacherCourseWorkspace } from '../../../composables/useTeacherCourseWorkspace';
+import { useTeacherCourseWorkspace } from '../../../composables/useTeacherCourseWorkspace.js';
 
-import { useTeacherMaterialManagement } from '../../../composables/useTeacherMaterialManagement';
+import { useTeacherMaterialManagement } from '../../../composables/useTeacherMaterialManagement.js';
 
-import type { CourseRequest } from '../../../types/course';
+import type { CourseRequest } from '../../../types/course.js';
 
 import type {
   MaterialChapterNode,
@@ -189,7 +190,8 @@ import type {
   MaterialEditorSubmitPayload,
   MaterialKnowledgeCardNode,
   MaterialUnitNode,
-} from '../../../types/material';
+  MaterialUnitStatus,
+} from '../../../types/material.js';
 
 const route = useRoute();
 
@@ -613,6 +615,53 @@ async function performDeleteChapter(chapterId: number) {
   if (success) {
     notifyMaterialSuccess('章節已刪除');
   }
+}
+
+function handleUpdateUnitStatus(unit: MaterialUnitNode, status: MaterialUnitStatus) {
+  const publishing = status === 'published';
+
+  Dialog.create({
+    title: publishing ? '開放單元給學生' : '將單元設為草稿',
+    message: publishing
+      ? `確定要開放「${unit.name}」嗎？開放後，學生端會立即看到此單元與底下的知識卡。`
+      : `確定要將「${unit.name}」設為草稿嗎？設為草稿後，學生端會立即看不到此單元與底下的知識卡，但教師端資料不會被刪除。`,
+    cancel: true,
+    persistent: true,
+    ok: {
+      label: publishing ? '確認開放' : '設為草稿',
+      color: publishing ? 'positive' : 'blue-grey-7',
+    },
+  }).onOk(() => {
+    void performUpdateUnitStatus(unit, status);
+  });
+}
+
+async function performUpdateUnitStatus(unit: MaterialUnitNode, status: MaterialUnitStatus) {
+  const success = await updateUnit(unit.id, {
+    name: unit.name,
+    sort_order: unit.sort_order,
+    status,
+  });
+
+  if (!success) {
+    Notify.create({
+      type: 'negative',
+      icon: 'error_outline',
+      message: materialErrorMessage.value || '單元狀態更新失敗',
+      position: 'top',
+      timeout: 2500,
+    });
+
+    return;
+  }
+
+  Notify.create({
+    type: 'positive',
+    icon: status === 'published' ? 'visibility' : 'drafts',
+    message: status === 'published' ? '單元已開放給學生' : '單元已設為草稿',
+    position: 'top',
+    timeout: 1600,
+  });
 }
 
 function requestDeleteUnit(unit: MaterialUnitNode) {
