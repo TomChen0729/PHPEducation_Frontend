@@ -3,8 +3,6 @@ export type CourseStudentStatus = 'pending' | 'approved';
 export interface CourseStudent {
   /*
    * student_application_items.id
-   *
-   * 刪除時 Backend 使用的就是這個 id。
    */
   id: number;
 
@@ -37,9 +35,17 @@ export interface CourseStudentListResponse {
 
 /*
  * 手動新增學生時的一筆資料。
+ *
+ * Backend：
+ * student_no 必填
+ * name / email 選填
  */
 export interface CourseStudentInput {
   student_no: string;
+
+  name?: string;
+
+  email?: string;
 }
 
 /*
@@ -48,6 +54,55 @@ export interface CourseStudentInput {
  */
 export interface CreateCourseStudentsRequest {
   students: CourseStudentInput[];
+}
+
+/*
+ * GET
+ * /teacher/students/lookup
+ */
+export interface StudentLookupMatch {
+  student_no: string;
+
+  name: string;
+
+  /*
+   * Backend 預計新增欄位。
+   * 已有帳號學生可直接帶入既有信箱。
+   */
+  email?: string | null;
+}
+
+export interface StudentLookupResponse {
+  has_account: boolean;
+
+  student_no: string | null;
+
+  name: string | null;
+
+  /*
+   * Backend 預計新增欄位名稱：email
+   */
+  email?: string | null;
+
+  matches: StudentLookupMatch[];
+}
+
+/*
+ * PUT
+ * /teacher/courses/{courseId}/student-applications/{itemId}
+ */
+export interface UpdateCourseStudentRequest {
+  student_no: string;
+
+  name: string;
+
+  email?: string;
+}
+
+export interface UpdateCourseStudentResponse {
+  message: string;
+
+  item: CourseStudent;
 }
 
 /*

@@ -131,6 +131,15 @@
     &--large {
       width: 760px;
     }
+
+    &--student-form {
+      width: 1080px;
+      max-width: calc(100vw - 48px) !important;
+    }
+
+    &--edit {
+      width: 720px;
+    }
   }
 
   &__dialog-header {
@@ -188,7 +197,9 @@
     display: grid;
 
     grid-template-columns:
-      minmax(0, 1fr)
+      minmax(180px, 0.9fr)
+      minmax(180px, 0.9fr)
+      minmax(260px, 1.2fr)
       40px;
 
     gap: 12px;
@@ -206,10 +217,12 @@
     display: grid;
 
     grid-template-columns:
-      minmax(0, 1fr)
+      minmax(180px, 0.9fr)
+      minmax(180px, 0.9fr)
+      minmax(260px, 1.2fr)
       40px;
 
-    align-items: center;
+    align-items: start;
 
     gap: 12px;
 
@@ -225,6 +238,19 @@
 
     color: #90a4ae;
     font-size: 12px;
+  }
+
+  &__student-field {
+    min-width: 0;
+  }
+
+  &__match-select {
+    margin-top: 8px;
+  }
+
+  &__edit-form {
+    display: grid;
+    gap: 18px;
   }
 
   &__form-error {
@@ -305,13 +331,19 @@
       border: 1px solid #eceff1;
       border-radius: 8px;
 
-      > :first-child {
-        grid-column: 1;
+      > :not(:last-child) {
+        grid-column: 1 / -1;
       }
 
       > :last-child {
         grid-column: 2;
+        grid-row: 1;
       }
+    }
+
+    &__dialog--student-form {
+      width: calc(100vw - 24px);
+      max-width: calc(100vw - 24px) !important;
     }
   }
 }

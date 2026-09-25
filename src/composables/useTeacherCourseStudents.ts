@@ -10,39 +10,26 @@ import type {
   CourseStudent,
   CourseStudentInput,
   CourseStudentStatus,
+  StudentLookupResponse,
+  UpdateCourseStudentRequest,
 } from '../types/course-student';
 
 export function useTeacherCourseStudents() {
-  /*
-   * =========================
-   * Auth
-   * =========================
-   */
   const authStore = useAuthStore();
 
-  /*
-   * =========================
-   * Data
-   * =========================
-   */
   const students = ref<CourseStudent[]>([]);
 
-  /*
-   * 預設：
-   * 已開通學生
-   */
   const status = ref<CourseStudentStatus>('approved');
 
   const searchKeyword = ref('');
 
-  /*
-   * =========================
-   * Loading
-   * =========================
-   */
   const loading = ref(false);
 
   const adding = ref(false);
+
+  const lookingUp = ref(false);
+
+  const updatingStudentId = ref<number | null>(null);
 
   const importing = ref(false);
 
@@ -50,22 +37,8 @@ export function useTeacherCourseStudents() {
 
   const removingStudentId = ref<number | null>(null);
 
-  /*
-   * =========================
-   * Error
-   * =========================
-   */
   const errorMessage = ref('');
 
-  /*
-   * =========================
-   * Filter
-   * =========================
-   *
-   * Backend 教師名冊 API
-   * 目前沒有 q 搜尋，
-   * 所以搜尋先在前端處理。
-   */
   const filteredStudents = computed(() => {
     const keyword = searchKeyword.value.trim().toLowerCase();
 
@@ -82,23 +55,10 @@ export function useTeacherCourseStudents() {
     });
   });
 
-  /*
-   * =========================
-   * Counts
-   * =========================
-   */
-  const studentCount = computed(() => {
-    return filteredStudents.value.length;
-  });
+  const studentCount = computed(() => filteredStudents.value.length);
 
-  /*
-   * ============================================================
-   * GET Students
-   * ============================================================
-   */
   async function fetchStudents(courseId: number): Promise<boolean> {
     loading.value = true;
-
     errorMessage.value = '';
 
     try {
@@ -109,7 +69,6 @@ export function useTeacherCourseStudents() {
       return true;
     } catch (error: unknown) {
       errorMessage.value = getApiErrorMessage(error, '學生名單取得失敗');
-
       students.value = [];
 
       return false;
@@ -118,37 +77,42 @@ export function useTeacherCourseStudents() {
     }
   }
 
-  /*
-   * ============================================================
-   * Change Status
-   * ============================================================
-   */
   async function changeStatus(courseId: number, nextStatus: CourseStudentStatus) {
-    /*
-     * 沒有改變就不用重新 Request。
-     */
     if (status.value === nextStatus) {
       return;
     }
 
     status.value = nextStatus;
-
     searchKeyword.value = '';
 
     await fetchStudents(courseId);
   }
 
-  /*
-   * ============================================================
-   * Manual Add
-   * ============================================================
-   */
+  async function lookupStudent(params: {
+    student_no?: string;
+    name?: string;
+  }): Promise<StudentLookupResponse | null> {
+    lookingUp.value = true;
+    errorMessage.value = '';
+
+    try {
+      const response = await teacherCourseStudentApi.lookupStudent(params);
+
+      return response.data;
+    } catch (error: unknown) {
+      errorMessage.value = getApiErrorMessage(error, '學生資料查詢失敗');
+
+      return null;
+    } finally {
+      lookingUp.value = false;
+    }
+  }
+
   async function addStudents(
     courseId: number,
     inputStudents: CourseStudentInput[],
   ): Promise<boolean> {
     adding.value = true;
-
     errorMessage.value = '';
 
     try {
@@ -157,15 +121,14 @@ export function useTeacherCourseStudents() {
       });
 
       /*
-       * 新增後一定是 Pending。
+       * Backend 新版行為：
+       * - 已有帳號：會直接完成選課並標為 approved。
+       * - 尚無帳號：才會進入 pending。
        *
-       * 自動切換到「待審核」，
-       * 老師可以立刻看到剛新增的人。
+       * 因此新增完成後保留目前篩選狀態並重新取得名單；
+       * UI 再依新增內容提示使用者可切換「已開通／待審核」查看。
        */
-      status.value = 'pending';
-
       searchKeyword.value = '';
-
       await fetchStudents(courseId);
 
       return true;
@@ -178,14 +141,31 @@ export function useTeacherCourseStudents() {
     }
   }
 
-  /*
-   * ============================================================
-   * Remove
-   * ============================================================
-   */
+  async function updateStudent(
+    courseId: number,
+    itemId: number,
+    data: UpdateCourseStudentRequest,
+  ): Promise<boolean> {
+    updatingStudentId.value = itemId;
+    errorMessage.value = '';
+
+    try {
+      await teacherCourseStudentApi.updateStudent(courseId, itemId, data);
+
+      await fetchStudents(courseId);
+
+      return true;
+    } catch (error: unknown) {
+      errorMessage.value = getApiErrorMessage(error, '學生資料修改失敗');
+
+      return false;
+    } finally {
+      updatingStudentId.value = null;
+    }
+  }
+
   async function removeStudent(courseId: number, itemId: number): Promise<boolean> {
     removingStudentId.value = itemId;
-
     errorMessage.value = '';
 
     try {
@@ -203,33 +183,22 @@ export function useTeacherCourseStudents() {
     }
   }
 
-  /*
-   * ============================================================
-   * Download Excel Template
-   * ============================================================
-   */
   async function downloadTemplate(): Promise<boolean> {
     downloadingTemplate.value = true;
-
     errorMessage.value = '';
 
     try {
       const response = await teacherCourseStudentApi.downloadTemplate();
 
       const url = URL.createObjectURL(response.data);
-
       const link = document.createElement('a');
 
       link.href = url;
-
       link.download = '學生匯入範本.xlsx';
 
       document.body.appendChild(link);
-
       link.click();
-
       link.remove();
-
       URL.revokeObjectURL(url);
 
       return true;
@@ -242,14 +211,8 @@ export function useTeacherCourseStudents() {
     }
   }
 
-  /*
-   * ============================================================
-   * Excel Import
-   * ============================================================
-   */
   async function importStudents(courseId: number, file: File): Promise<boolean> {
     importing.value = true;
-
     errorMessage.value = '';
 
     try {
@@ -263,11 +226,7 @@ export function useTeacherCourseStudents() {
 
       await teacherCourseStudentApi.importStudents(teacherId, courseId, file);
 
-      /*
-       * Excel 匯入後也都是 Pending。
-       */
       status.value = 'pending';
-
       searchKeyword.value = '';
 
       await fetchStudents(courseId);
@@ -282,11 +241,6 @@ export function useTeacherCourseStudents() {
     }
   }
 
-  /*
-   * =========================
-   * Search
-   * =========================
-   */
   function setSearchKeyword(value: string) {
     searchKeyword.value = value;
   }
@@ -295,16 +249,9 @@ export function useTeacherCourseStudents() {
     searchKeyword.value = '';
   }
 
-  /*
-   * =========================
-   * Clear
-   * =========================
-   */
   function clearStudents() {
     students.value = [];
-
     searchKeyword.value = '';
-
     status.value = 'approved';
   }
 
@@ -313,67 +260,37 @@ export function useTeacherCourseStudents() {
   }
 
   return {
-    /*
-     * Data
-     */
     students,
-
     filteredStudents,
-
     status,
-
     searchKeyword,
-
     studentCount,
 
-    /*
-     * Loading
-     */
     loading,
-
     adding,
-
+    lookingUp,
+    updatingStudentId,
     importing,
-
     downloadingTemplate,
-
     removingStudentId,
 
-    /*
-     * Error
-     */
     errorMessage,
 
-    /*
-     * Actions
-     */
     fetchStudents,
-
     changeStatus,
-
+    lookupStudent,
     addStudents,
-
+    updateStudent,
     removeStudent,
-
     downloadTemplate,
-
     importStudents,
-
     setSearchKeyword,
-
     clearSearch,
-
     clearStudents,
-
     clearErrorMessage,
   };
 }
 
-/*
- * ============================================================
- * API Error
- * ============================================================
- */
 function getApiErrorMessage(error: unknown, fallback: string): string {
   if (!axios.isAxiosError(error)) {
     return fallback;
