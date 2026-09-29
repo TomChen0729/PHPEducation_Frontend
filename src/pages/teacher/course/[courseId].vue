@@ -79,12 +79,16 @@
             :unit-count="unitCount"
             :knowledge-card-count="knowledgeCardCount"
             :loading="materialLoading"
+            :previewing="previewingImport"
             :importing="importing"
+            :import-preview="importPreview"
             :downloading-template="downloadingTemplate"
             :editing="editing"
             :error-message="materialErrorMessage"
             @download-template="handleDownloadTemplate"
+            @preview-import="handlePreviewMaterialImport"
             @import="handleImportMaterial"
+            @clear-import-preview="clearImportPreview"
             @clear-error="clearMaterialErrorMessage"
             @create-chapter="openCreateChapter"
             @edit-chapter="openEditChapter"
@@ -188,6 +192,7 @@ import type {
   MaterialChapterNode,
   MaterialEditorContext,
   MaterialEditorSubmitPayload,
+  MaterialImportMode,
   MaterialKnowledgeCardNode,
   MaterialUnitNode,
   MaterialUnitStatus,
@@ -227,14 +232,18 @@ const {
   loading: materialLoading,
 
   downloadingTemplate,
+  previewingImport,
   importing,
+  importPreview,
   editing,
 
   errorMessage: materialErrorMessage,
 
   fetchCourseTree,
   downloadTemplate,
+  previewMaterialImport,
   importMaterial,
+  clearImportPreview,
 
   createChapter,
   updateChapter,
@@ -329,24 +338,60 @@ async function handleDownloadTemplate() {
   });
 }
 
-async function handleImportMaterial(
+async function handlePreviewMaterialImport(
   file: File,
-
-  overwrite: boolean,
+  mode: MaterialImportMode,
+  chapterId: number | null,
 ) {
   if (courseId.value === null || !course.value) {
     return;
   }
 
-  const success = await importMaterial(courseId.value, file, overwrite);
+  const success = await previewMaterialImport(
+    courseId.value,
+    file,
+    mode,
+    chapterId,
+  );
 
   if (!success) {
     Notify.create({
       type: 'negative',
       icon: 'error_outline',
-      message: materialErrorMessage.value || '教材匯入失敗',
+      message: materialErrorMessage.value || '教材匯入預覽失敗',
       position: 'top',
-      timeout: 2500,
+      timeout: 3000,
+    });
+  }
+}
+
+async function handleImportMaterial(
+  file: File,
+  mode: MaterialImportMode,
+  chapterId: number | null,
+  fingerprint: string,
+) {
+  if (courseId.value === null || !course.value) {
+    return;
+  }
+
+  const success = await importMaterial(
+    courseId.value,
+    file,
+    mode,
+    chapterId,
+    fingerprint,
+  );
+
+  if (!success) {
+    Notify.create({
+      type: 'negative',
+      icon: 'error_outline',
+      message:
+        materialErrorMessage.value ||
+        (mode === 'overwrite' ? '教材覆蓋匯入失敗' : '教材匯入失敗'),
+      position: 'top',
+      timeout: 3200,
     });
 
     return;
@@ -354,10 +399,16 @@ async function handleImportMaterial(
 
   materialPanelRef.value?.closeImportDialog();
 
+  const labels: Record<MaterialImportMode, string> = {
+    append: '教材附加匯入成功',
+    replace: '指定章節替換成功',
+    overwrite: '教材覆蓋匯入成功',
+  };
+
   Notify.create({
     type: 'positive',
     icon: 'check_circle',
-    message: overwrite ? '教材重新匯入成功' : '教材匯入成功',
+    message: labels[mode],
     position: 'top',
     timeout: 1800,
   });

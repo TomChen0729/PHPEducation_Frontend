@@ -151,11 +151,7 @@
             草稿單元只有老師看得到；切成「開放給學生」後，學生才會在課程教材中看到。
           </q-banner>
 
-          <q-banner
-            v-else
-            rounded
-            class="course-material-panel__student-preview-hint q-mb-md"
-          >
+          <q-banner v-else rounded class="course-material-panel__student-preview-hint q-mb-md">
             這是預覽畫面；實際學生端只會取得已開放（published）的單元。
           </q-banner>
 
@@ -202,10 +198,25 @@
     <!-- Import Dialog -->
     <q-dialog v-model="importDialog" persistent>
       <q-card class="course-material-panel__import-dialog">
-        <q-card-section>
-          <div class="text-h6 text-weight-bold">
-            {{ hasMaterial ? '重新匯入教材' : '新增教材' }}
+        <q-card-section class="course-material-panel__import-dialog-header">
+          <div>
+            <div class="text-h6 text-weight-bold">
+              {{ hasMaterial ? '匯入教材' : '新增教材' }}
+            </div>
+
+            <div class="text-caption text-grey-7">
+              先預覽匯入結果，確認影響範圍後再正式寫入教材。
+            </div>
           </div>
+
+          <q-btn
+            flat
+            round
+            dense
+            icon="close"
+            :disable="previewing || importing"
+            @click="closeImportDialog"
+          />
         </q-card-section>
 
         <q-separator />
@@ -217,103 +228,254 @@
 
           <div class="course-material-panel__import-step">
             <div class="course-material-panel__import-step-title">
-              <span class="course-material-panel__import-step-number"> 1 </span>
+              <span class="course-material-panel__import-step-number">1</span>
+              選擇匯入方式
+            </div>
 
-              下載 Excel 範本
+            <div v-if="!hasMaterial" class="course-material-panel__first-import">
+              <q-icon name="library_add" color="blue" size="28px" />
+
+              <div>
+                <div class="text-weight-bold">首次匯入教材</div>
+                <div class="text-caption text-grey-7">
+                  目前沒有既有教材，本次會直接建立 Excel 中的完整教材。
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="course-material-panel__mode-grid">
+              <button
+                v-for="option in importModeOptions"
+                :key="option.value"
+                type="button"
+                class="course-material-panel__mode-card"
+                :class="{
+                  'course-material-panel__mode-card--active': importMode === option.value,
+                  'course-material-panel__mode-card--danger': option.value === 'overwrite',
+                }"
+                :disabled="previewing || importing"
+                @click="setImportMode(option.value)"
+              >
+                <q-icon :name="option.icon" size="30px" />
+
+                <div>
+                  <div class="course-material-panel__mode-title">
+                    {{ option.label }}
+                  </div>
+
+                  <div class="course-material-panel__mode-description">
+                    {{ option.description }}
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <q-select
+              v-if="hasMaterial && importMode === 'replace'"
+              v-model="replaceChapterId"
+              outlined
+              emit-value
+              map-options
+              label="要替換的章節 *"
+              :options="chapterOptions"
+              :disable="previewing || importing"
+              @update:model-value="handleReplaceChapterChange"
+            />
+
+            <q-banner v-if="importMode === 'replace'" rounded class="bg-blue-1 text-blue-9">
+              替換指定章節時，Excel 必須剛好只有一個章節。其他章節不會被修改。
+            </q-banner>
+
+            <q-banner
+              v-if="importMode === 'overwrite' && hasMaterial"
+              rounded
+              class="course-material-panel__overwrite-warning"
+            >
+              <template #avatar>
+                <q-icon name="warning_amber" color="orange-8" />
+              </template>
+
+              覆蓋匯入會以 Excel 內容取代整門課教材。請務必先查看預覽中的刪除項目與受影響題目。
+            </q-banner>
+          </div>
+
+          <q-separator />
+
+          <div class="course-material-panel__import-step">
+            <div class="course-material-panel__import-step-title">
+              <span class="course-material-panel__import-step-number">2</span>
+              選擇 Excel
             </div>
 
             <div class="course-material-panel__import-step-description">
-              請使用最新教材範本填寫教材內容。
+              請使用最新教材範本。附加匯入可以包含多個新章節；替換章節只能包含一個章節。
             </div>
 
+            <div class="course-material-panel__import-file-row">
+              <q-file
+                :model-value="selectedFile"
+                outlined
+                clearable
+                accept=".xlsx"
+                label="選擇 Excel 教材檔案 *"
+                :disable="previewing || importing"
+                @update:model-value="handleFileChange"
+              >
+                <template #prepend>
+                  <q-icon name="upload_file" />
+                </template>
+              </q-file>
+
+              <q-btn
+                outline
+                color="blue"
+                icon="download"
+                label="下載範本"
+                :loading="downloadingTemplate"
+                :disable="previewing || importing"
+                @click="emit('download-template')"
+              />
+            </div>
+          </div>
+
+          <q-separator />
+
+          <div class="course-material-panel__import-step">
+            <div class="course-material-panel__import-step-title">
+              <span class="course-material-panel__import-step-number">3</span>
+              預覽匯入結果
+            </div>
+
+            <div class="course-material-panel__import-step-description">預覽不會修改資料庫。</div>
+
             <q-btn
-              outline
+              unelevated
               color="blue"
-              icon="download"
-              label="下載教材範本"
-              :loading="downloadingTemplate"
-              :disable="importing"
-              @click="emit('download-template')"
+              icon="preview"
+              label="預覽匯入"
+              :loading="previewing"
+              :disable="!canPreview || importing"
+              @click="submitPreview"
             />
           </div>
 
-          <q-separator />
+          <template v-if="importPreview">
+            <q-separator />
 
-          <div class="course-material-panel__import-step">
-            <div class="course-material-panel__import-step-title">
-              <span class="course-material-panel__import-step-number"> 2 </span>
+            <div class="course-material-panel__preview">
+              <div class="course-material-panel__preview-header">
+                <div>
+                  <div class="text-h6 text-weight-bold">匯入預覽</div>
 
-              填寫教材內容
-            </div>
+                  <div class="text-caption text-grey-7">
+                    {{ importModeLabel(importPreview.mode) }}
+                  </div>
+                </div>
 
-            <div class="course-material-panel__import-hint">
-              <div class="text-weight-medium q-mb-sm">Excel 欄位</div>
+                <q-badge color="positive" outline label="尚未寫入資料庫" />
+              </div>
 
-              <div class="course-material-panel__import-fields">
-                <q-chip dense color="blue-1" text-color="blue-9" label="章節名稱" />
+              <div class="course-material-panel__preview-stats">
+                <div class="course-material-panel__preview-stat">
+                  <strong>{{ importPreview.summary.chapters }}</strong>
+                  <span>新增章節</span>
+                </div>
 
-                <q-chip dense color="blue-1" text-color="blue-9" label="章節順序" />
+                <div class="course-material-panel__preview-stat">
+                  <strong>{{ importPreview.summary.units }}</strong>
+                  <span>匯入單元</span>
+                </div>
 
-                <q-chip dense color="blue-1" text-color="blue-9" label="單元名稱" />
+                <div class="course-material-panel__preview-stat">
+                  <strong>{{ importPreview.summary.new_cards }}</strong>
+                  <span>新增知識卡</span>
+                </div>
 
-                <q-chip dense color="blue-1" text-color="blue-9" label="單元順序" />
+                <div class="course-material-panel__preview-stat">
+                  <strong>{{ importPreview.summary.updated_cards }}</strong>
+                  <span>更新知識卡</span>
+                </div>
 
-                <q-chip dense color="blue-1" text-color="blue-9" label="知識卡名稱" />
+                <div class="course-material-panel__preview-stat">
+                  <strong>{{ importPreview.summary.reused_cards }}</strong>
+                  <span>沿用知識卡</span>
+                </div>
 
-                <q-chip dense color="blue-1" text-color="blue-9" label="類別" />
+                <div class="course-material-panel__preview-stat">
+                  <strong>{{ importPreview.summary.deleted_cards }}</strong>
+                  <span>刪除知識卡</span>
+                </div>
+              </div>
 
-                <q-chip dense color="blue-1" text-color="blue-9" label="教材內容" />
+              <q-banner
+                v-if="importPreview.duplicate_chapter_names.length > 0"
+                rounded
+                class="bg-orange-1 text-orange-10"
+              >
+                附加匯入偵測到同名章節：
+                {{ importPreview.duplicate_chapter_names.join('、') }}。
+                這些章節仍會以新章節方式接在後面。
+              </q-banner>
 
-                <q-chip dense color="blue-1" text-color="blue-9" label="程式範例" />
+              <q-banner v-if="hasPreviewRemoval" rounded class="bg-red-1 text-negative">
+                <div class="text-weight-bold q-mb-xs">此次匯入會移除或解除部分教材關聯</div>
+
+                <div v-if="importPreview.removed.units.length > 0">
+                  移除單元：{{ importPreview.removed.units.join('、') }}
+                </div>
+
+                <div v-if="importPreview.removed.deleted_cards.length > 0">
+                  刪除知識卡：
+                  {{ importPreview.removed.deleted_cards.map((card) => card.title).join('、') }}
+                </div>
+
+                <div v-if="importPreview.removed.detached_cards.length > 0">
+                  解除章節關聯但保留的知識卡：
+                  {{ importPreview.removed.detached_cards.map((card) => card.title).join('、') }}
+                </div>
+              </q-banner>
+
+              <q-banner
+                v-if="importPreview.affected_questions.length > 0"
+                rounded
+                class="bg-amber-1 text-brown-9"
+              >
+                <div class="text-weight-bold q-mb-xs">
+                  {{ importPreview.affected_questions.length }} 題題目會受到知識卡刪除影響
+                </div>
+
+                <div
+                  v-for="question in importPreview.affected_questions"
+                  :key="question.id"
+                  class="course-material-panel__affected-question"
+                >
+                  {{ question.title }}
+                  <span v-if="question.remaining_cards === 0"> （匯入後將沒有關聯知識卡） </span>
+                </div>
+              </q-banner>
+
+              <div class="course-material-panel__preview-tree">
+                <div class="text-subtitle1 text-weight-bold q-mb-sm">匯入完成後的教材</div>
+
+                <MaterialTreeViewer :tree="importPreview.course" theme="teacher" />
               </div>
             </div>
-          </div>
-
-          <q-separator />
-
-          <div class="course-material-panel__import-step">
-            <div class="course-material-panel__import-step-title">
-              <span class="course-material-panel__import-step-number"> 3 </span>
-
-              上傳 Excel
-            </div>
-
-            <q-file
-              v-model="selectedFile"
-              outlined
-              clearable
-              accept=".xlsx"
-              label="選擇 Excel 教材檔案 *"
-              :disable="importing"
-              @update:model-value="emit('clear-error')"
-            >
-              <template #prepend>
-                <q-icon name="upload_file" />
-              </template>
-            </q-file>
-          </div>
-
-          <q-banner v-if="hasMaterial" rounded class="course-material-panel__overwrite-warning">
-            <template #avatar>
-              <q-icon name="warning_amber" color="orange-8" />
-            </template>
-
-            此課程已有教材。重新匯入後，將以新的 Excel 更新目前教材內容。
-          </q-banner>
+          </template>
         </q-card-section>
 
         <q-separator />
 
         <q-card-actions align="right" class="course-material-panel__import-actions">
-          <q-btn flat label="取消" :disable="importing" @click="closeImportDialog" />
+          <q-btn flat label="取消" :disable="previewing || importing" @click="closeImportDialog" />
 
           <q-btn
+            v-if="importPreview"
             unelevated
-            color="blue"
-            icon="upload"
-            :label="hasMaterial ? '重新匯入' : '匯入教材'"
+            :color="importPreview.mode === 'overwrite' ? 'orange-8' : 'blue'"
+            icon="check"
+            label="確認匯入"
             :loading="importing"
-            :disable="selectedFile === null"
+            :disable="previewing"
             @click="submitImport"
           />
         </q-card-actions>
@@ -325,7 +487,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import { Dialog } from 'quasar';
+// import { Dialog } from 'quasar';
 
 import MaterialTreeViewer from '../../material/MaterialTreeViewer.vue';
 
@@ -334,6 +496,8 @@ import MaterialGraphViewer from '../../material/MaterialGraphViewer.vue';
 import type {
   MaterialChapterNode,
   MaterialCourseTree,
+  MaterialImportMode,
+  MaterialImportPreviewResponse,
   MaterialKnowledgeCardNode,
   MaterialUnitNode,
   MaterialUnitStatus,
@@ -357,7 +521,11 @@ const props = withDefaults(
 
     loading: boolean;
 
+    previewing: boolean;
+
     importing: boolean;
+
+    importPreview: MaterialImportPreviewResponse | null;
 
     downloadingTemplate: boolean;
 
@@ -373,7 +541,11 @@ const props = withDefaults(
 const emit = defineEmits<{
   'download-template': [];
 
-  import: [file: File, overwrite: boolean];
+  'preview-import': [file: File, mode: MaterialImportMode, chapterId: number | null];
+
+  import: [file: File, mode: MaterialImportMode, chapterId: number | null, fingerprint: string];
+
+  'clear-import-preview': [];
 
   edit: [];
 
@@ -442,58 +614,160 @@ const importDialog = ref(false);
 
 const selectedFile = ref<File | null>(null);
 
+const importMode = ref<MaterialImportMode>('overwrite');
+
+const replaceChapterId = ref<number | null>(null);
+
+const importModeOptions: Array<{
+  value: MaterialImportMode;
+  label: string;
+  description: string;
+  icon: string;
+}> = [
+  {
+    value: 'append',
+    label: '附加匯入',
+    description: 'Excel 內的章節接在目前教材最後面，不修改既有章節。',
+    icon: 'playlist_add',
+  },
+  {
+    value: 'replace',
+    label: '替換指定章節',
+    description: '只替換指定的一章，其他章節維持不變。',
+    icon: 'find_replace',
+  },
+  {
+    value: 'overwrite',
+    label: '覆蓋匯入',
+    description: '整門課教材改成這份 Excel 的內容。',
+    icon: 'sync',
+  },
+];
+
+const chapterOptions = computed(() => {
+  return (props.courseTree?.chapters ?? [])
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((chapter) => ({
+      label: `${chapter.sort_order}｜${chapter.name}`,
+      value: chapter.id,
+    }));
+});
+
+const canPreview = computed(() => {
+  if (!selectedFile.value) {
+    return false;
+  }
+
+  if (props.hasMaterial && importMode.value === 'replace') {
+    return replaceChapterId.value !== null;
+  }
+
+  return true;
+});
+
+const hasPreviewRemoval = computed(() => {
+  const preview = props.importPreview;
+
+  if (!preview) {
+    return false;
+  }
+
+  return (
+    preview.removed.units.length > 0 ||
+    preview.removed.deleted_cards.length > 0 ||
+    preview.removed.detached_cards.length > 0
+  );
+});
+
 function openImportDialog() {
   selectedFile.value = null;
+  importMode.value = props.hasMaterial ? 'append' : 'overwrite';
+  replaceChapterId.value = null;
 
   emit('clear-error');
+  emit('clear-import-preview');
 
   importDialog.value = true;
 }
 
-function submitImport() {
+function setImportMode(mode: MaterialImportMode) {
+  importMode.value = mode;
+
+  if (mode !== 'replace') {
+    replaceChapterId.value = null;
+  }
+
+  invalidateImportPreview();
+}
+
+function handleReplaceChapterChange(value: number | null) {
+  replaceChapterId.value = value;
+  invalidateImportPreview();
+}
+
+function handleFileChange(value: File | null) {
+  selectedFile.value = value;
+  invalidateImportPreview();
+}
+
+function invalidateImportPreview() {
+  emit('clear-error');
+  emit('clear-import-preview');
+}
+
+function submitPreview() {
   const file = selectedFile.value;
 
-  if (!file) {
+  if (!file || !canPreview.value) {
     return;
   }
 
-  if (!props.hasMaterial) {
-    emit('import', file, false);
+  emit(
+    'preview-import',
+    file,
+    importMode.value,
+    importMode.value === 'replace' ? replaceChapterId.value : null,
+  );
+}
 
+function submitImport() {
+  const file = selectedFile.value;
+  const preview = props.importPreview;
+
+  if (!file || !preview) {
     return;
   }
 
-  Dialog.create({
-    title: '確認重新匯入',
+  emit(
+    'import',
+    file,
+    preview.mode,
+    preview.mode === 'replace' ? replaceChapterId.value : null,
+    preview.fingerprint,
+  );
+}
 
-    message: '重新匯入會以新的 Excel 更新目前教材。確定要繼續嗎？',
+function importModeLabel(mode: MaterialImportMode) {
+  const labels: Record<MaterialImportMode, string> = {
+    append: '附加匯入',
+    replace: '替換指定章節',
+    overwrite: '覆蓋匯入',
+  };
 
-    cancel: {
-      label: '取消',
-
-      flat: true,
-    },
-
-    ok: {
-      label: '確認重新匯入',
-
-      color: 'blue',
-    },
-
-    persistent: true,
-  }).onOk(() => {
-    emit('import', file, true);
-  });
+  return labels[mode];
 }
 
 function closeImportDialog() {
-  if (props.importing) {
+  if (props.previewing || props.importing) {
     return;
   }
 
   selectedFile.value = null;
+  replaceChapterId.value = null;
 
   emit('clear-error');
+  emit('clear-import-preview');
 
   importDialog.value = false;
 }

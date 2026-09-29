@@ -7,6 +7,8 @@ import { teacherMaterialApi } from '../api/teacher-material.api';
 import type {
   KnowledgeCardPayload,
   MaterialCourseTree,
+  MaterialImportMode,
+  MaterialImportPreviewResponse,
   MaterialKnowledgeCardNode,
   MaterialNamePayload,
   MaterialUnitPayload,
@@ -71,6 +73,13 @@ export function useTeacherMaterialManagement() {
    * Excel 匯入教材。
    */
   const importing = ref(false);
+
+  /*
+   * Excel 匯入預覽。
+   */
+  const previewingImport = ref(false);
+
+  const importPreview = ref<MaterialImportPreviewResponse | null>(null);
 
   /*
    * Chapter / Unit / Card
@@ -175,6 +184,7 @@ export function useTeacherMaterialManagement() {
       loading.value ||
       downloadingTemplate.value ||
       importing.value ||
+      previewingImport.value ||
       editing.value ||
       uploadingImage.value
     );
@@ -374,39 +384,91 @@ export function useTeacherMaterialManagement() {
    * ==========================================================
    */
 
+  async function previewMaterialImport(
+    courseId: number,
+
+    file: File,
+
+    mode: MaterialImportMode,
+
+    chapterId: number | null = null,
+  ): Promise<boolean> {
+    previewingImport.value = true;
+
+    clearErrorMessage();
+
+    currentCourseId.value = courseId;
+
+    try {
+      const response = await teacherMaterialApi.previewImport(courseId, {
+        file,
+        mode,
+        chapter_id: mode === 'replace' ? chapterId : null,
+      });
+
+      importPreview.value = response.data;
+
+      return true;
+    } catch (error) {
+      importPreview.value = null;
+
+      setError(error, '教材匯入預覽失敗');
+
+      return false;
+    } finally {
+      previewingImport.value = false;
+    }
+  }
+
   async function importMaterial(
     courseId: number,
 
     file: File,
 
-    overwrite = false,
+    mode: MaterialImportMode,
+
+    chapterId: number | null,
+
+    fingerprint: string,
   ): Promise<boolean> {
     importing.value = true;
 
     clearErrorMessage();
 
-    /*
-     * 確保之後 CRUD Refresh
-     * 知道目前 Course。
-     */
     currentCourseId.value = courseId;
 
     try {
       await teacherMaterialApi.importMaterial(courseId, {
         file,
-        overwrite,
+        mode,
+        chapter_id: mode === 'replace' ? chapterId : null,
+        fingerprint,
       });
 
       await refreshCourseTree();
 
+      importPreview.value = null;
+
       return true;
     } catch (error) {
-      setError(error, overwrite ? '重新匯入教材失敗' : '匯入教材失敗');
+      setError(error, '教材匯入失敗');
+
+      /*
+       * 409 代表 Preview 後教材已被修改，
+       * 必須重新 Preview 取得新的 fingerprint。
+       */
+      if (errorStatus.value === 409) {
+        importPreview.value = null;
+      }
 
       return false;
     } finally {
       importing.value = false;
     }
+  }
+
+  function clearImportPreview() {
+    importPreview.value = null;
   }
 
   /*
@@ -746,6 +808,8 @@ export function useTeacherMaterialManagement() {
 
     courseTree.value = null;
 
+    importPreview.value = null;
+
     clearErrorMessage();
   }
 
@@ -786,7 +850,11 @@ export function useTeacherMaterialManagement() {
 
     downloadingTemplate,
 
+    previewingImport,
+
     importing,
+
+    importPreview,
 
     editing,
 
@@ -815,7 +883,11 @@ export function useTeacherMaterialManagement() {
      */
     downloadTemplate,
 
+    previewMaterialImport,
+
     importMaterial,
+
+    clearImportPreview,
 
     /*
      * Chapter

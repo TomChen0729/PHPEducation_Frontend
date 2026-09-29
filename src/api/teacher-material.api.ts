@@ -8,6 +8,7 @@ import type {
   MaterialDeleteResponse,
   MaterialEditorImageUploadResponse,
   MaterialImportPayload,
+  MaterialImportPreviewResponse,
   MaterialImportResponse,
   MaterialKnowledgeCardListResponse,
   MaterialKnowledgeCardResponse,
@@ -45,18 +46,25 @@ export const teacherMaterialApi = {
    * ==========================================================
    */
 
+  previewImport(
+    courseId: number,
+
+    data: MaterialImportPayload,
+  ) {
+    const formData = buildMaterialImportFormData(data, false);
+
+    return api.post<MaterialImportPreviewResponse>(
+      `/teacher/courses/${courseId}/materials/import/preview`,
+      formData,
+    );
+  },
+
   importMaterial(
     courseId: number,
 
     data: MaterialImportPayload,
   ) {
-    const formData = new FormData();
-
-    formData.append('file', data.file, data.file.name);
-
-    if (data.overwrite === true) {
-      formData.append('overwrite', '1');
-    }
+    const formData = buildMaterialImportFormData(data, true);
 
     return api.post<MaterialImportResponse>(
       `/teacher/courses/${courseId}/materials/import`,
@@ -186,3 +194,27 @@ export const teacherMaterialApi = {
     return api.post<MaterialEditorImageUploadResponse>('/teacher/upload-image', formData);
   },
 };
+
+
+function buildMaterialImportFormData(
+  data: MaterialImportPayload,
+  includeFingerprint: boolean,
+) {
+  const formData = new FormData();
+
+  formData.append('file', data.file, data.file.name);
+
+  if (data.mode) {
+    formData.append('mode', data.mode);
+  }
+
+  if (data.mode === 'replace' && data.chapter_id !== null && data.chapter_id !== undefined) {
+    formData.append('chapter_id', String(data.chapter_id));
+  }
+
+  if (includeFingerprint && data.fingerprint) {
+    formData.append('fingerprint', data.fingerprint);
+  }
+
+  return formData;
+}

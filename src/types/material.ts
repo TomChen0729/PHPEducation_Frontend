@@ -214,9 +214,88 @@ export interface KnowledgeCardPayload {
  * ============================================================
  */
 
+export type MaterialImportMode = 'append' | 'replace' | 'overwrite';
+
+export type MaterialImportHighlightTone = 'new' | 'replace' | 'reuse' | 'warn';
+
 export interface MaterialImportPayload {
   file: File;
-  overwrite?: boolean;
+
+  mode?: MaterialImportMode;
+
+  chapter_id?: number | null;
+
+  /*
+   * Preview 完成後正式匯入時帶回。
+   * Backend 會確認預覽後教材是否曾被其他操作修改。
+   */
+  fingerprint?: string | null;
+}
+
+export interface MaterialImportSummary {
+  chapters: number;
+
+  units: number;
+
+  new_cards: number;
+
+  reused_cards: number;
+
+  updated_cards: number;
+
+  possible_duplicates: number;
+
+  removed_units: number;
+
+  deleted_cards: number;
+
+  detached_cards: number;
+
+  affected_questions: number;
+
+  questions_without_cards: number;
+}
+
+export interface MaterialImportCardEffect {
+  id: number;
+
+  title: string;
+
+  questions: number;
+}
+
+export interface MaterialImportAffectedQuestion {
+  id: number;
+
+  title: string;
+
+  remaining_cards: number;
+}
+
+export interface MaterialImportRemoved {
+  units: string[];
+
+  deleted_cards: MaterialImportCardEffect[];
+
+  detached_cards: MaterialImportCardEffect[];
+}
+
+export interface MaterialImportPreviewResponse {
+  mode: MaterialImportMode;
+
+  fingerprint: string;
+
+  summary: MaterialImportSummary;
+
+  course: MaterialCourseTree;
+
+  highlights: Record<string, MaterialImportHighlightTone>;
+
+  removed: MaterialImportRemoved;
+
+  affected_questions: MaterialImportAffectedQuestion[];
+
+  duplicate_chapter_names: string[];
 }
 
 /*
@@ -237,6 +316,8 @@ export interface MaterialCourseTreeResponse {
 
 export interface MaterialImportResponse {
   course: MaterialCourseTree;
+
+  summary: MaterialImportSummary;
 }
 
 /*
