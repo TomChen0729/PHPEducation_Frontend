@@ -124,12 +124,25 @@
     img {
       display: block;
 
-      max-width: 100%;
-      height: auto;
+      /*
+       * 與 RichContentViewer 使用相同的教材圖片顯示尺寸，
+       * 讓教師編輯時看到的大小和學生 / 教師檢視時一致。
+       */
+      width: min(100%, 640px) !important;
+      max-width: 100% !important;
+      height: clamp(220px, 45vw, 360px) !important;
+
+      object-fit: contain;
+      object-position: center;
 
       margin: 18px auto;
 
+      background-color: #f8fafc;
+
+      border: 1px solid #eceff1;
       border-radius: 6px;
+
+      box-sizing: border-box;
 
       cursor: pointer;
     }

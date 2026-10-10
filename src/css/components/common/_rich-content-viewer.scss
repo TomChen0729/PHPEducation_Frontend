@@ -36,12 +36,28 @@
   img {
     display: block;
 
-    max-width: 100%;
-    height: auto;
+    /*
+     * 教材圖片統一顯示尺寸。
+     *
+     * 不論原圖很大或很小，都放進相同的 640 × 360 顯示區域。
+     * object-fit: contain 會保留原始比例，不裁切、不變形。
+     * !important 用來覆蓋舊教材 HTML 可能帶有的 width / height / inline style。
+     */
+    width: min(100%, 640px) !important;
+    max-width: 100% !important;
+    height: clamp(220px, 45vw, 360px) !important;
+
+    object-fit: contain;
+    object-position: center;
 
     margin: 18px auto;
 
+    background-color: #f8fafc;
+
+    border: 1px solid #eceff1;
     border-radius: 8px;
+
+    box-sizing: border-box;
   }
 
   a {
