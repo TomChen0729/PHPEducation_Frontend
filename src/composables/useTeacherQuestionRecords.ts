@@ -40,6 +40,32 @@ export function useTeacherQuestionRecords() {
 
   const detailErrorMessage = ref('');
 
+  const aiGradingRecordId = ref<number | null>(null);// 追蹤目前正在進行 AI 評分的作答紀錄 ID
+
+  async function gradeRecordWithAi(recordId: number,):
+  Promise<TeacherQuestionRecord | null> {
+    aiGradingRecordId.value = recordId;
+    detailErrorMessage.value = '';
+
+    try {
+      const response = await teacherQuestionRecordApi.gradeRecord(recordId);
+      const updatedRecord = response.data.record;
+
+      const index = records.value.findIndex((record) => record.id === recordId);
+      if (index >= 0) {
+        records.value[index] = updatedRecord;
+      }
+
+      return updatedRecord;
+    } catch (error: unknown) {
+      detailErrorMessage.value = getApiErrorMessage(error, 'AI 批改執行失敗');
+      return null;
+    } finally {
+      aiGradingRecordId.value = null;
+    }
+  }
+
+
   /*
    * ============================================================
    * Filters
@@ -268,6 +294,7 @@ export function useTeacherQuestionRecords() {
     loading,
     questionLoading,
     reviewingRecordId,
+    aiGradingRecordId,
 
     errorMessage,
     detailErrorMessage,
@@ -276,7 +303,7 @@ export function useTeacherQuestionRecords() {
     refreshRecords,
     fetchQuestionDetail,
     reviewRecord,
-
+    gradeRecordWithAi,
     setSearchKeyword,
     setTypeFilter,
     setStatusFilter,
@@ -303,6 +330,6 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
   const validationMessage = data?.errors
     ? Object.values(data.errors).flat().find(Boolean)
     : undefined;
-
+  
   return validationMessage ?? data?.message ?? fallback;
 }

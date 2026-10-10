@@ -57,6 +57,12 @@ export interface TeacherQuestionRecordSub {
   solo: number;
 }
 
+export interface TeacherQuestionAiFeedback {
+  solo?: string;
+  feedback?: string;
+  [key: string]: unknown;
+}
+
 /*
  * ============================================================
  * Record
@@ -102,6 +108,8 @@ export interface TeacherQuestionRecord {
 
   teacher_status: TeacherQuestionRecordStatus;
 
+  ai_feedback?: TeacherQuestionAiFeedback | string | null;
+
   subs: TeacherQuestionRecordSub[];
 
   created_at: string;
@@ -142,8 +150,7 @@ export interface TeacherGeneralRecordReviewRequest {
 }
 
 export type TeacherQuestionRecordReviewRequest =
-  | TeacherCodingRecordReviewRequest
-  | TeacherGeneralRecordReviewRequest;
+  TeacherCodingRecordReviewRequest | TeacherGeneralRecordReviewRequest;
 
 /*
  * ============================================================

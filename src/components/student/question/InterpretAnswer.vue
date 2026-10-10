@@ -1,14 +1,8 @@
 <template>
   <div class="student-interpret-answer">
-    <q-form
-      ref="formRef"
-      class="student-interpret-answer__form"
-      @submit="submit"
-    >
+    <q-form ref="formRef" class="student-interpret-answer__form" @submit="submit">
       <div class="student-interpret-answer__field">
-        <div class="student-interpret-answer__field-label">
-          程式解讀答案
-        </div>
+        <div class="student-interpret-answer__field-label">程式解讀答案</div>
 
         <q-input
           v-model="answer"

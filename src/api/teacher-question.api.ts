@@ -82,4 +82,8 @@ export const teacherQuestionApi = {
   deleteQuestion(questionId: number) {
     return api.delete<DeleteTeacherQuestionResponse>(`/teacher/questions/${questionId}`);
   },
+
+  gradeRecord(recordId: number) {
+    return api.post(`/teacher/question-records/${recordId}/grade`);
+  }
 };

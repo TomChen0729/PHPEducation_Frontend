@@ -34,4 +34,15 @@ export const teacherQuestionRecordApi = {
       data,
     );
   },
+
+  /*
+   * ==========================================================
+   * AI Grade (實作題專用)
+   * ==========================================================
+   */
+  gradeRecord(recordId: number) {
+    return api.post<TeacherQuestionRecordResponse>(
+      `/teacher/question-records/${recordId}/grade`,
+    );
+  },
 };

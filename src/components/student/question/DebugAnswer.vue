@@ -3,10 +3,7 @@
     <!-- =====================================================
          Empty State
     ====================================================== -->
-    <div
-      v-if="normalizedErrorCount === 0"
-      class="student-debug-answer__empty"
-    >
+    <div v-if="normalizedErrorCount === 0" class="student-debug-answer__empty">
       <q-icon name="error_outline" size="32px" color="grey-5" />
 
       <div>此題目前沒有可作答的除錯欄位</div>
@@ -15,16 +12,8 @@
     <!-- =====================================================
          Debug Form
     ====================================================== -->
-    <q-form
-      v-else
-      ref="formRef"
-      class="student-debug-answer__form"
-      @submit="handleSubmit"
-    >
-      <q-banner
-        rounded
-        class="student-debug-answer__notice"
-      >
+    <q-form v-else ref="formRef" class="student-debug-answer__form" @submit="handleSubmit">
+      <q-banner rounded class="student-debug-answer__notice">
         <template #avatar>
           <q-icon name="bug_report" color="deep-orange-7" />
         </template>
@@ -39,11 +28,7 @@
       </q-banner>
 
       <div class="student-debug-answer__fields">
-        <div
-          v-for="(item, index) in answerRows"
-          :key="index"
-          class="student-debug-answer__field"
-        >
+        <div v-for="(item, index) in answerRows" :key="index" class="student-debug-answer__field">
           <div class="student-debug-answer__field-header">
             <div class="student-debug-answer__field-title">
               <q-icon name="build" size="18px" />
@@ -61,10 +46,7 @@
               label="錯誤行號 *"
               hint="請輸入你判斷有錯的程式行號"
               :disable="disabled || loading"
-              :rules="[
-                positiveIntegerRule,
-                (value) => uniqueLineNumberRule(value, index),
-              ]"
+              :rules="[positiveIntegerRule, (value) => uniqueLineNumberRule(value, index)]"
               lazy-rules="ondemand"
               @update:model-value="resetBackendError"
             >
@@ -93,10 +75,7 @@
         </div>
       </div>
 
-      <div
-        v-if="localErrorMessage"
-        class="student-debug-answer__error"
-      >
+      <div v-if="localErrorMessage" class="student-debug-answer__error">
         <q-icon name="error_outline" />
 
         {{ localErrorMessage }}
@@ -197,10 +176,7 @@ const normalizedErrorCount = ref(0);
 watch(
   () => props.errorCount,
   async (value) => {
-    const nextCount =
-      Number.isInteger(value) && Number(value) > 0
-        ? Number(value)
-        : 0;
+    const nextCount = Number.isInteger(value) && Number(value) > 0 ? Number(value) : 0;
 
     normalizedErrorCount.value = nextCount;
 
@@ -232,21 +208,13 @@ watch(
  * ============================================================
  */
 
-function positiveIntegerRule(
-  value: number | string | null | undefined,
-) {
+function positiveIntegerRule(value: number | string | null | undefined) {
   const numberValue = Number(value);
 
-  return (
-    (Number.isInteger(numberValue) && numberValue > 0) ||
-    '請輸入大於 0 的整數行號'
-  );
+  return (Number.isInteger(numberValue) && numberValue > 0) || '請輸入大於 0 的整數行號';
 }
 
-function uniqueLineNumberRule(
-  value: number | string | null | undefined,
-  currentIndex: number,
-) {
+function uniqueLineNumberRule(value: number | string | null | undefined, currentIndex: number) {
   const numberValue = Number(value);
 
   if (!Number.isInteger(numberValue) || numberValue <= 0) {
@@ -255,17 +223,13 @@ function uniqueLineNumberRule(
 
   const duplicated = answerRows.value.some(
     (item, index) =>
-      index !== currentIndex &&
-      item.lineNumber !== null &&
-      Number(item.lineNumber) === numberValue,
+      index !== currentIndex && item.lineNumber !== null && Number(item.lineNumber) === numberValue,
   );
 
   return !duplicated || '同一個錯誤行號不可重複';
 }
 
-function requiredAnswerRule(
-  value: string | null | undefined,
-) {
+function requiredAnswerRule(value: string | null | undefined) {
   return Boolean(String(value ?? '').trim()) || '請填寫修正後程式碼';
 }
 

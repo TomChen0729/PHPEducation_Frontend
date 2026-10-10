@@ -4,9 +4,7 @@
       <q-card-section class="change-password-dialog__header">
         <div>
           <div class="change-password-dialog__title">變更密碼</div>
-          <div class="change-password-dialog__subtitle">
-            請先輸入目前密碼，再設定新的登入密碼。
-          </div>
+          <div class="change-password-dialog__subtitle">請先輸入目前密碼，再設定新的登入密碼。</div>
         </div>
 
         <q-btn
@@ -136,12 +134,7 @@
         <q-separator />
 
         <q-card-actions align="right" class="change-password-dialog__actions">
-          <q-btn
-            flat
-            label="取消"
-            :disable="changePasswordLoading"
-            @click="closeDialog"
-          />
+          <q-btn flat label="取消" :disable="changePasswordLoading" @click="closeDialog" />
 
           <q-btn
             unelevated

@@ -31,9 +31,7 @@ const emit = defineEmits<{
 }>();
 
 const themeClass = computed(() => {
-  return props.theme === 'student'
-    ? 'code-editor--student'
-    : 'code-editor--teacher';
+  return props.theme === 'student' ? 'code-editor--student' : 'code-editor--teacher';
 });
 
 const editorElement = ref<HTMLElement | null>(null);
@@ -44,10 +42,7 @@ let syncingFromProps = false;
 const editableCompartment = new Compartment();
 
 function editableExtension() {
-  return [
-    EditorState.readOnly.of(props.disabled),
-    EditorView.editable.of(!props.disabled),
-  ];
+  return [EditorState.readOnly.of(props.disabled), EditorView.editable.of(!props.disabled)];
 }
 
 function createEditor() {

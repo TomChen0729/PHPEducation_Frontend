@@ -25,11 +25,7 @@
 
         <q-badge v-if="readonly" color="teal" label="唯讀" />
 
-        <q-badge
-          v-else
-          :color="editorBadgeColor"
-          :label="editorBadgeLabel"
-        />
+        <q-badge v-else :color="editorBadgeColor" :label="editorBadgeLabel" />
       </div>
 
       <!-- Chapter -->

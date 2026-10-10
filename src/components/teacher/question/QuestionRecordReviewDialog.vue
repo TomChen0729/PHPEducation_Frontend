@@ -224,6 +224,50 @@
                 <CodeExampleViewer :code="record.reference_answer || '—'" theme="teacher" />
               </div>
             </section>
+
+            <!-- =========================
+                 AI 智慧批改輔助區塊 (僅 Coding 題可見)
+            ========================== -->
+            <section class="question-record-review-dialog__section">
+              <div class="flex items-center justify-between q-mb-sm">
+                <div class="question-record-review-dialog__section-title q-mb-none flex items-center q-gutter-x-xs">
+                  <q-icon name="auto_awesome" color="deep-purple-7" size="18px" />
+                  <span>AI 智慧診斷與評估</span>
+                </div>
+
+                <!-- AI 批改按鈕 -->
+                <q-btn
+                  unelevated
+                  dense
+                  color="deep-purple-7"
+                  icon="auto_awesome"
+                  :label="record.ai_feedback ? '重新 AI 批改' : '執行 AI 批改'"
+                  :loading="aiGrading"
+                  :disable="reviewing"
+                  class="q-px-sm"
+                  @click="$emit('aiGrade', record.id)"
+                />
+              </div>
+
+              <!-- AI 回饋內容 -->
+              <div v-if="parsedAiFeedback" class="bg-deep-purple-1 text-deep-purple-10 q-pa-md rounded-borders">
+                <div class="flex items-center q-gutter-x-sm q-mb-xs">
+                  <q-badge color="deep-purple-8" class="text-weight-bold">
+                    {{ parsedAiFeedback.solo ? `SOLO: ${parsedAiFeedback.solo}` : 'SOLO 評估' }}
+                  </q-badge>
+                  <span class="text-caption text-grey-8">由 AI 模型進行程式語意與邏輯診斷</span>
+                </div>
+                <div class="text-body2" style="white-space: pre-wrap; line-height: 1.6;">
+                  {{ parsedAiFeedback.feedback }}
+                </div>
+              </div>
+
+              <!-- 尚未批改提示 -->
+              <div v-else class="text-grey-6 text-caption bg-grey-2 q-pa-sm rounded-borders">
+                尚未執行 AI 批改。點擊右上角「執行 AI 批改」可由 AI 分析學生解題等級與診斷評語。
+              </div>
+            </section>
+
           </template>
 
           <!-- =========================
@@ -344,6 +388,8 @@ const props = defineProps<{
 
   reviewing: boolean;
 
+  aiGrading?: boolean;
+
   errorMessage: string;
 }>();
 
@@ -351,6 +397,8 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean];
 
   submit: [data: TeacherQuestionRecordReviewRequest];
+
+  aiGrade: [recordId: number];
 
   close: [];
 }>();
@@ -492,6 +540,19 @@ watch(
     immediate: true,
   },
 );
+
+// 解析 AI 回饋
+const parsedAiFeedback = computed(() => {
+  if (!props.record?.ai_feedback) return null;
+  if (typeof props.record.ai_feedback === 'string') {
+    try {
+      return JSON.parse(props.record.ai_feedback);
+    } catch {
+      return { feedback: props.record.ai_feedback };
+    }
+  }
+  return props.record.ai_feedback;
+});
 
 function resetReviewState() {
   if (!props.record) {

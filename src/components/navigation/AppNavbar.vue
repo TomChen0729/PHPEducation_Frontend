@@ -2,9 +2,7 @@
   <q-header :class="navbarClass" elevated>
     <q-toolbar class="app-navbar">
       <!-- 系統名稱 -->
-      <q-toolbar-title class="app-navbar__title" @click="goHome">
-        PHPEducation
-      </q-toolbar-title>
+      <q-toolbar-title class="app-navbar__title" @click="goHome"> PHPEducation </q-toolbar-title>
 
       <q-space />
 
@@ -86,12 +84,7 @@
             <q-separator />
 
             <!-- Teacher / Student：個人資料入口 -->
-            <q-item
-              v-if="profilePath"
-              :to="profilePath"
-              clickable
-              v-close-popup
-            >
+            <q-item v-if="profilePath" :to="profilePath" clickable v-close-popup>
               <q-item-section avatar>
                 <q-icon name="account_circle" />
               </q-item-section>
@@ -142,10 +135,7 @@
   </q-header>
 
   <!-- Admin 沒有個人資料頁，因此保留 Navbar 直接開啟修改密碼 -->
-  <ChangePasswordDialog
-    v-if="authStore.role === 'admin'"
-    v-model="changePasswordDialog"
-  />
+  <ChangePasswordDialog v-if="authStore.role === 'admin'" v-model="changePasswordDialog" />
 </template>
 
 <script setup lang="ts">

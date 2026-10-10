@@ -12,21 +12,10 @@
     <!-- =====================================================
          Form
     ====================================================== -->
-    <q-form
-      v-else
-      ref="formRef"
-      class="student-fill-answer__form"
-      @submit="submit"
-    >
+    <q-form v-else ref="formRef" class="student-fill-answer__form" @submit="submit">
       <div class="student-fill-answer__fields">
-        <div
-          v-for="subId in subIds"
-          :key="subId"
-          class="student-fill-answer__field"
-        >
-          <div class="student-fill-answer__field-label">
-            填空（{{ subId }}）
-          </div>
+        <div v-for="subId in subIds" :key="subId" class="student-fill-answer__field">
+          <div class="student-fill-answer__field-label">填空（{{ subId }}）</div>
 
           <q-input
             v-model="answers[String(subId)]"
@@ -184,8 +173,7 @@ async function submit() {
   const payload: Record<string, string> = {};
 
   props.subIds.forEach((subId) => {
-    payload[String(subId)] =
-      answers[String(subId)]?.trim() ?? '';
+    payload[String(subId)] = answers[String(subId)]?.trim() ?? '';
   });
 
   emit('submit', payload);

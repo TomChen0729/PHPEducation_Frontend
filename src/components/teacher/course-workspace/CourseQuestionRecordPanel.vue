@@ -15,19 +15,10 @@
           />
         </div>
 
-        <p>
-          查看學生歷次作答結果，並對一般題型進行整筆覆核，或批改程式實作題。
-        </p>
+        <p>查看學生歷次作答結果，並對一般題型進行整筆覆核，或批改程式實作題。</p>
       </div>
 
-      <q-btn
-        flat
-        round
-        color="blue"
-        icon="refresh"
-        :loading="loading"
-        @click="handleRefresh"
-      >
+      <q-btn flat round color="blue" icon="refresh" :loading="loading" @click="handleRefresh">
         <q-tooltip>重新整理</q-tooltip>
       </q-btn>
     </div>
@@ -77,19 +68,13 @@
         @update:model-value="handleStatusFilterChange"
       />
 
-      <div class="course-question-record-panel__count">
-        共 {{ filteredRecords.length }} 筆
-      </div>
+      <div class="course-question-record-panel__count">共 {{ filteredRecords.length }} 筆</div>
     </div>
 
     <!-- =========================
          Error
     ========================== -->
-    <q-banner
-      v-if="errorMessage"
-      rounded
-      class="bg-red-1 text-negative q-mb-md"
-    >
+    <q-banner v-if="errorMessage" rounded class="bg-red-1 text-negative q-mb-md">
       {{ errorMessage }}
     </q-banner>
 
@@ -209,8 +194,10 @@
       :blooms="blooms"
       :question-loading="questionLoading"
       :reviewing="selectedRecord ? reviewingRecordId === selectedRecord.id : false"
+      :ai-grading="selectedRecord ? aiGradingRecordId === selectedRecord.id : false"
       :error-message="detailErrorMessage"
       @submit="handleReviewSubmit"
+      @ai-grade="handleAiGrade"
       @close="handleReviewDialogClose"
     />
   </section>
@@ -259,6 +246,7 @@ const {
   loading,
   questionLoading,
   reviewingRecordId,
+  aiGradingRecordId,
 
   errorMessage,
   detailErrorMessage,
@@ -267,6 +255,7 @@ const {
   refreshRecords,
   fetchQuestionDetail,
   reviewRecord,
+  gradeRecordWithAi,
 
   setSearchKeyword,
   setTypeFilter,
@@ -342,6 +331,24 @@ async function handleReviewSubmit(data: TeacherQuestionRecordReviewRequest) {
     message: updatedRecord.question_type === 'coding' ? '實作題批改完成' : '作答覆核已儲存',
     position: 'top',
     timeout: 1800,
+  });
+}
+
+async function handleAiGrade(recordId: number) {
+  const updatedRecord = await gradeRecordWithAi(recordId);
+
+  if (!updatedRecord) {
+    return;
+  }
+
+  selectedRecord.value = updatedRecord;
+
+  Notify.create({
+    type: 'positive',
+    icon: 'auto_awesome',
+    message: 'AI 批改完成',
+    position: 'top',
+    timeout: 2000,
   });
 }
 

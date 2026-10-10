@@ -1763,7 +1763,7 @@ DELETE /teacher/courses/{courseId}/student-applications/{itemId}
 
 ### Teacher Material
 
-```text
+````text
 GET    /teacher/materials/template
 POST   /teacher/courses/{courseId}/materials/import
 GET    /teacher/courses/{courseId}/tree
@@ -1783,13 +1783,14 @@ Unit Request 可包含：
 
 ```text
 status = draft | published
-```
+````
 
-GET    /teacher/units/{unitId}/knowledge-cards
-POST   /teacher/units/{unitId}/knowledge-cards
-PUT    /teacher/knowledge-cards/{cardId}
+GET /teacher/units/{unitId}/knowledge-cards
+POST /teacher/units/{unitId}/knowledge-cards
+PUT /teacher/knowledge-cards/{cardId}
 DELETE /teacher/knowledge-cards/{cardId}
-```
+
+````
 
 ### Teacher Question
 
@@ -1801,7 +1802,7 @@ POST   /teacher/courses/{courseId}/questions
 GET    /teacher/questions/{questionId}
 PUT    /teacher/questions/{questionId}
 DELETE /teacher/questions/{questionId}
-```
+````
 
 ### Teacher Question Record / Review
 
@@ -1899,76 +1900,76 @@ CodeMirror
 
 ## 40. 已完成功能摘要
 
-| 功能                                   | 狀態 |
-| -------------------------------------- | ---: |
-| Login / Logout                         |   ✅ |
-| Session Restore                        |   ✅ |
-| Role-based Router Guard                |   ✅ |
-| Token 401 自動清除與回登入頁           |   ✅ |
-| Student Forgot Password                |   ✅ |
-| Teacher Forgot Password                |   ✅ |
-| Change Password (Admin / Teacher / Student) |   ✅ |
-| Teacher / Student Profile Page         |   ✅ |
-| Navbar Profile Entry                   |   ✅ |
-| Student Home = My Courses              |   ✅ |
-| Teacher Home = Course Management       |   ✅ |
-| Admin Home Data Overview               |   ✅ |
-| Teacher Application                    |   ✅ |
-| Teacher Application Email 垃圾郵件提醒 |   ✅ |
-| Admin Teacher Approval                 |   ✅ |
-| Admin Course Activation                |   ✅ |
+| 功能                                                    | 狀態 |
+| ------------------------------------------------------- | ---: |
+| Login / Logout                                          |   ✅ |
+| Session Restore                                         |   ✅ |
+| Role-based Router Guard                                 |   ✅ |
+| Token 401 自動清除與回登入頁                            |   ✅ |
+| Student Forgot Password                                 |   ✅ |
+| Teacher Forgot Password                                 |   ✅ |
+| Change Password (Admin / Teacher / Student)             |   ✅ |
+| Teacher / Student Profile Page                          |   ✅ |
+| Navbar Profile Entry                                    |   ✅ |
+| Student Home = My Courses                               |   ✅ |
+| Teacher Home = Course Management                        |   ✅ |
+| Admin Home Data Overview                                |   ✅ |
+| Teacher Application                                     |   ✅ |
+| Teacher Application Email 垃圾郵件提醒                  |   ✅ |
+| Admin Teacher Approval                                  |   ✅ |
+| Admin Course Activation                                 |   ✅ |
 | Admin Pending Course Checkbox Multi-select / Select All |   ✅ |
-| Teacher Course CRUD                    |   ✅ |
-| Teacher Create Course from Existing Course |   ✅ |
-| Teacher Copy Materials / Questions     |   ✅ |
-| Teacher Student Roster                 |   ✅ |
-| Teacher Manual Add Student No / Name / Email |   ✅ |
-| Teacher Student Auto Lookup by No / Name |   ✅ |
-| Teacher Student Edit No / Name / Email |   ✅ |
-| Student Roster Excel Upload            |   ✅ |
-| Student Account Email 垃圾郵件提醒     |   ✅ |
-| Material Excel Import                  |   ✅ |
-| Chapter CRUD                           |   ✅ |
-| Unit CRUD                              |   ✅ |
-| Unit Draft / Published                 |   ✅ |
-| Teacher / Student Material Preview     |   ✅ |
-| Knowledge Card CRUD                    |   ✅ |
-| RichText Editor                        |   ✅ |
-| Editor Image Upload                    |   ✅ |
-| Material Tree Viewer                   |   ✅ |
-| Material Tree Chapter / Unit / Card 預設收合 |   ✅ |
-| Material Graph Viewer                  |   ✅ |
-| Graph Search / Zoom / Fit / Drag       |   ✅ |
-| Graph Path Ellipsis + Tooltip          |   ✅ |
-| Graph Detail Panel Resize              |   ✅ |
-| Student Graph Knowledge Card Full View Dialog |   ✅ |
-| CodeMirror 唯讀 Viewer                 |   ✅ |
-| CodeMirror 可編輯 Editor               |   ✅ |
-| CodeMirror 依內容自動高度              |   ✅ |
-| Teacher Question CRUD                  |   ✅ |
-| Teacher Choice 出題                    |   ✅ |
-| Teacher True / False 出題              |   ✅ |
-| Teacher Fill 出題                      |   ✅ |
-| Teacher Debug 出題                     |   ✅ |
-| Teacher Interpret 出題                 |   ✅ |
-| Teacher Coding 出題                    |   ✅ |
-| Teacher Question Submit Loading          |   ✅ |
-| Teacher Coding CodeMirror                |   ✅ |
-| Teacher Question Record List            |   ✅ |
-| Teacher Answer Detail / Review Dialog   |   ✅ |
-| Teacher Coding Bloom Review             |   ✅ |
-| Student Knowledge Card Examples (All Types) |   ✅ |
-| Student Question List                  |   ✅ |
-| Student Question List 條列式顯示       |   ✅ |
-| Student Choice 作答                    |   ✅ |
-| Student True / False 作答              |   ✅ |
-| Student Fill 作答                      |   ✅ |
-| Student Debug 作答                     |   ✅ |
-| Student Interpret 作答                 |   ✅ |
-| Student Coding 作答                    |   ✅ |
-| Student Submit Result                  |   ✅ |
-| 回答下一題                             |   ✅ |
-| 返回題目列表                           |   ✅ |
+| Teacher Course CRUD                                     |   ✅ |
+| Teacher Create Course from Existing Course              |   ✅ |
+| Teacher Copy Materials / Questions                      |   ✅ |
+| Teacher Student Roster                                  |   ✅ |
+| Teacher Manual Add Student No / Name / Email            |   ✅ |
+| Teacher Student Auto Lookup by No / Name                |   ✅ |
+| Teacher Student Edit No / Name / Email                  |   ✅ |
+| Student Roster Excel Upload                             |   ✅ |
+| Student Account Email 垃圾郵件提醒                      |   ✅ |
+| Material Excel Import                                   |   ✅ |
+| Chapter CRUD                                            |   ✅ |
+| Unit CRUD                                               |   ✅ |
+| Unit Draft / Published                                  |   ✅ |
+| Teacher / Student Material Preview                      |   ✅ |
+| Knowledge Card CRUD                                     |   ✅ |
+| RichText Editor                                         |   ✅ |
+| Editor Image Upload                                     |   ✅ |
+| Material Tree Viewer                                    |   ✅ |
+| Material Tree Chapter / Unit / Card 預設收合            |   ✅ |
+| Material Graph Viewer                                   |   ✅ |
+| Graph Search / Zoom / Fit / Drag                        |   ✅ |
+| Graph Path Ellipsis + Tooltip                           |   ✅ |
+| Graph Detail Panel Resize                               |   ✅ |
+| Student Graph Knowledge Card Full View Dialog           |   ✅ |
+| CodeMirror 唯讀 Viewer                                  |   ✅ |
+| CodeMirror 可編輯 Editor                                |   ✅ |
+| CodeMirror 依內容自動高度                               |   ✅ |
+| Teacher Question CRUD                                   |   ✅ |
+| Teacher Choice 出題                                     |   ✅ |
+| Teacher True / False 出題                               |   ✅ |
+| Teacher Fill 出題                                       |   ✅ |
+| Teacher Debug 出題                                      |   ✅ |
+| Teacher Interpret 出題                                  |   ✅ |
+| Teacher Coding 出題                                     |   ✅ |
+| Teacher Question Submit Loading                         |   ✅ |
+| Teacher Coding CodeMirror                               |   ✅ |
+| Teacher Question Record List                            |   ✅ |
+| Teacher Answer Detail / Review Dialog                   |   ✅ |
+| Teacher Coding Bloom Review                             |   ✅ |
+| Student Knowledge Card Examples (All Types)             |   ✅ |
+| Student Question List                                   |   ✅ |
+| Student Question List 條列式顯示                        |   ✅ |
+| Student Choice 作答                                     |   ✅ |
+| Student True / False 作答                               |   ✅ |
+| Student Fill 作答                                       |   ✅ |
+| Student Debug 作答                                      |   ✅ |
+| Student Interpret 作答                                  |   ✅ |
+| Student Coding 作答                                     |   ✅ |
+| Student Submit Result                                   |   ✅ |
+| 回答下一題                                              |   ✅ |
+| 返回題目列表                                            |   ✅ |
 
 ---
 

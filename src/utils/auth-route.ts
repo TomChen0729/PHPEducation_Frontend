@@ -1,14 +1,14 @@
-import type { UserRole } from '../types/auth'
+import type { UserRole } from '../types/auth';
 
 export function getHomePathByRole(role: UserRole): string {
   switch (role) {
     case 'admin':
-      return '/admin'
+      return '/admin';
 
     case 'teacher':
-      return '/teacher'
+      return '/teacher';
 
     case 'student':
-      return '/student'
+      return '/student';
   }
 }

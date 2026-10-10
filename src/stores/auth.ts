@@ -1,44 +1,32 @@
-import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-import type {
-  LoginResponse,
-  User,
-} from '../types/auth'
+import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
+import type { LoginResponse, User } from '../types/auth';
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
+  const user = ref<User | null>(null);
 
-  const token = ref<string | null>(
-    sessionStorage.getItem('auth_token'),
-  )
+  const token = ref<string | null>(sessionStorage.getItem('auth_token'));
 
-  const isLoggedIn = computed(
-    () => token.value !== null,
-  )
+  const isLoggedIn = computed(() => token.value !== null);
 
-  const role = computed(
-    () => user.value?.role ?? null,
-  )
+  const role = computed(() => user.value?.role ?? null);
 
   function setAuth(data: LoginResponse) {
-    token.value = data.token
-    user.value = data.user
+    token.value = data.token;
+    user.value = data.user;
 
-    sessionStorage.setItem(
-      'auth_token',
-      data.token,
-    )
+    sessionStorage.setItem('auth_token', data.token);
   }
 
   function setUser(data: User) {
-    user.value = data
+    user.value = data;
   }
 
   function clearAuth() {
-    user.value = null
-    token.value = null
+    user.value = null;
+    token.value = null;
 
-    sessionStorage.removeItem('auth_token')
+    sessionStorage.removeItem('auth_token');
   }
 
   return {
@@ -49,5 +37,5 @@ export const useAuthStore = defineStore('auth', () => {
     setAuth,
     setUser,
     clearAuth,
-  }
-})
+  };
+});

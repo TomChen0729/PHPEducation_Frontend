@@ -329,6 +329,7 @@
           ================================================ -->
           <CodingAnswer
             v-else-if="selectedQuestion.type === 'coding'"
+            :question-id="selectedQuestion.id"
             :starter-code="selectedQuestion.starter_code ?? null"
             :loading="submitLoading"
             :disabled="Boolean(submitResult)"

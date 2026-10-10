@@ -4,9 +4,7 @@
       <div>
         <h4 class="admin-dashboard-page__title">資料總覽</h4>
 
-        <p class="admin-dashboard-page__description">
-          查看目前教師、學生、課程與待處理資料。
-        </p>
+        <p class="admin-dashboard-page__description">查看目前教師、學生、課程與待處理資料。</p>
       </div>
 
       <q-badge
@@ -38,7 +36,9 @@
     <section class="admin-dashboard-page__pending-grid">
       <q-card flat bordered class="admin-dashboard-page__pending-card">
         <q-card-section>
-          <div class="admin-dashboard-page__pending-icon admin-dashboard-page__pending-icon--teacher">
+          <div
+            class="admin-dashboard-page__pending-icon admin-dashboard-page__pending-icon--teacher"
+          >
             <q-icon name="person_add" size="28px" />
           </div>
 
@@ -54,7 +54,9 @@
 
       <q-card flat bordered class="admin-dashboard-page__pending-card">
         <q-card-section>
-          <div class="admin-dashboard-page__pending-icon admin-dashboard-page__pending-icon--course">
+          <div
+            class="admin-dashboard-page__pending-icon admin-dashboard-page__pending-icon--course"
+          >
             <q-icon name="how_to_reg" size="28px" />
           </div>
 
@@ -74,9 +76,7 @@
         <div>
           <div class="admin-dashboard-page__action-title">使用者與課程審核</div>
 
-          <div class="admin-dashboard-page__action-description">
-            前往處理教師申請與待開通課程。
-          </div>
+          <div class="admin-dashboard-page__action-description">前往處理教師申請與待開通課程。</div>
         </div>
 
         <q-btn

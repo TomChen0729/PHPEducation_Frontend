@@ -5,5 +5,5 @@
 <script setup lang="ts">
 definePage({
   redirect: '/login',
-})
+});
 </script>

@@ -133,9 +133,7 @@ export function useAuth() {
 
         changePasswordFieldErrors.value = {
           current_password: errors.current_password?.[0],
-          new_password:
-            errors.new_password?.[0] ??
-            errors.new_password_confirmation?.[0],
+          new_password: errors.new_password?.[0] ?? errors.new_password_confirmation?.[0],
         };
 
         changePasswordErrorMessage.value =
@@ -154,9 +152,7 @@ export function useAuth() {
     }
   }
 
-  function clearChangePasswordError(
-    field?: 'current_password' | 'new_password',
-  ) {
+  function clearChangePasswordError(field?: 'current_password' | 'new_password') {
     changePasswordErrorMessage.value = '';
 
     if (!field) {

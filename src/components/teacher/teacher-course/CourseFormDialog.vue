@@ -101,10 +101,7 @@
               />
             </div>
 
-            <div
-              v-if="form.buildMode === 'copy'"
-              class="course-form-dialog__copy-panel"
-            >
+            <div v-if="form.buildMode === 'copy'" class="course-form-dialog__copy-panel">
               <q-select
                 v-model="form.sourceCourseId"
                 outlined
@@ -151,20 +148,12 @@
                 題目會連同教材與知識卡關聯一起複製，因此已自動勾選教材。
               </q-banner>
 
-              <div
-                v-if="!copySelectionValid"
-                class="course-form-dialog__copy-error"
-              >
+              <div v-if="!copySelectionValid" class="course-form-dialog__copy-error">
                 請至少勾選「教材」或「題目」。
               </div>
             </div>
 
-            <q-banner
-              v-else-if="courses.length === 0"
-              rounded
-              dense
-              class="bg-grey-2 text-grey-7"
-            >
+            <q-banner v-else-if="courses.length === 0" rounded dense class="bg-grey-2 text-grey-7">
               目前沒有可帶入的既有課程，請先建立空白課程。
             </q-banner>
           </template>
