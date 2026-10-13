@@ -125,7 +125,8 @@
                 <q-icon name="info" color="blue-grey-7" />
               </template>
 
-              送出後系統會立即產生新的 12 碼密碼， 並寄到帳號綁定的信箱。 原密碼將無法再使用。
+              系統會將「重設密碼連結」寄到帳號綁定的信箱，不會立即變更密碼。
+              連結自寄出起 <strong>15 分鐘內有效</strong>，且只能使用一次；完成重設前，原密碼仍可正常登入。
             </q-banner>
 
             <!-- 帳號 -->
@@ -134,12 +135,12 @@
               outlined
               autofocus
               lazy-rules="ondemand"
-              :label="forgotPasswordRole === 'student' ? '學生學號' : '教師帳號'"
+              :label="forgotPasswordRole === 'student' ? '學生學號或綁定信箱' : '教師帳號'"
               :disable="forgotPasswordLoading"
               :rules="[
                 (value) =>
                   !!String(value ?? '').trim() ||
-                  (forgotPasswordRole === 'student' ? '請輸入學號' : '請輸入教師帳號'),
+                  (forgotPasswordRole === 'student' ? '請輸入學號或綁定信箱' : '請輸入教師帳號'),
               ]"
               @update:model-value="clearForgotPasswordError"
             >
@@ -156,7 +157,7 @@
             <!-- 提示 -->
             <div class="text-caption text-grey-7">
               <template v-if="forgotPasswordRole === 'student'">
-                學號可直接輸入，例如：1411131000，不需要加 s。
+                可輸入學號（例如：1411131000，不需要加 s）或帳號綁定的信箱。
               </template>
 
               <template v-else> 請輸入教師登入時使用的帳號。 </template>
@@ -172,7 +173,7 @@
                 no-caps
                 color="blue-grey-7"
                 icon="mail"
-                label="寄送新密碼"
+                label="寄送重設連結"
                 :loading="forgotPasswordLoading"
               />
             </div>

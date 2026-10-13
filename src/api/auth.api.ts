@@ -6,6 +6,8 @@ import type {
   ForgotPasswordResponse,
   LoginRequest,
   LoginResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
   LogoutResponse,
   MeResponse,
   StudentForgotPasswordRequest,
@@ -35,5 +37,9 @@ export const authApi = {
 
   teacherForgotPassword(data: TeacherForgotPasswordRequest) {
     return api.post<ForgotPasswordResponse>('/auth/teacher/forgot-password', data);
+  },
+
+  resetPassword(data: ResetPasswordRequest) {
+    return api.post<ResetPasswordResponse>('/auth/reset-password', data);
   },
 };

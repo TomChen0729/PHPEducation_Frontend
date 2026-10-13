@@ -47,6 +47,17 @@ export interface ForgotPasswordResponse {
   message: string;
 }
 
+export interface ResetPasswordRequest {
+  type: ForgotPasswordRole;
+  token: string;
+  new_password: string;
+  new_password_confirmation: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
+
 export interface ChangePasswordRequest {
   current_password: string;
   new_password: string;

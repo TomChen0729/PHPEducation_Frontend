@@ -43,9 +43,44 @@
   }
 }
 
+
+.reset-password-card {
+  width: 100%;
+  max-width: 540px;
+
+  border-radius: 16px;
+
+  &__expiry-banner {
+    color: #7c4a03;
+    background: #fff7e6;
+
+    border: 1px solid #ffd591;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding-top: 4px;
+  }
+}
+
 @media (max-width: 599px) {
-  .login-card {
+  .login-card,
+  .reset-password-card {
     margin: 16px;
+  }
+
+  .reset-password-card {
+    &__actions {
+      flex-direction: column-reverse;
+
+      .q-btn {
+        width: 100%;
+      }
+    }
   }
 
   .forgot-password-dialog {
