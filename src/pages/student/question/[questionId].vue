@@ -61,17 +61,10 @@
         </template>
 
         <div class="text-weight-bold">這題目前尚未解鎖</div>
-        <div class="text-caption q-mt-xs">
-          請先完成知識卡：{{ lockedCardNames }}
-        </div>
+        <div class="text-caption q-mt-xs">請先完成知識卡：{{ lockedCardNames }}</div>
 
         <template #action>
-          <q-btn
-            flat
-            color="orange-10"
-            label="回教材完成學習"
-            @click="goToCourseMaterial"
-          />
+          <q-btn flat color="orange-10" label="回教材完成學習" @click="goToCourseMaterial" />
         </template>
       </q-banner>
 
@@ -102,11 +95,7 @@
                 :label="selectedQuestion.bloom_id"
               />
 
-              <q-badge
-                v-if="isAnswered"
-                color="blue-grey-7"
-                label="已作答・不可重答"
-              />
+              <q-badge v-if="isAnswered" color="blue-grey-7" label="已作答・不可重答" />
             </div>
 
             <q-btn
@@ -137,7 +126,10 @@
           <div class="student-question-answer-page__question-content">
             <template v-if="selectedQuestion.type === 'fill' || selectedQuestion.type === 'debug'">
               <div class="student-question-answer-page__interpret-code">
-                <CodeExampleViewer :code="selectedQuestion.question_content ?? ''" theme="student" />
+                <CodeExampleViewer
+                  :code="selectedQuestion.question_content ?? ''"
+                  theme="student"
+                />
               </div>
             </template>
 
@@ -170,7 +162,6 @@
             </div>
             <div>{{ selectedQuestion.description }}</div>
           </div>
-
         </q-card-section>
       </q-card>
 
@@ -180,7 +171,11 @@
             <div>
               <div class="student-question-answer-page__answer-title">我的答案</div>
               <div class="student-question-answer-page__answer-caption">
-                {{ isAnswered ? '此題已完成作答，正式題目不能再次提交。' : getAnswerInstruction(selectedQuestion.type) }}
+                {{
+                  isAnswered
+                    ? '此題已完成作答，正式題目不能再次提交。'
+                    : getAnswerInstruction(selectedQuestion.type)
+                }}
               </div>
             </div>
           </div>
@@ -331,7 +326,10 @@
 
         <q-separator />
 
-        <q-card-section v-if="displayReview" class="student-question-answer-page__review-dialog-content">
+        <q-card-section
+          v-if="displayReview"
+          class="student-question-answer-page__review-dialog-content"
+        >
           <template v-if="displayReview.subs.length > 0">
             <div
               v-for="item in displayReview.subs"
@@ -340,7 +338,10 @@
             >
               <div class="student-question-answer-page__review-item-title">
                 第 {{ item.sub_id }} 題
-                <q-badge :color="item.is_right ? 'positive' : 'negative'" :label="item.is_right ? '正確' : '錯誤'" />
+                <q-badge
+                  :color="item.is_right ? 'positive' : 'negative'"
+                  :label="item.is_right ? '正確' : '錯誤'"
+                />
               </div>
               <div><strong>我的答案：</strong>{{ item.my_answer || '（未作答）' }}</div>
               <div><strong>正確答案：</strong>{{ item.correct_answer || '—' }}</div>
@@ -351,14 +352,23 @@
           <template v-else>
             <div class="student-question-answer-page__review-item">
               <div><strong>我的答案：</strong></div>
-              <pre class="student-question-answer-page__review-code">{{ displayReview.my_answer || '—' }}</pre>
+              <pre class="student-question-answer-page__review-code">{{
+                displayReview.my_answer || '—'
+              }}</pre>
             </div>
 
             <div class="student-question-answer-page__review-item">
               <div><strong>正確答案：</strong></div>
-              <pre v-if="displayReview.correct_answer" class="student-question-answer-page__review-code">{{ displayReview.correct_answer }}</pre>
+              <pre
+                v-if="displayReview.correct_answer"
+                class="student-question-answer-page__review-code"
+                >{{ displayReview.correct_answer }}</pre>
               <div v-else class="text-orange-9">
-                {{ selectedQuestion?.type === 'coding' ? '實作題需等老師批改完成後才會提供參考答案。' : '目前沒有標準答案資料。' }}
+                {{
+                  selectedQuestion?.type === 'coding'
+                    ? '實作題需等老師批改完成後才會提供參考答案。'
+                    : '目前沒有標準答案資料。'
+                }}
               </div>
             </div>
 
@@ -483,9 +493,7 @@ const interpretQuestionCode = computed(() => {
 
   const content = selectedQuestion.value.question_content ?? '';
   const markerIndex = content.indexOf(INTERPRET_CODE_MARKER);
-  return markerIndex < 0
-    ? ''
-    : content.slice(markerIndex + INTERPRET_CODE_MARKER.length).trim();
+  return markerIndex < 0 ? '' : content.slice(markerIndex + INTERPRET_CODE_MARKER.length).trim();
 });
 
 const subAnswerResult = computed<StudentSubAnswerResult | null>(() => {
@@ -515,7 +523,7 @@ const currentQuestionIndex = computed(() =>
 
 const nextQuestion = computed(() => {
   const index = currentQuestionIndex.value;
-  return index < 0 ? null : questions.value[index + 1] ?? null;
+  return index < 0 ? null : (questions.value[index + 1] ?? null);
 });
 
 watch(
@@ -528,11 +536,7 @@ watch(
       return;
     }
 
-    if (
-      Number.isInteger(currentCourseId) &&
-      currentCourseId > 0 &&
-      questions.value.length === 0
-    ) {
+    if (Number.isInteger(currentCourseId) && currentCourseId > 0 && questions.value.length === 0) {
       await loadQuestions(currentCourseId);
     }
 
@@ -563,11 +567,12 @@ async function handleSubmitSubAnswers(answers: Record<string, string>) {
   await submitAnswer(selectedQuestion.value.id, { answers });
 }
 
-async function handleSubmitCoding(code: string) {
+async function handleSubmitCoding(answer: string | File) {
   if (!selectedQuestion.value || isAnswered.value || selectedQuestion.value.locked) {
     return;
   }
 
+  const code = typeof answer === 'string' ? answer : await answer.text();
   await submitAnswer(selectedQuestion.value.id, { code });
 }
 

@@ -5,12 +5,7 @@
  */
 
 export type StudentQuestionType =
-  | 'choice'
-  | 'true_false'
-  | 'fill'
-  | 'debug'
-  | 'interpret'
-  | 'coding';
+  'choice' | 'true_false' | 'fill' | 'debug' | 'interpret' | 'coding';
 
 export type StudentPracticeScope = 'card' | 'unit' | 'chapter' | 'course';
 
@@ -144,9 +139,7 @@ export interface StudentCodingSubmitRequest {
 }
 
 export type StudentQuestionSubmitRequest =
-  | StudentChoiceSubmitRequest
-  | StudentSubAnswerSubmitRequest
-  | StudentCodingSubmitRequest;
+  StudentChoiceSubmitRequest | StudentSubAnswerSubmitRequest | StudentCodingSubmitRequest;
 
 export type QuestionSystemStatus = 'correct' | 'wrong' | 'pending';
 export type QuestionTeacherStatus = 'correct' | 'wrong' | 'pending';
