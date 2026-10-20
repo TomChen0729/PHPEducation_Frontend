@@ -208,6 +208,10 @@ export interface StudentCodingSubmitRequest {
   code: string;
 }
 
+export interface StudentCodingFileSubmitRequest {
+  file: File;
+}
+
 /*
  * ============================================================
  * Unified Submit Request
@@ -215,7 +219,10 @@ export interface StudentCodingSubmitRequest {
  */
 
 export type StudentQuestionSubmitRequest =
-  StudentChoiceSubmitRequest | StudentSubAnswerSubmitRequest | StudentCodingSubmitRequest;
+  | StudentChoiceSubmitRequest
+  | StudentSubAnswerSubmitRequest
+  | StudentCodingSubmitRequest
+  | StudentCodingFileSubmitRequest;
 
 /*
  * ============================================================

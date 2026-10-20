@@ -20,12 +20,35 @@
         </div>
         <div class="flex items-center q-gutter-x-xs">
           <span class="student-coding-answer__editor-badge">PHP 8.2</span>
-          <span class="student-coding-answer__editor-badge">solution.php</span>
+          <span class="student-coding-answer__editor-badge">{{ selectedFile?.name ?? 'solution.php' }}</span>
         </div>
       </div>
 
       <div class="student-coding-answer__editor-body">
-        <CodeEditor v-model="code" theme="student" :disabled="disabled || loading" />
+        <CodeEditor
+          v-if="showCodeEditor"
+          v-model="code"
+          theme="student"
+          :disabled="disabled || loading"
+        />
+        <div v-else class="student-coding-answer__uploaded-file">
+          <q-icon name="description" color="teal-8" size="22px" />
+          <div class="student-coding-answer__uploaded-file-info">
+            <div class="text-weight-medium">{{ selectedFile?.name }}</div>
+            <div class="text-caption text-grey-7">
+              PHP 檔案已載入，可直接送出或自測執行。
+            </div>
+          </div>
+          <q-btn
+            flat
+            dense
+            no-caps
+            color="teal-8"
+            label="檢視／編輯程式碼"
+            :disable="disabled || loading"
+            @click="showCodeEditor = true"
+          />
+        </div>
       </div>
 
       <!-- 錯誤驗證提示 -->
@@ -36,6 +59,13 @@
 
       <!-- 2. STDIN 與操作按鈕列 (優化高度與對齊) -->
       <div class="student-coding-answer__toolbar q-mt-md">
+        <input
+          ref="fileInput"
+          class="student-coding-answer__file-input"
+          type="file"
+          accept=".php"
+          @change="handleFileChange"
+        />
         <!-- STDIN 自訂測資輸入框 -->
         <div class="student-coding-answer__stdin-wrapper">
           <span class="student-coding-answer__stdin-label">STDIN:</span>
@@ -50,6 +80,17 @@
         </div>
 
         <div class="student-coding-answer__actions">
+          <q-btn
+            outline
+            color="teal-8"
+            icon="upload_file"
+            label="上傳 PHP 檔案"
+            no-caps
+            class="student-coding-answer__btn"
+            :disable="disabled || loading || executing"
+            @click="openFilePicker"
+          />
+
           <!-- 自測執行按鈕 -->
           <q-btn
             outline
@@ -150,13 +191,18 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  submit: [code: string];
+  submit: [answer: string | File];
 }>();
 
 // 程式碼與輸入值
 const code = ref('');
 const customInput = ref('3, 5, 2, 8, 1'); // 預設測資
 const validationMessage = ref('');
+const fileInput = ref<HTMLInputElement | null>(null);
+const selectedFile = ref<File | null>(null);
+const showCodeEditor = ref(true);
+
+const MAX_UPLOAD_SIZE = 2 * 1024 * 1024;
 
 // 自測狀態
 const executing = ref(false);
@@ -168,9 +214,50 @@ watch(
   (value) => {
     code.value = value ?? '';
     validationMessage.value = '';
+    selectedFile.value = null;
+    showCodeEditor.value = true;
   },
   { immediate: true },
 );
+
+function openFilePicker() {
+  if (props.disabled || props.loading || executing.value) return;
+  fileInput.value?.click();
+}
+
+async function handleFileChange(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+
+  if (!file) return;
+  selectedFile.value = null;
+  showCodeEditor.value = true;
+  if (!file.name.toLowerCase().endsWith('.php')) {
+    validationMessage.value = '請選擇 .php 檔案';
+    return;
+  }
+  if (file.size > MAX_UPLOAD_SIZE) {
+    validationMessage.value = '檔案不可大於 2 MB';
+    return;
+  }
+
+  try {
+    const content = await file.text();
+    if (!content.trim()) {
+      validationMessage.value = '上傳的 PHP 檔案不可為空';
+      return;
+    }
+
+    code.value = content;
+    selectedFile.value = file;
+    showCodeEditor.value = false;
+    validationMessage.value = '';
+    executeResult.value = null;
+  } catch {
+    validationMessage.value = '無法讀取檔案內容，請重新選擇';
+  }
+}
 
 // ========================================================
 // 1. 自測執行功能 (POST /api/coding-execute)
@@ -224,7 +311,14 @@ function handleSubmit() {
   }
   validationMessage.value = '';
 
-  emit('submit', code.value);
+  if (selectedFile.value) {
+    const editedFile = new File([code.value], selectedFile.value.name, {
+      type: selectedFile.value.type || 'application/x-httpd-php',
+    });
+    emit('submit', editedFile);
+  } else {
+    emit('submit', code.value);
+  }
 }
 
 // ========================================================
@@ -284,6 +378,24 @@ const execStatusClass = computed(() => {
     padding-bottom: 8px;
     border-bottom: 1px solid #e0f2f1;
     margin-bottom: 10px;
+  }
+  &__file-input {
+    display: none;
+  }
+  &__uploaded-file {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 100px;
+    padding: 16px;
+    border: 1px dashed #80cbc4;
+    border-radius: 8px;
+    background: #f0fdfa;
+  }
+  &__uploaded-file-info {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
   &__editor-badge {
     font-family: monospace;

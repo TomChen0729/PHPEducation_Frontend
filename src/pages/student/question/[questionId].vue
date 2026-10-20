@@ -781,14 +781,16 @@ async function handleSubmitSubAnswers(answers: Record<string, string>) {
  * }
  */
 
-async function handleSubmitCoding(code: string) {
+async function handleSubmitCoding(answer: string | File) {
   if (!selectedQuestion.value) {
     return;
   }
 
-  await submitAnswer(selectedQuestion.value.id, {
-    code,
-  });
+  if (answer instanceof File) {
+    await submitAnswer(selectedQuestion.value.id, { file: answer });
+  } else {
+    await submitAnswer(selectedQuestion.value.id, { code: answer });
+  }
 }
 
 /*

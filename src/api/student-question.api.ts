@@ -87,6 +87,16 @@ export const studentQuestionApi = {
    * }
    */
   submitQuestion(questionId: number, data: StudentQuestionSubmitRequest) {
+    if ('file' in data) {
+      const formData = new FormData();
+      formData.append('file', data.file);
+
+      return api.post<StudentQuestionSubmitResponse>(
+        `/student/questions/${questionId}/submit`,
+        formData,
+      );
+    }
+
     return api.post<StudentQuestionSubmitResponse>(`/student/questions/${questionId}/submit`, data);
   },
 };
