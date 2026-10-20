@@ -468,3 +468,168 @@
     }
   }
 }
+
+.student-question-answer-page {
+  &__locked-banner {
+    margin-bottom: 16px;
+  }
+
+  &__knowledge-cards {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #eceff1;
+  }
+
+  &__knowledge-cards-header {
+    margin-bottom: 12px;
+  }
+
+  &__knowledge-cards-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #37474f;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  &__knowledge-cards-caption {
+    margin-top: 4px;
+    color: #78909c;
+    font-size: 12px;
+  }
+
+  &__knowledge-card {
+    margin-top: 12px;
+    border-radius: 10px;
+  }
+
+  &__knowledge-card-title {
+    margin-bottom: 12px;
+    color: #00695c;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  &__knowledge-card-example {
+    margin-top: 16px;
+  }
+
+  &__knowledge-card-example-label {
+    margin-bottom: 7px;
+    color: #607d8b;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  &__result-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__solo-badge {
+    padding: 6px 9px;
+    font-size: 13px;
+  }
+
+  &__result-actions {
+    margin-top: 12px;
+  }
+
+  &__review-dialog {
+    width: min(760px, calc(100vw - 40px));
+    max-width: 760px !important;
+  }
+
+  &__review-dialog-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  &__review-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  &__review-item {
+    padding: 14px;
+    color: #455a64;
+    line-height: 1.7;
+    background: #f7f9fa;
+    border: 1px solid #e3e8eb;
+    border-radius: 9px;
+  }
+
+  &__review-item-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+    color: #263238;
+    font-weight: 700;
+  }
+
+  &__review-code {
+    margin: 7px 0 0;
+    padding: 12px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #263238;
+    color: #eceff1;
+    border-radius: 7px;
+  }
+}
+
+/* ============================================================
+ * Round 35 - on-demand knowledge-card hint
+ * ============================================================ */
+.student-question-answer-page {
+  &__question-topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  &__question-topbar &__badges {
+    margin-bottom: 0;
+  }
+
+  &__knowledge-hint-button {
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border: 1px solid #ffe082;
+    box-shadow: 0 3px 10px rgba(255, 179, 0, 0.12);
+    transition:
+      transform 0.16s ease,
+      box-shadow 0.16s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 7px 16px rgba(255, 179, 0, 0.18);
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .student-question-answer-page {
+    &__question-topbar {
+      gap: 10px;
+    }
+
+    &__knowledge-hint-button {
+      width: 42px;
+      height: 42px;
+    }
+  }
+}

@@ -536,3 +536,71 @@
     }
   }
 }
+
+// ============================================================
+// Student learning progress / card actions
+// ============================================================
+.material-tree-viewer {
+  &__student-card-side {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  &__student-card-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__student-card-count {
+    color: #78909c;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 760px) {
+  .material-tree-viewer {
+    &__student-card-side {
+      align-items: flex-end;
+      flex-direction: column;
+    }
+
+    &__student-card-progress {
+      align-items: flex-end;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+}
+
+.material-tree-viewer {
+  &__level-progress {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 150px;
+    color: #78909c;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  &__level-progress-bar {
+    width: 74px;
+  }
+}
+
+@media (max-width: 720px) {
+  .material-tree-viewer {
+    &__level-progress {
+      min-width: auto;
+
+      .material-tree-viewer__level-progress-bar {
+        display: none;
+      }
+    }
+  }
+}

@@ -181,6 +181,26 @@
             />
 
             <q-btn
+              v-if="theme === 'student' && selectedMeta.kind === 'card' && selectedMeta.card?.has_quiz"
+              unelevated
+              color="teal"
+              icon="bolt"
+              :label="selectedMeta.card?.completed ? '再次練習' : '小試身手'"
+              no-caps
+              @click="quizSelectedCard"
+            />
+
+            <q-btn
+              v-else-if="theme === 'student' && selectedMeta.kind === 'card' && selectedMeta.card && !selectedMeta.card.completed"
+              outline
+              color="teal"
+              icon="done_all"
+              label="我已讀完"
+              no-caps
+              @click="readSelectedCard"
+            />
+
+            <q-btn
               v-if="theme === 'student' && selectedMeta.kind === 'card' && showFullViewButton"
               outline
               color="teal"
@@ -226,6 +246,23 @@
                 }"
                 :label="selectedMeta.card.type || 'keyword'"
               />
+            </div>
+
+            <div v-if="theme === 'student'" class="material-graph-viewer__detail-row">
+              <div class="material-graph-viewer__detail-label">學習狀態</div>
+
+              <div class="row items-center q-gutter-sm">
+                <q-badge
+                  :color="graphCardStatusColor(selectedMeta.card)"
+                  :text-color="graphCardStatusTextColor(selectedMeta.card)"
+                  :label="graphCardStatusLabel(selectedMeta.card)"
+                />
+
+                <span v-if="selectedMeta.card.has_quiz" class="text-caption text-grey-7">
+                  {{ selectedMeta.card.answered_count ?? 0 }} /
+                  {{ selectedMeta.card.question_total ?? 0 }} 題已作答
+                </span>
+              </div>
             </div>
 
             <div v-if="selectedMeta.paths.length > 0" class="material-graph-viewer__detail-section">
@@ -347,6 +384,18 @@ const emit = defineEmits<{
 
     unit: MaterialUnitNode,
 
+    card: MaterialKnowledgeCardNode,
+  ];
+
+  'quiz-card': [
+    chapter: MaterialChapterNode,
+    unit: MaterialUnitNode,
+    card: MaterialKnowledgeCardNode,
+  ];
+
+  'read-card': [
+    chapter: MaterialChapterNode,
+    unit: MaterialUnitNode,
     card: MaterialKnowledgeCardNode,
   ];
 }>();
@@ -1164,6 +1213,79 @@ function viewSelectedCard() {
   }
 
   emit('view-card', meta.chapter, meta.unit, meta.card);
+}
+
+function graphCardStatusLabel(card: MaterialKnowledgeCardNode): string {
+  if (card.completed || card.learning_status === 'completed') {
+    return '已完成';
+  }
+
+  if (card.learning_status === 'retry') {
+    return '需再練習';
+  }
+
+  if (card.learning_status === 'in_progress') {
+    return '學習中';
+  }
+
+  return '未開始';
+}
+
+function graphCardStatusColor(card: MaterialKnowledgeCardNode): string {
+  if (card.completed || card.learning_status === 'completed') {
+    return 'positive';
+  }
+
+  if (card.learning_status === 'retry') {
+    return 'orange-7';
+  }
+
+  if (card.learning_status === 'in_progress') {
+    return 'teal-6';
+  }
+
+  return 'grey-3';
+}
+
+function graphCardStatusTextColor(card: MaterialKnowledgeCardNode): string {
+  return card.learning_status === 'not_started' && !card.completed ? 'grey-8' : 'white';
+}
+
+function readSelectedCard() {
+  const meta = selectedMeta.value;
+
+  if (
+    props.theme !== 'student' ||
+    !meta ||
+    meta.kind !== 'card' ||
+    !meta.chapter ||
+    !meta.unit ||
+    !meta.card ||
+    meta.card.has_quiz ||
+    meta.card.completed
+  ) {
+    return;
+  }
+
+  emit('read-card', meta.chapter, meta.unit, meta.card);
+}
+
+function quizSelectedCard() {
+  const meta = selectedMeta.value;
+
+  if (
+    props.theme !== 'student' ||
+    !meta ||
+    meta.kind !== 'card' ||
+    !meta.chapter ||
+    !meta.unit ||
+    !meta.card ||
+    !meta.card.has_quiz
+  ) {
+    return;
+  }
+
+  emit('quiz-card', meta.chapter, meta.unit, meta.card);
 }
 
 function editSelectedNode() {

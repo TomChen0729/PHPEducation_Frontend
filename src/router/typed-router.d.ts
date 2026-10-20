@@ -88,6 +88,7 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | '/student/'
       | '/student/course/[courseId]/'
+      | '/student/course/[courseId]/knowledge-card/[cardId]/quiz'
       | '/student/course/[courseId]/questions'
       | '/student/courses'
       | '/student/profile'
@@ -105,6 +106,13 @@ declare module 'vue-router/auto-routes' {
       '/student/course/:courseId',
       { courseId: ParamValue<true> },
       { courseId: ParamValue<false> },
+      | never
+    >,
+    '/student/course/[courseId]/knowledge-card/[cardId]/quiz': RouteRecordInfo<
+      '/student/course/[courseId]/knowledge-card/[cardId]/quiz',
+      '/student/course/:courseId/knowledge-card/:cardId/quiz',
+      { courseId: ParamValue<true>, cardId: ParamValue<true> },
+      { courseId: ParamValue<false>, cardId: ParamValue<false> },
       | never
     >,
     '/student/course/[courseId]/questions': RouteRecordInfo<
@@ -256,6 +264,7 @@ declare module 'vue-router/auto-routes' {
         | '/student'
         | '/student/'
         | '/student/course/[courseId]/'
+        | '/student/course/[courseId]/knowledge-card/[cardId]/quiz'
         | '/student/course/[courseId]/questions'
         | '/student/courses'
         | '/student/profile'
@@ -276,6 +285,14 @@ declare module 'vue-router/auto-routes' {
     'src/pages/student/course/[courseId]/index.vue': {
       routes:
         | '/student/course/[courseId]/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/student/course/[courseId]/knowledge-card/[cardId]/quiz.vue': {
+      routes:
+        | '/student/course/[courseId]/knowledge-card/[cardId]/quiz'
       views:
         | never
       pathParamNames:

@@ -1,0 +1,151 @@
+.knowledge-card-hint-dialog {
+  width: min(920px, calc(100vw - 36px));
+  max-width: 920px !important;
+  max-height: min(86vh, 900px);
+  overflow: hidden;
+  border-radius: 16px;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, #fffdf5 0%, #ffffff 72%);
+  }
+
+  &__header-main {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+  }
+
+  &__icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 14px;
+  }
+
+  &__title {
+    color: #263238;
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  &__subtitle {
+    margin-top: 3px;
+    color: #78909c;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  &__tabs {
+    padding: 0 12px;
+    background: #fbfdfd;
+  }
+
+  &__content {
+    max-height: 66vh;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  &__card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  &__card-kicker {
+    color: #00897b;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  &__card-title {
+    margin-top: 2px;
+    color: #263238;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.45;
+  }
+
+  &__body {
+    padding: 18px;
+    background: #fbfdfd;
+    border: 1px solid #e0e8e6;
+    border-radius: 12px;
+  }
+
+  &__example {
+    margin-top: 18px;
+  }
+
+  &__example-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    color: #607d8b;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    gap: 8px;
+    color: #90a4ae;
+  }
+
+  &__actions {
+    padding: 10px 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .knowledge-card-hint-dialog {
+    width: calc(100vw - 20px);
+    max-height: 92vh;
+    border-radius: 12px;
+
+    &__header {
+      padding: 15px;
+    }
+
+    &__icon-wrap {
+      width: 42px;
+      height: 42px;
+    }
+
+    &__title {
+      font-size: 18px;
+    }
+
+    &__content {
+      max-height: 68vh;
+      padding: 15px;
+    }
+
+    &__card-title {
+      font-size: 19px;
+    }
+
+    &__body {
+      padding: 14px;
+    }
+  }
+}

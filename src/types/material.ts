@@ -69,6 +69,27 @@ export interface MaterialKnowledgeCardNode {
 
   sort_order: number;
 
+  /* Student graph only */
+  completed?: boolean;
+
+  /* Student graph only: whether this card has B11 quiz questions */
+  has_quiz?: boolean;
+
+  /* Student learning progress only */
+  learning_status?: 'completed' | 'retry' | 'in_progress' | 'not_started';
+
+  /* Student learning progress only */
+  question_total?: number;
+
+  /* Student learning progress only */
+  answered_count?: number;
+
+  /* Student learning progress only */
+  correct_count?: number;
+
+  /* Student learning progress only */
+  last_answered_at?: string | null;
+
   created_at?: MaterialTimestamp;
   updated_at?: MaterialTimestamp;
 }

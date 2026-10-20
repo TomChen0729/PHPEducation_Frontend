@@ -6,125 +6,48 @@ import { studentQuestionApi } from '../api/student-question.api';
 
 import type {
   StudentQuestion,
+  StudentQuestionFilters,
+  StudentQuestionRecord,
+  StudentQuestionStructureChapter,
   StudentQuestionSubmitRequest,
   StudentQuestionSubmitResponse,
 } from '../types/student-question';
 
-/*
- * ============================================================
- * Student Questions Composable
- * ============================================================
- *
- * 負責：
- *
- * 1. 取得課程題目列表
- * 2. 取得單一題目
- * 3. 提交學生答案
- * 4. Loading 狀態
- * 5. Error 狀態
- * 6. Submit Result
- */
-
 export function useStudentQuestions() {
-  /*
-   * ==========================================================
-   * State
-   * ==========================================================
-   */
-
-  /*
-   * 課程題目列表
-   */
   const questions = ref<StudentQuestion[]>([]);
+  const questionStructure = ref<StudentQuestionStructureChapter[]>([]);
+  const questionMeta = ref<{ total?: number } | null>(null);
 
-  /*
-   * 目前正在作答的單一題目
-   */
   const selectedQuestion = ref<StudentQuestion | null>(null);
-
-  /*
-   * 送出答案後的結果
-   */
+  const selectedRecord = ref<StudentQuestionRecord | null>(null);
   const submitResult = ref<StudentQuestionSubmitResponse | null>(null);
 
-  /*
-   * ==========================================================
-   * Loading
-   * ==========================================================
-   */
-
-  /*
-   * 題目列表 Loading
-   */
   const loading = ref(false);
-
-  /*
-   * 單一題目 Loading
-   */
   const questionLoading = ref(false);
-
-  /*
-   * 送出答案 Loading
-   */
   const submitLoading = ref(false);
-
-  /*
-   * ==========================================================
-   * Error
-   * ==========================================================
-   */
 
   const errorMessage = ref('');
 
-  /*
-   * ==========================================================
-   * Computed
-   * ==========================================================
-   */
-
-  /*
-   * 是否完全沒有題目
-   */
   const isEmpty = computed(() => !loading.value && questions.value.length === 0);
-
-  /*
-   * 題目總數
-   */
-  const questionCount = computed(() => questions.value.length);
-
-  /*
-   * 是否已有 Submit Result
-   */
+  const questionCount = computed(() => questionMeta.value?.total ?? questions.value.length);
   const hasSubmitResult = computed(() => submitResult.value !== null);
 
-  /*
-   * ==========================================================
-   * Load Questions
-   * ==========================================================
-   *
-   * GET
-   *
-   * /student/courses/{courseId}/questions
-   *
-   * optional:
-   *
-   * ?knowledge_card_id={id}
-   */
-
-  async function loadQuestions(courseId: number, knowledgeCardId?: number) {
+  async function loadQuestions(courseId: number, filters: StudentQuestionFilters = {}) {
     loading.value = true;
-
     errorMessage.value = '';
 
     try {
-      const response = await studentQuestionApi.getQuestions(courseId, knowledgeCardId);
+      const response = await studentQuestionApi.getQuestions(courseId, filters);
 
       questions.value = response.data.questions ?? [];
+      questionStructure.value = response.data.chapters ?? [];
+      questionMeta.value = response.data.meta ?? null;
 
       return questions.value;
     } catch (error) {
       questions.value = [];
-
+      questionStructure.value = [];
+      questionMeta.value = null;
       errorMessage.value = getErrorMessage(error, '取得題目失敗，請稍後再試。');
 
       return null;
@@ -133,36 +56,35 @@ export function useStudentQuestions() {
     }
   }
 
-  /*
-   * ==========================================================
-   * Load Single Question
-   * ==========================================================
-   *
-   * GET
-   *
-   * /student/questions/{questionId}
-   */
-
   async function loadQuestion(questionId: number) {
     questionLoading.value = true;
-
     errorMessage.value = '';
-
-    /*
-     * 換新題目時，
-     * 先清除上一題的 Submit Result。
-     */
     submitResult.value = null;
+    selectedRecord.value = null;
 
     try {
       const response = await studentQuestionApi.getQuestion(questionId);
 
       selectedQuestion.value = response.data.question;
 
+      const recordId = selectedQuestion.value.practice?.record_id;
+      if (recordId) {
+        try {
+          const recordResponse = await studentQuestionApi.getQuestionRecord(recordId);
+          selectedRecord.value = recordResponse.data.record;
+        } catch {
+          /*
+           * 單題本身已包含 practice/review。
+           * 額外取得 record 只是為了補 SOLO；失敗不阻斷題目顯示。
+           */
+          selectedRecord.value = null;
+        }
+      }
+
       return selectedQuestion.value;
     } catch (error) {
       selectedQuestion.value = null;
-
+      selectedRecord.value = null;
       errorMessage.value = getErrorMessage(error, '取得題目內容失敗，請稍後再試。');
 
       return null;
@@ -171,30 +93,28 @@ export function useStudentQuestions() {
     }
   }
 
-  /*
-   * ==========================================================
-   * Submit Answer
-   * ==========================================================
-   *
-   * POST
-   *
-   * /student/questions/{questionId}/submit
-   */
-
   async function submitAnswer(questionId: number, data: StudentQuestionSubmitRequest) {
     submitLoading.value = true;
-
     errorMessage.value = '';
-
-    /*
-     * 避免保留上一筆結果
-     */
     submitResult.value = null;
 
     try {
       const response = await studentQuestionApi.submitQuestion(questionId, data);
 
       submitResult.value = response.data;
+      selectedRecord.value = response.data.record;
+
+      if (selectedQuestion.value?.id === questionId) {
+        selectedQuestion.value = {
+          ...selectedQuestion.value,
+          practice: {
+            record_id: response.data.record.id,
+            status: response.data.system_status,
+            answered_at: new Date().toISOString(),
+            ...(response.data.review !== undefined ? { review: response.data.review } : {}),
+          },
+        };
+      }
 
       return submitResult.value;
     } catch (error) {
@@ -206,76 +126,35 @@ export function useStudentQuestions() {
     }
   }
 
-  /*
-   * ==========================================================
-   * Select Question From List
-   * ==========================================================
-   *
-   * 題目列表本身已經有 Question 資料時，
-   * 可以先設定 selectedQuestion。
-   *
-   * 正式進入作答頁後，
-   * 還是可以再呼叫 loadQuestion()
-   * 取得 Backend 最新完整資料。
-   */
-
   function selectQuestion(question: StudentQuestion) {
     selectedQuestion.value = question;
-
+    selectedRecord.value = null;
     submitResult.value = null;
-
     errorMessage.value = '';
   }
-
-  /*
-   * ==========================================================
-   * Clear Selected Question
-   * ==========================================================
-   */
 
   function clearSelectedQuestion() {
     selectedQuestion.value = null;
-
+    selectedRecord.value = null;
     submitResult.value = null;
-
     errorMessage.value = '';
   }
-
-  /*
-   * ==========================================================
-   * Clear Submit Result
-   * ==========================================================
-   */
 
   function clearSubmitResult() {
     submitResult.value = null;
   }
 
-  /*
-   * ==========================================================
-   * Clear Error
-   * ==========================================================
-   */
-
   function clearError() {
     errorMessage.value = '';
   }
 
-  /*
-   * ==========================================================
-   * Error Parser
-   * ==========================================================
-   */
-
   function getErrorMessage(error: unknown, fallback: string): string {
-    /*
-     * Axios Error
-     */
     if (error instanceof AxiosError) {
       const data = error.response?.data as
         | {
             message?: string;
             error?: string;
+            errors?: Record<string, string[] | string>;
           }
         | undefined;
 
@@ -283,14 +162,21 @@ export function useStudentQuestions() {
         return data.message;
       }
 
+      if (data?.errors) {
+        const first = Object.values(data.errors)[0];
+        if (Array.isArray(first) && first[0]) {
+          return first[0];
+        }
+        if (typeof first === 'string') {
+          return first;
+        }
+      }
+
       if (data?.error) {
         return data.error;
       }
     }
 
-    /*
-     * Native Error
-     */
     if (error instanceof Error && error.message) {
       return error.message;
     }
@@ -298,60 +184,26 @@ export function useStudentQuestions() {
     return fallback;
   }
 
-  /*
-   * ==========================================================
-   * Return
-   * ==========================================================
-   */
-
   return {
-    /*
-     * State
-     */
     questions,
-
+    questionStructure,
+    questionMeta,
     selectedQuestion,
-
+    selectedRecord,
     submitResult,
-
-    /*
-     * Loading
-     */
     loading,
-
     questionLoading,
-
     submitLoading,
-
-    /*
-     * Error
-     */
     errorMessage,
-
-    /*
-     * Computed
-     */
     isEmpty,
-
     questionCount,
-
     hasSubmitResult,
-
-    /*
-     * Methods
-     */
     loadQuestions,
-
     loadQuestion,
-
     submitAnswer,
-
     selectQuestion,
-
     clearSelectedQuestion,
-
     clearSubmitResult,
-
     clearError,
   };
 }

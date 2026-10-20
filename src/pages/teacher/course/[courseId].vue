@@ -44,6 +44,8 @@
         <q-tab name="questions" label="題庫管理" />
 
         <q-tab name="records" label="作答紀錄" />
+
+        <q-tab name="stats" label="數據統計" />
       </q-tabs>
 
       <q-separator />
@@ -112,6 +114,11 @@
         <q-tab-panel name="records">
           <CourseQuestionRecordPanel v-if="courseId !== null" :course-id="courseId" />
         </q-tab-panel>
+
+        <!-- Statistics -->
+        <q-tab-panel name="stats">
+          <CourseStatsPanel v-if="tab === 'stats' && courseId !== null" :course-id="courseId" />
+        </q-tab-panel>
       </q-tab-panels>
     </q-card>
 
@@ -164,7 +171,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 
 import { useRoute } from 'vue-router';
 
@@ -181,6 +188,10 @@ import CourseQuestionPanel from '../../../components/teacher/course-workspace/Co
 import CourseQuestionRecordPanel from '../../../components/teacher/course-workspace/CourseQuestionRecordPanel.vue';
 
 import MaterialEditor from '../../../components/teacher/course-workspace/MaterialEditor.vue';
+
+const CourseStatsPanel = defineAsyncComponent(
+  () => import('../../../components/teacher/course-workspace/CourseStatsPanel.vue'),
+);
 
 import { useTeacherCourseWorkspace } from '../../../composables/useTeacherCourseWorkspace.js';
 
@@ -347,12 +358,7 @@ async function handlePreviewMaterialImport(
     return;
   }
 
-  const success = await previewMaterialImport(
-    courseId.value,
-    file,
-    mode,
-    chapterId,
-  );
+  const success = await previewMaterialImport(courseId.value, file, mode, chapterId);
 
   if (!success) {
     Notify.create({
@@ -375,21 +381,14 @@ async function handleImportMaterial(
     return;
   }
 
-  const success = await importMaterial(
-    courseId.value,
-    file,
-    mode,
-    chapterId,
-    fingerprint,
-  );
+  const success = await importMaterial(courseId.value, file, mode, chapterId, fingerprint);
 
   if (!success) {
     Notify.create({
       type: 'negative',
       icon: 'error_outline',
       message:
-        materialErrorMessage.value ||
-        (mode === 'overwrite' ? '教材覆蓋匯入失敗' : '教材匯入失敗'),
+        materialErrorMessage.value || (mode === 'overwrite' ? '教材覆蓋匯入失敗' : '教材匯入失敗'),
       position: 'top',
       timeout: 3200,
     });

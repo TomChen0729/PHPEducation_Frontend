@@ -32,10 +32,13 @@
 @use './components/teacher/question-record-review-dialog';
 @use './components/teacher/question-form-dialog';
 @use './components/teacher/material-editor';
+@use './components/teacher/course-stats-panel';
 
 // student page css
 @use './components/student/student-material';
 @use './components/student/student-question-list';
 @use './components/student/student-question-page';
 @use './components/student/student-question-answer-page';
+@use './components/student/knowledge-card-hint-dialog';
 @use './components/student/student-question-answer';
+@use './components/student/student-knowledge-card-quiz';

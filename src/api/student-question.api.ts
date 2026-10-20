@@ -1,92 +1,54 @@
 import { api } from '../boot/axios';
 
 import type {
+  StudentKnowledgeCardQuizResponse,
+  StudentKnowledgeCardQuizSubmitResponse,
+  StudentQuestionFilters,
   StudentQuestionListResponse,
+  StudentQuestionRecordResponse,
   StudentQuestionResponse,
   StudentQuestionSubmitRequest,
   StudentQuestionSubmitResponse,
 } from '../types/student-question';
 
-/*
- * ============================================================
- * Student Question API
- * ============================================================
- *
- * 學生題目流程：
- *
- * 1. 取得某課程的題目
- * 2. 取得單一題目
- * 3. 提交答案
- */
-
 export const studentQuestionApi = {
-  /*
-   * ==========================================================
-   * Question List
-   * ==========================================================
-   *
-   * GET
-   *
-   * /student/courses/{courseId}/questions
-   *
-   * 可選：
-   *
-   * ?knowledge_card_id={knowledgeCardId}
-   */
-  getQuestions(courseId: number, knowledgeCardId?: number) {
+  getQuestions(courseId: number, filters: StudentQuestionFilters = {}) {
+    const params = Object.fromEntries(
+      Object.entries(filters).filter(([, value]) => value !== null && value !== undefined && value !== ''),
+    );
+
     return api.get<StudentQuestionListResponse>(`/student/courses/${courseId}/questions`, {
-      params:
-        knowledgeCardId !== undefined
-          ? {
-              knowledge_card_id: knowledgeCardId,
-            }
-          : undefined,
+      params,
     });
   },
 
-  /*
-   * ==========================================================
-   * Single Question
-   * ==========================================================
-   *
-   * GET
-   *
-   * /student/questions/{questionId}
-   */
   getQuestion(questionId: number) {
     return api.get<StudentQuestionResponse>(`/student/questions/${questionId}`);
   },
 
-  /*
-   * ==========================================================
-   * Submit Question
-   * ==========================================================
-   *
-   * POST
-   *
-   * /student/questions/{questionId}/submit
-   *
-   * Payload 依題型不同：
-   *
-   * Choice / True False
-   * {
-   *   option_id: 1
-   * }
-   *
-   * Fill / Debug / Interpret
-   * {
-   *   answers: {
-   *     "1": "...",
-   *     "2": "..."
-   *   }
-   * }
-   *
-   * Coding
-   * {
-   *   code: "..."
-   * }
-   */
   submitQuestion(questionId: number, data: StudentQuestionSubmitRequest) {
     return api.post<StudentQuestionSubmitResponse>(`/student/questions/${questionId}/submit`, data);
+  },
+
+  getQuestionRecord(recordId: number) {
+    return api.get<StudentQuestionRecordResponse>(`/student/question-records/${recordId}`);
+  },
+
+  getKnowledgeCardQuiz(courseId: number, cardId: number) {
+    return api.get<StudentKnowledgeCardQuizResponse>(
+      `/student/courses/${courseId}/knowledge-cards/${cardId}/quiz`,
+    );
+  },
+
+  submitKnowledgeCardQuizQuestion(
+    courseId: number,
+    cardId: number,
+    questionId: number,
+    data: StudentQuestionSubmitRequest,
+  ) {
+    return api.post<StudentKnowledgeCardQuizSubmitResponse>(
+      `/student/courses/${courseId}/knowledge-cards/${cardId}/quiz/questions/${questionId}`,
+      data,
+    );
   },
 };

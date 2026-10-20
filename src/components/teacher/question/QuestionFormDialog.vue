@@ -551,10 +551,36 @@
                 <div class="question-form-dialog__section-title">關聯知識卡</div>
 
                 <div class="question-form-dialog__section-description">
-                  一道題目可以關聯一張或多張知識卡。
+                  {{
+                    isB11
+                      ? 'B11 題目限定只能關聯一張知識卡。'
+                      : '一道題目可以關聯一張或多張知識卡。'
+                  }}
                 </div>
               </div>
             </div>
+
+            <q-banner v-if="isB11" rounded class="question-form-dialog__quiz-rule-banner q-mb-md">
+              <template #avatar>
+                <q-icon name="bolt" color="amber-9" size="24px" />
+              </template>
+
+              <div class="question-form-dialog__quiz-rule-title">B11 限定單一知識卡</div>
+
+              <div class="question-form-dialog__quiz-rule-description">
+                <template v-if="isQuizEligibleType">
+                  目前題型為{{ form.type === 'choice' ? '選擇題' : '是非題' }}；儲存後，
+                  這題會成為所選知識卡「小試身手」的候選題。
+                </template>
+                <template v-else>
+                  B11 題目只能選擇一張知識卡；若要作為「小試身手」，題型還需使用選擇題或是非題。
+                </template>
+              </div>
+
+              <div v-if="b11SelectionAdjusted" class="question-form-dialog__quiz-rule-adjusted">
+                你剛切換為 B11，系統已保留原本選取的第一張知識卡。
+              </div>
+            </q-banner>
 
             <q-select
               v-model="form.knowledge_card_ids"
@@ -570,6 +596,7 @@
               option-label="label"
               :loading="knowledgeCardsLoading"
               :disable="submitting"
+              :max-values="isB11 ? 1 : undefined"
               :rules="[requiredKnowledgeCardsRule]"
               lazy-rules
             >
@@ -828,6 +855,8 @@ const formRef = ref<QForm | null>(null);
 
 const localError = ref('');
 
+const b11SelectionAdjusted = ref(false);
+
 /*
  * ============================================================
  * Static Options
@@ -946,7 +975,7 @@ function createEmptyForm(): QuestionFormState {
      * 新增題目預設：
      * 不允許學生查看知識卡 example。
      */
-    show_example: false,
+    show_example: true,
 
     knowledge_card_ids: [],
 
@@ -991,6 +1020,14 @@ const displayError = computed(() => {
 });
 
 const isOptionType = computed(() => {
+  return form.type === 'choice' || form.type === 'true_false';
+});
+
+const isB11 = computed(() => {
+  return (form.bloom_id ?? '').toUpperCase() === 'B11';
+});
+
+const isQuizEligibleType = computed(() => {
   return form.type === 'choice' || form.type === 'true_false';
 });
 
@@ -1078,6 +1115,10 @@ function requiredSelectRule(value: string | null) {
 }
 
 function requiredKnowledgeCardsRule(value: number[]) {
+  if (isB11.value) {
+    return value.length === 1 || 'B11 題目必須且只能選擇一張知識卡';
+  }
+
   return value.length > 0 || '請至少選擇一張知識卡';
 }
 
@@ -1091,6 +1132,8 @@ function resetForm() {
   Object.assign(form, createEmptyForm());
 
   localError.value = '';
+
+  b11SelectionAdjusted.value = false;
 
   formRef.value?.resetValidation();
 }
@@ -1157,7 +1200,7 @@ function fillForm(question: TeacherQuestion) {
    * 舊資料若沒有值，
    * 一律視為 false。
    */
-  form.show_example = question.show_example ?? false;
+  form.show_example = question.show_example ?? true;
 
   /*
    * 優先使用 knowledge_card_ids。
@@ -1254,6 +1297,39 @@ function initializeForm() {
 
   resetForm();
 }
+
+/*
+ * B11 題目依目前產品規則只能關聯一張知識卡。
+ * 從其他 Bloom 切換到 B11 時，若原本選了多張卡，
+ * 保留第一張，避免送出不符合規則的 payload。
+ */
+watch(
+  () => form.bloom_id,
+  (bloomId) => {
+    const becameB11 = (bloomId ?? '').toUpperCase() === 'B11';
+
+    if (!becameB11) {
+      b11SelectionAdjusted.value = false;
+      return;
+    }
+
+    if (form.knowledge_card_ids.length > 1) {
+      form.knowledge_card_ids = form.knowledge_card_ids.slice(0, 1);
+      b11SelectionAdjusted.value = true;
+    }
+  },
+);
+
+watch(
+  () => form.knowledge_card_ids,
+  (ids) => {
+    if (isB11.value && ids.length <= 1 && b11SelectionAdjusted.value) {
+      // 保留提示直到老師主動更動一次選擇，之後就不再干擾。
+      b11SelectionAdjusted.value = false;
+    }
+  },
+  { deep: true },
+);
 
 /*
  * ============================================================
@@ -1400,6 +1476,10 @@ function validateTypeSpecific(): string | null {
     if (!form.interpret_code.trim()) {
       return '請輸入待解讀程式碼';
     }
+  }
+
+  if (isB11.value && form.knowledge_card_ids.length !== 1) {
+    return 'B11 題目必須且只能選擇一張知識卡';
   }
 
   /*

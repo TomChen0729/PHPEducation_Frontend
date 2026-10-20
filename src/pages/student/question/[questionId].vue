@@ -1,25 +1,20 @@
 <template>
   <div class="student-question-answer-page">
-    <!-- =====================================================
-         Header
-    ====================================================== -->
     <header class="student-question-answer-page__header">
       <div class="student-question-answer-page__header-main">
         <q-btn flat round icon="arrow_back" color="grey-8" @click="goBack">
-          <q-tooltip> 返回題目列表 </q-tooltip>
+          <q-tooltip>返回題目列表</q-tooltip>
         </q-btn>
 
         <div>
           <div class="student-question-answer-page__page-title">題目作答</div>
-
-          <div class="student-question-answer-page__page-subtitle">閱讀題目後完成作答</div>
+          <div class="student-question-answer-page__page-subtitle">
+            正式題目每題只能回答一次，送出前請確認答案。
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- =====================================================
-         Invalid Question ID
-    ====================================================== -->
     <q-banner
       v-if="!validQuestionId"
       rounded
@@ -28,88 +23,121 @@
       <template #avatar>
         <q-icon name="error_outline" />
       </template>
-
       題目編號錯誤，無法取得題目。
     </q-banner>
 
-    <!-- =====================================================
-         Loading
-    ====================================================== -->
     <div v-else-if="questionLoading" class="student-question-answer-page__state">
       <q-spinner color="teal" size="46px" />
-
       <div>題目載入中...</div>
     </div>
 
-    <!-- =====================================================
-         Error
-    ====================================================== -->
     <q-banner
-      v-else-if="errorMessage"
+      v-else-if="errorMessage && !selectedQuestion"
       rounded
       class="bg-red-1 text-negative student-question-answer-page__error"
     >
       <template #avatar>
         <q-icon name="error_outline" />
       </template>
-
       {{ errorMessage }}
-
       <template #action>
         <q-btn flat color="negative" label="重新載入" @click="reloadQuestion" />
       </template>
     </q-banner>
 
-    <!-- =====================================================
-         No Question
-    ====================================================== -->
     <div v-else-if="!selectedQuestion" class="student-question-answer-page__state">
       <q-icon name="quiz" size="56px" color="grey-4" />
-
       <div class="student-question-answer-page__state-title">找不到題目</div>
     </div>
 
-    <!-- =====================================================
-         Question
-    ====================================================== -->
     <template v-else>
-      <!-- ===================================================
-           Question Card
-      ==================================================== -->
+      <q-banner
+        v-if="selectedQuestion.locked && !isAnswered"
+        rounded
+        class="bg-orange-1 text-orange-10 student-question-answer-page__locked-banner"
+      >
+        <template #avatar>
+          <q-icon name="lock" />
+        </template>
+
+        <div class="text-weight-bold">這題目前尚未解鎖</div>
+        <div class="text-caption q-mt-xs">
+          請先完成知識卡：{{ lockedCardNames }}
+        </div>
+
+        <template #action>
+          <q-btn
+            flat
+            color="orange-10"
+            label="回教材完成學習"
+            @click="goToCourseMaterial"
+          />
+        </template>
+      </q-banner>
+
+      <q-banner
+        v-if="errorMessage && selectedQuestion"
+        rounded
+        class="bg-red-1 text-negative student-question-answer-page__error q-mb-md"
+      >
+        <template #avatar>
+          <q-icon name="error_outline" />
+        </template>
+        {{ errorMessage }}
+      </q-banner>
+
       <q-card flat bordered class="student-question-answer-page__question-card">
         <q-card-section>
-          <!-- ===============================================
-               Metadata
-          ================================================ -->
-          <div class="student-question-answer-page__badges">
-            <q-badge
-              :color="getQuestionTypeColor(selectedQuestion.type)"
-              :label="getQuestionTypeLabel(selectedQuestion.type)"
-            />
+          <div class="student-question-answer-page__question-topbar">
+            <div class="student-question-answer-page__badges">
+              <q-badge
+                :color="getQuestionTypeColor(selectedQuestion.type)"
+                :label="getQuestionTypeLabel(selectedQuestion.type)"
+              />
 
-            <q-badge
-              v-if="selectedQuestion.bloom_id"
-              outline
-              color="teal-7"
-              :label="selectedQuestion.bloom_id"
-            />
+              <q-badge
+                v-if="selectedQuestion.bloom_id"
+                outline
+                color="teal-7"
+                :label="selectedQuestion.bloom_id"
+              />
+
+              <q-badge
+                v-if="isAnswered"
+                color="blue-grey-7"
+                label="已作答・不可重答"
+              />
+            </div>
+
+            <q-btn
+              v-if="hasKnowledgeCards"
+              round
+              unelevated
+              icon="lightbulb"
+              color="amber-2"
+              text-color="amber-10"
+              class="student-question-answer-page__knowledge-hint-button"
+              aria-label="查看相關知識卡"
+              @click="knowledgeCardDialogOpen = true"
+            >
+              <q-badge
+                v-if="(selectedQuestion.knowledge_cards?.length ?? 0) > 1"
+                floating
+                rounded
+                color="teal-7"
+                :label="selectedQuestion.knowledge_cards?.length ?? 0"
+              />
+            </q-btn>
           </div>
 
-          <!-- ===============================================
-               Title
-          ================================================ -->
           <h1 class="student-question-answer-page__question-title">
             {{ selectedQuestion.title }}
           </h1>
 
-          <!-- ===============================================
-               Content
-          ================================================ -->
           <div class="student-question-answer-page__question-content">
-            <!-- Fill / Debug：用與教材程式範例相同的 CodeMirror Viewer 顯示 -->
             <template v-if="selectedQuestion.type === 'fill' || selectedQuestion.type === 'debug'">
               <div class="student-question-answer-page__interpret-code">
-                <CodeExampleViewer :code="selectedQuestion.question_content" theme="student" />
+                <CodeExampleViewer :code="selectedQuestion.question_content ?? ''" theme="student" />
               </div>
             </template>
 
@@ -121,127 +149,60 @@
               <div class="student-question-answer-page__interpret-code">
                 <div class="student-question-answer-page__interpret-code-label">
                   <q-icon name="code" />
-
                   程式碼
                 </div>
-
                 <CodeExampleViewer :code="interpretQuestionCode" theme="student" />
               </div>
             </template>
 
             <template v-else>
-              {{ selectedQuestion.question_content }}
+              {{ selectedQuestion.question_content ?? '' }}
             </template>
           </div>
 
-          <!-- ===============================================
-               Description
-          ================================================ -->
           <div
             v-if="selectedQuestion.description"
             class="student-question-answer-page__description"
           >
             <div class="student-question-answer-page__description-label">
               <q-icon name="info_outline" />
-
               題目說明
             </div>
-
-            <div>
-              {{ selectedQuestion.description }}
-            </div>
+            <div>{{ selectedQuestion.description }}</div>
           </div>
 
-          <!-- ===============================================
-               Knowledge Card Examples
-          ================================================ -->
-          <div v-if="hasExamples" class="student-question-answer-page__examples">
-            <!-- Header -->
-            <div class="student-question-answer-page__examples-header">
-              <div>
-                <div class="student-question-answer-page__examples-title">
-                  <q-icon name="lightbulb" color="amber-8" size="20px" />
-
-                  知識卡程式範例
-                </div>
-
-                <div class="student-question-answer-page__examples-caption">
-                  老師已允許你在作答時查看相關知識卡程式範例
-                </div>
-              </div>
-
-              <q-btn
-                flat
-                color="teal"
-                :icon="showExamples ? 'visibility_off' : 'visibility'"
-                :label="showExamples ? '收起程式範例' : '查看程式範例'"
-                @click="showExamples = !showExamples"
-              />
-            </div>
-
-            <!-- Examples -->
-            <q-slide-transition>
-              <div v-if="showExamples" class="student-question-answer-page__examples-content">
-                <div
-                  v-for="(example, index) in selectedQuestion.examples"
-                  :key="index"
-                  class="student-question-answer-page__example"
-                >
-                  <div
-                    v-if="(selectedQuestion.examples?.length ?? 0) > 1"
-                    class="student-question-answer-page__example-label"
-                  >
-                    程式範例 {{ index + 1 }}
-                  </div>
-
-                  <CodeExampleViewer :code="example" theme="student" />
-                </div>
-              </div>
-            </q-slide-transition>
-          </div>
         </q-card-section>
       </q-card>
 
-      <!-- ===================================================
-           Answer Card
-      ==================================================== -->
       <q-card flat bordered class="student-question-answer-page__answer-card">
         <q-card-section>
           <div class="student-question-answer-page__answer-header">
             <div>
               <div class="student-question-answer-page__answer-title">我的答案</div>
-
               <div class="student-question-answer-page__answer-caption">
-                {{ getAnswerInstruction(selectedQuestion.type) }}
+                {{ isAnswered ? '此題已完成作答，正式題目不能再次提交。' : getAnswerInstruction(selectedQuestion.type) }}
               </div>
             </div>
           </div>
 
           <q-separator class="q-my-md" />
 
-          <!-- ===============================================
-     Submit Result
-=============================================== -->
           <q-banner
-            v-if="submitResult"
+            v-if="isAnswered"
             rounded
             class="student-question-answer-page__result"
             :class="{
-              'student-question-answer-page__result--correct':
-                submitResult.system_status === 'correct',
-
-              'student-question-answer-page__result--wrong': submitResult.system_status === 'wrong',
-
-              'student-question-answer-page__result--pending':
-                submitResult.system_status === 'pending',
+              'student-question-answer-page__result--correct': displayStatus === 'correct',
+              'student-question-answer-page__result--wrong': displayStatus === 'wrong',
+              'student-question-answer-page__result--pending': displayStatus === 'pending',
             }"
           >
             <template #avatar>
               <q-icon
                 :name="
-                  submitResult.system_status === 'correct'
+                  displayStatus === 'correct'
                     ? 'check_circle'
-                    : submitResult.system_status === 'wrong'
+                    : displayStatus === 'wrong'
                       ? 'cancel'
                       : 'schedule'
                 "
@@ -249,105 +210,93 @@
               />
             </template>
 
-            <div class="student-question-answer-page__result-title">
-              {{
-                submitResult.system_status === 'correct'
-                  ? '回答正確！'
-                  : submitResult.system_status === 'wrong'
-                    ? '回答錯誤'
-                    : '答案已送出'
-              }}
+            <div class="student-question-answer-page__result-main">
+              <div>
+                <div class="student-question-answer-page__result-title">
+                  {{ resultTitle }}
+                </div>
+
+                <div v-if="subAnswerResult" class="student-question-answer-page__result-score">
+                  答對 {{ subAnswerResult.correct }} / {{ subAnswerResult.total }}
+                  {{ subAnswerResultUnit }}
+                </div>
+              </div>
+
+              <q-badge
+                v-if="displaySolo !== null"
+                color="teal-7"
+                class="student-question-answer-page__solo-badge"
+                :label="`SOLO S${displaySolo}`"
+              />
             </div>
 
-            <div v-if="subAnswerResult" class="student-question-answer-page__result-score">
-              答對 {{ subAnswerResult.correct }} / {{ subAnswerResult.total }}
-              {{ subAnswerResultUnit }}
-            </div>
-
-            <div v-if="submitExplanation" class="student-question-answer-page__result-description">
-              {{ submitExplanation }}
+            <div class="student-question-answer-page__result-actions">
+              <q-btn
+                v-if="displayReview"
+                outline
+                color="teal-8"
+                icon="fact_check"
+                label="正確答案"
+                no-caps
+                @click="reviewDialogOpen = true"
+              />
             </div>
           </q-banner>
 
-          <!-- ===============================================
-               Choice Placeholder
-          ================================================ -->
-          <ChoiceAnswer
-            v-if="selectedQuestion.type === 'choice'"
-            :options="selectedQuestion.options ?? []"
-            :loading="submitLoading"
-            :disabled="Boolean(submitResult)"
-            @submit="handleSubmitOption"
-          />
+          <template v-if="!isAnswered && !selectedQuestion.locked">
+            <ChoiceAnswer
+              v-if="selectedQuestion.type === 'choice'"
+              :options="selectedQuestion.options ?? []"
+              :loading="submitLoading"
+              @submit="handleSubmitOption"
+            />
 
-          <!-- ===============================================
-               True / False Placeholder
-          ================================================ -->
-          <TrueFalseAnswer
-            v-else-if="selectedQuestion.type === 'true_false'"
-            :options="selectedQuestion.options ?? []"
-            :loading="submitLoading"
-            :disabled="Boolean(submitResult)"
-            @submit="handleSubmitOption"
-          />
+            <TrueFalseAnswer
+              v-else-if="selectedQuestion.type === 'true_false'"
+              :options="selectedQuestion.options ?? []"
+              :loading="submitLoading"
+              @submit="handleSubmitOption"
+            />
 
-          <!-- ===============================================
-               Fill
-          ================================================ -->
-          <FillAnswer
-            v-else-if="selectedQuestion.type === 'fill'"
-            :sub-ids="selectedQuestion.sub_ids ?? []"
-            :loading="submitLoading"
-            :disabled="Boolean(submitResult)"
-            @submit="handleSubmitSubAnswers"
-          />
+            <FillAnswer
+              v-else-if="selectedQuestion.type === 'fill'"
+              :sub-ids="selectedQuestion.sub_ids ?? []"
+              :loading="submitLoading"
+              @submit="handleSubmitSubAnswers"
+            />
 
-          <!-- ===============================================
-               Debug
-          ================================================ -->
-          <DebugAnswer
-            v-else-if="selectedQuestion.type === 'debug'"
-            :error-count="selectedQuestion.debug_error_count ?? 0"
-            :loading="submitLoading"
-            :disabled="Boolean(submitResult)"
-            @submit="handleSubmitSubAnswers"
-          />
+            <DebugAnswer
+              v-else-if="selectedQuestion.type === 'debug'"
+              :error-count="selectedQuestion.debug_error_count ?? 0"
+              :loading="submitLoading"
+              @submit="handleSubmitSubAnswers"
+            />
 
-          <!-- ===============================================
-               Interpret
-          ================================================ -->
-          <InterpretAnswer
-            v-else-if="selectedQuestion.type === 'interpret'"
-            :sub-id="selectedQuestion.sub_ids?.[0] ?? 1"
-            :loading="submitLoading"
-            :disabled="Boolean(submitResult)"
-            @submit="handleSubmitSubAnswers"
-          />
+            <InterpretAnswer
+              v-else-if="selectedQuestion.type === 'interpret'"
+              :sub-id="selectedQuestion.sub_ids?.[0] ?? 1"
+              :loading="submitLoading"
+              @submit="handleSubmitSubAnswers"
+            />
 
-          <!-- ===============================================
-               Coding
-          ================================================ -->
-          <CodingAnswer
-            v-else-if="selectedQuestion.type === 'coding'"
-            :question-id="selectedQuestion.id"
-            :starter-code="selectedQuestion.starter_code ?? null"
-            :loading="submitLoading"
-            :disabled="Boolean(submitResult)"
-            @submit="handleSubmitCoding"
-          />
+            <CodingAnswer
+              v-else-if="selectedQuestion.type === 'coding'"
+              :question-id="selectedQuestion.id"
+              :starter-code="selectedQuestion.starter_code ?? null"
+              :loading="submitLoading"
+              @submit="handleSubmitCoding"
+            />
+          </template>
 
-          <!-- ===============================================
-               Post Submit Navigation
-          ================================================ -->
-          <div v-if="submitResult" class="student-question-answer-page__post-submit-actions">
+          <div v-if="isAnswered" class="student-question-answer-page__post-submit-actions">
             <q-btn
               outline
               color="grey-8"
               icon="list"
               label="返回題目列表"
               no-caps
-              @click="goBack"
               class="student-question-answer-page__post-submit-actions-list-button"
+              @click="goBack"
             />
 
             <q-btn
@@ -355,216 +304,165 @@
               unelevated
               color="teal"
               icon-right="arrow_forward"
-              label="回答下一題"
+              :label="nextQuestion.practice ? '查看下一題結果' : '下一題'"
               no-caps
-              @click="goToNextQuestion"
               class="student-question-answer-page__post-submit-actions-list-button"
-            />
-
-            <q-btn
-              v-else
-              flat
-              disable
-              color="grey-6"
-              icon="check_circle_outline"
-              label="已是最後一題"
-              no-caps
+              @click="goToNextQuestion"
             />
           </div>
         </q-card-section>
       </q-card>
     </template>
+
+    <KnowledgeCardHintDialog
+      v-model="knowledgeCardDialogOpen"
+      :cards="selectedQuestion?.knowledge_cards ?? []"
+    />
+
+    <q-dialog v-model="reviewDialogOpen">
+      <q-card class="student-question-answer-page__review-dialog">
+        <q-card-section class="student-question-answer-page__review-dialog-header">
+          <div>
+            <div class="text-h6 text-weight-bold">正確答案與說明</div>
+            <div class="text-caption text-grey-7">檢視本次正式作答的答案內容</div>
+          </div>
+          <q-btn flat round dense icon="close" @click="reviewDialogOpen = false" />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section v-if="displayReview" class="student-question-answer-page__review-dialog-content">
+          <template v-if="displayReview.subs.length > 0">
+            <div
+              v-for="item in displayReview.subs"
+              :key="item.sub_id"
+              class="student-question-answer-page__review-item"
+            >
+              <div class="student-question-answer-page__review-item-title">
+                第 {{ item.sub_id }} 題
+                <q-badge :color="item.is_right ? 'positive' : 'negative'" :label="item.is_right ? '正確' : '錯誤'" />
+              </div>
+              <div><strong>我的答案：</strong>{{ item.my_answer || '（未作答）' }}</div>
+              <div><strong>正確答案：</strong>{{ item.correct_answer || '—' }}</div>
+              <div v-if="item.description"><strong>說明：</strong>{{ item.description }}</div>
+            </div>
+          </template>
+
+          <template v-else>
+            <div class="student-question-answer-page__review-item">
+              <div><strong>我的答案：</strong></div>
+              <pre class="student-question-answer-page__review-code">{{ displayReview.my_answer || '—' }}</pre>
+            </div>
+
+            <div class="student-question-answer-page__review-item">
+              <div><strong>正確答案：</strong></div>
+              <pre v-if="displayReview.correct_answer" class="student-question-answer-page__review-code">{{ displayReview.correct_answer }}</pre>
+              <div v-else class="text-orange-9">
+                {{ selectedQuestion?.type === 'coding' ? '實作題需等老師批改完成後才會提供參考答案。' : '目前沒有標準答案資料。' }}
+              </div>
+            </div>
+
+            <div v-if="displayReview.explanation" class="student-question-answer-page__review-item">
+              <strong>答案說明：</strong>{{ displayReview.explanation }}
+            </div>
+          </template>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import ChoiceAnswer from '../../../components/student/question/ChoiceAnswer.vue';
-
-import TrueFalseAnswer from '../../../components/student/question/TrueFalseAnswer.vue';
-
-import FillAnswer from '../../../components/student/question/FillAnswer.vue';
-
-import InterpretAnswer from '../../../components/student/question/InterpretAnswer.vue';
-
-import DebugAnswer from '../../../components/student/question/DebugAnswer.vue';
-
-import CodingAnswer from '../../../components/student/question/CodingAnswer.vue';
-
-import CodeExampleViewer from '../../../components/common/CodeExampleViewer.vue';
-
 import { computed, ref, watch } from 'vue';
-
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router';
 
+import ChoiceAnswer from '../../../components/student/question/ChoiceAnswer.vue';
+import TrueFalseAnswer from '../../../components/student/question/TrueFalseAnswer.vue';
+import FillAnswer from '../../../components/student/question/FillAnswer.vue';
+import InterpretAnswer from '../../../components/student/question/InterpretAnswer.vue';
+import DebugAnswer from '../../../components/student/question/DebugAnswer.vue';
+import CodingAnswer from '../../../components/student/question/CodingAnswer.vue';
+import KnowledgeCardHintDialog from '../../../components/student/question/KnowledgeCardHintDialog.vue';
+import CodeExampleViewer from '../../../components/common/CodeExampleViewer.vue';
 import { useStudentQuestions } from '../../../composables/useStudentQuestions.js';
-
 import type {
+  QuestionSystemStatus,
+  StudentQuestionReview,
   StudentQuestionType,
   StudentSubAnswerResult,
 } from '../../../types/student-question.js';
 
-/*
- * ============================================================
- * Page Guard
- * ============================================================
- */
-
 definePage({
   meta: {
     requiresAuth: true,
-
     roles: ['student'],
   },
 });
 
-/*
- * ============================================================
- * Router
- * ============================================================
- */
-
 const route = useRoute();
-
 const router = useRouter();
-
-/*
- * ============================================================
- * Knowledge Card Examples
- * ============================================================
- */
-
-/*
- * 是否展開知識卡範例。
- */
-const showExamples = ref(false);
-
-/*
- * ============================================================
- * Question ID
- * ============================================================
- *
- * 因為目前專案使用 typed file-based router，
- * 不直接寫 route.params.questionId，
- * 避免 TypeScript union route params error。
- */
+const reviewDialogOpen = ref(false);
+const knowledgeCardDialogOpen = ref(false);
 
 const questionId = computed(() => {
-  const params = route.params as {
-    questionId?: string | string[];
-  };
-
-  const rawQuestionId = params.questionId;
-
-  const value = Array.isArray(rawQuestionId) ? rawQuestionId[0] : rawQuestionId;
-
-  return Number(value);
+  const raw = (route.params as { questionId?: string | string[] }).questionId;
+  return Number(Array.isArray(raw) ? raw[0] : raw);
 });
-
-/*
- * ============================================================
- * Course ID
- * ============================================================
- *
- * 題目列表進來時我們有帶：
- *
- * ?courseId=1
- *
- * 主要用在「返回題目列表」。
- */
 
 const courseId = computed(() => {
-  const rawCourseId = route.query.courseId;
-
-  const value = Array.isArray(rawCourseId) ? rawCourseId[0] : rawCourseId;
-
-  return Number(value);
+  const raw = route.query.courseId;
+  return Number(Array.isArray(raw) ? raw[0] : raw);
 });
 
-/*
- * ============================================================
- * Validation
- * ============================================================
- */
-
-const validQuestionId = computed(() => {
-  return Number.isInteger(questionId.value) && questionId.value > 0;
-});
-
-const validCourseId = computed(() => {
-  return Number.isInteger(courseId.value) && courseId.value > 0;
-});
-
-/*
- * ============================================================
- * Student Question
- * ============================================================
- */
+const validQuestionId = computed(() => Number.isInteger(questionId.value) && questionId.value > 0);
+const validCourseId = computed(() => Number.isInteger(courseId.value) && courseId.value > 0);
 
 const {
-  /*
-   * Question List
-   *
-   * 單題頁也載入同一門課題目列表，
-   * 用來判斷「下一題」。
-   */
   questions,
-
-  /*
-   * Question
-   */
   selectedQuestion,
-
-  /*
-   * Submit
-   */
+  selectedRecord,
   submitResult,
-
-  /*
-   * Loading
-   */
   questionLoading,
-
   submitLoading,
-
-  /*
-   * Error
-   */
   errorMessage,
-
-  /*
-   * Methods
-   */
   loadQuestions,
-
   loadQuestion,
-
   submitAnswer,
 } = useStudentQuestions();
 
-/*
- * Backend 已經判斷 show_example。
- *
- * 因此 Frontend 不需要再拿 show_example，
- * 只需要檢查 examples 是否有內容。
- */
-const hasExamples = computed(() => {
-  return Boolean(selectedQuestion.value?.examples?.length);
+const hasKnowledgeCards = computed(() => Boolean(selectedQuestion.value?.knowledge_cards?.length));
+
+const isAnswered = computed(() => Boolean(submitResult.value || selectedQuestion.value?.practice));
+
+const displayStatus = computed<QuestionSystemStatus | null>(() => {
+  return submitResult.value?.system_status ?? selectedQuestion.value?.practice?.status ?? null;
 });
 
-/*
- * ============================================================
- * Interpret Question Content
- * ============================================================
- *
- * Backend 的程式解讀題可使用：
- *
- * 題目文字
- * <!--code-stem-->
- * 程式碼
- *
- * Frontend 將兩段拆開顯示。
- * 如果舊題沒有 marker，則仍使用原本 question_content 顯示。
- */
+const displaySolo = computed<number | null>(() => {
+  return submitResult.value?.record.solo ?? selectedRecord.value?.solo ?? null;
+});
+
+const displayReview = computed<StudentQuestionReview | null>(() => {
+  return submitResult.value?.review ?? selectedQuestion.value?.practice?.review ?? null;
+});
+
+const lockedCardNames = computed(() => {
+  const cards = selectedQuestion.value?.locked_cards ?? [];
+  return cards.length > 0 ? cards.map((card) => card.title).join('、') : '相關知識卡';
+});
+
+const resultTitle = computed(() => {
+  switch (displayStatus.value) {
+    case 'correct':
+      return '回答正確！';
+    case 'wrong':
+      return '回答錯誤';
+    case 'pending':
+      return '答案已送出，等待老師批改';
+    default:
+      return '已完成作答';
+  }
+});
 
 const INTERPRET_CODE_MARKER = '<!--code-stem-->';
 
@@ -574,14 +472,8 @@ const interpretQuestionPrompt = computed(() => {
   }
 
   const content = selectedQuestion.value.question_content ?? '';
-
   const markerIndex = content.indexOf(INTERPRET_CODE_MARKER);
-
-  if (markerIndex < 0) {
-    return '';
-  }
-
-  return content.slice(0, markerIndex).trim();
+  return markerIndex < 0 ? '' : content.slice(0, markerIndex).trim();
 });
 
 const interpretQuestionCode = computed(() => {
@@ -590,22 +482,14 @@ const interpretQuestionCode = computed(() => {
   }
 
   const content = selectedQuestion.value.question_content ?? '';
-
   const markerIndex = content.indexOf(INTERPRET_CODE_MARKER);
-
-  if (markerIndex < 0) {
-    return '';
-  }
-
-  return content.slice(markerIndex + INTERPRET_CODE_MARKER.length).trim();
+  return markerIndex < 0
+    ? ''
+    : content.slice(markerIndex + INTERPRET_CODE_MARKER.length).trim();
 });
 
-/*
- * Fill / Debug / Interpret 的 Backend result
- * 會包含 correct / total / answers。
- */
 const subAnswerResult = computed<StudentSubAnswerResult | null>(() => {
-  const result = submitResult.value?.record.result;
+  const result = submitResult.value?.record.result ?? selectedRecord.value?.result;
 
   if (!result || typeof result !== 'object') {
     return null;
@@ -614,321 +498,163 @@ const subAnswerResult = computed<StudentSubAnswerResult | null>(() => {
   return result;
 });
 
-/*
- * Backend 的舊版 Sub Answer Submit Response 使用 description，
- * Choice / True False 則使用 explanation。
- *
- * 這裡先相容兩者，避免 Fill / Debug / Interpret
- * 作答成功後看不到答案說明。
- */
-const submitExplanation = computed(() => {
-  return submitResult.value?.explanation ?? submitResult.value?.description ?? null;
-});
-
 const subAnswerResultUnit = computed(() => {
   switch (selectedQuestion.value?.type) {
     case 'interpret':
       return '題';
-
     case 'debug':
       return '處';
-
     default:
       return '格';
   }
 });
 
-/*
- * ============================================================
- * Question Navigation
- * ============================================================
- *
- * Backend 的課程題目列表目前依 question id 由小到大排序。
- * 這裡直接沿用列表順序判斷下一題，
- * 不使用 questionId + 1，避免題目刪除後 ID 不連續。
- */
-
-const currentQuestionIndex = computed(() => {
-  return questions.value.findIndex((question) => question.id === questionId.value);
-});
+const currentQuestionIndex = computed(() =>
+  questions.value.findIndex((question) => question.id === questionId.value),
+);
 
 const nextQuestion = computed(() => {
   const index = currentQuestionIndex.value;
-
-  if (index < 0) {
-    return null;
-  }
-
-  return questions.value[index + 1] ?? null;
+  return index < 0 ? null : questions.value[index + 1] ?? null;
 });
-
-/*
- * ============================================================
- * Load Question
- * ============================================================
- */
 
 watch(
   [questionId, courseId],
-
   async ([id, currentCourseId]) => {
+    reviewDialogOpen.value = false;
+    knowledgeCardDialogOpen.value = false;
+
     if (!Number.isInteger(id) || id <= 0) {
       return;
     }
 
-    /*
-     * 換題時先收起上一題的範例。
-     */
-    showExamples.value = false;
-
-    /*
-     * 有 courseId 時先取得課程題目順序，
-     * 讓作答完成後可以前往下一題。
-     *
-     * 題目列表只需要在尚未載入時取得一次。
-     */
-    if (Number.isInteger(currentCourseId) && currentCourseId > 0 && questions.value.length === 0) {
+    if (
+      Number.isInteger(currentCourseId) &&
+      currentCourseId > 0 &&
+      questions.value.length === 0
+    ) {
       await loadQuestions(currentCourseId);
     }
 
-    /*
-     * 即使題目列表取得失敗，
-     * 單題仍然繼續載入。
-     * loadQuestion() 會重新整理單題自己的錯誤狀態。
-     */
     await loadQuestion(id);
   },
-
-  {
-    immediate: true,
-  },
+  { immediate: true },
 );
 
-/*
- * ============================================================
- * Reload
- * ============================================================
- */
-
 async function reloadQuestion() {
-  if (!validQuestionId.value) {
-    return;
+  if (validQuestionId.value) {
+    await loadQuestion(questionId.value);
   }
-
-  await loadQuestion(questionId.value);
 }
-
-/*
- * ============================================================
- * Submit Option Answer
- * ============================================================
- *
- * choice / true_false
- * 都使用：
- *
- * {
- *   option_id: number
- * }
- */
 
 async function handleSubmitOption(optionId: number) {
-  if (!selectedQuestion.value) {
+  if (!selectedQuestion.value || isAnswered.value || selectedQuestion.value.locked) {
     return;
   }
 
-  await submitAnswer(selectedQuestion.value.id, {
-    option_id: optionId,
-  });
+  await submitAnswer(selectedQuestion.value.id, { option_id: optionId });
 }
-
-/*
- * ============================================================
- * Submit Sub Answers
- * ============================================================
- *
- * fill / interpret / debug（多錯誤）
- * 共用 Backend 格式：
- *
- * {
- *   answers: {
- *     "1": "...",
- *     "2": "..."
- *   }
- * }
- *
- * 目前接 Fill / Interpret / Debug。
- */
 
 async function handleSubmitSubAnswers(answers: Record<string, string>) {
-  if (!selectedQuestion.value) {
+  if (!selectedQuestion.value || isAnswered.value || selectedQuestion.value.locked) {
     return;
   }
 
-  await submitAnswer(selectedQuestion.value.id, {
-    answers,
-  });
+  await submitAnswer(selectedQuestion.value.id, { answers });
 }
-
-/*
- * ============================================================
- * Submit Coding
- * ============================================================
- *
- * coding：
- *
- * {
- *   code: "..."
- * }
- */
 
 async function handleSubmitCoding(code: string) {
-  if (!selectedQuestion.value) {
+  if (!selectedQuestion.value || isAnswered.value || selectedQuestion.value.locked) {
     return;
   }
 
-  await submitAnswer(selectedQuestion.value.id, {
-    code,
-  });
+  await submitAnswer(selectedQuestion.value.id, { code });
 }
-
-/*
- * ============================================================
- * Go To Next Question
- * ============================================================
- */
 
 function goToNextQuestion() {
   const question = nextQuestion.value;
-
   if (!question) {
     return;
   }
 
-  const route: RouteLocationRaw = {
+  const target: RouteLocationRaw = {
     path: `/student/question/${question.id}`,
   };
 
   if (validCourseId.value) {
-    route.query = {
-      courseId: String(courseId.value),
-    };
+    target.query = { courseId: String(courseId.value) };
   }
 
-  void router.push(route);
+  void router.push(target);
 }
 
-/*
- * ============================================================
- * Back
- * ============================================================
- */
+function goToCourseMaterial() {
+  if (validCourseId.value) {
+    void router.push(`/student/course/${courseId.value}`);
+  }
+}
 
 function goBack() {
-  /*
-   * 從課程題目列表進來，
-   * 就回同一門課的 Question List。
-   */
   if (validCourseId.value) {
     void router.push(`/student/course/${courseId.value}/questions`);
-
     return;
   }
 
-  /*
-   * 若 URL 沒有 courseId，
-   * 就使用瀏覽器上一頁。
-   */
   router.back();
 }
-
-/*
- * ============================================================
- * Question Type Label
- * ============================================================
- */
 
 function getQuestionTypeLabel(type: StudentQuestionType): string {
   switch (type) {
     case 'choice':
       return '選擇題';
-
     case 'true_false':
       return '是非題';
-
     case 'fill':
       return '填空題';
-
     case 'debug':
       return '除錯題';
-
     case 'interpret':
       return '程式解讀';
-
     case 'coding':
       return '程式實作';
-
     default:
       return '題目';
   }
 }
 
-/*
- * ============================================================
- * Question Type Color
- * ============================================================
- */
-
 function getQuestionTypeColor(type: StudentQuestionType): string {
   switch (type) {
     case 'choice':
       return 'blue-7';
-
     case 'true_false':
       return 'green-7';
-
     case 'fill':
       return 'orange-7';
-
     case 'debug':
       return 'deep-orange-7';
-
     case 'interpret':
       return 'purple-7';
-
     case 'coding':
       return 'indigo-7';
-
     default:
       return 'grey-7';
   }
 }
 
-/*
- * ============================================================
- * Answer Instruction
- * ============================================================
- */
-
 function getAnswerInstruction(type: StudentQuestionType): string {
   switch (type) {
     case 'choice':
       return '請選擇一個最適合的答案';
-
     case 'true_false':
       return '請判斷題目敘述是否正確';
-
     case 'fill':
       return '請依題目內容完成各個填空';
-
     case 'debug':
       return '請找出程式中的問題並完成作答';
-
     case 'interpret':
       return '請依程式內容完成解讀';
-
     case 'coding':
       return '請依題目要求撰寫程式碼';
-
     default:
       return '';
   }

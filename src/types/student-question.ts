@@ -1,317 +1,246 @@
 /*
  * ============================================================
- * Student Question Type
+ * Student Question / Practice / Knowledge Card Quiz
  * ============================================================
- *
- * Backend 支援六種題型：
- *
- * choice      選擇題
- * true_false  是非題
- * fill        填空題
- * debug       除錯題
- * interpret   程式解讀題
- * coding      程式實作題
  */
 
 export type StudentQuestionType =
-  'choice' | 'true_false' | 'fill' | 'debug' | 'interpret' | 'coding';
+  | 'choice'
+  | 'true_false'
+  | 'fill'
+  | 'debug'
+  | 'interpret'
+  | 'coding';
 
-/*
- * ============================================================
- * Question Option
- * ============================================================
- *
- * 用於：
- *
- * choice
- * true_false
- *
- * 注意：
- * Student API 不會回傳 is_answer。
- */
+export type StudentPracticeScope = 'card' | 'unit' | 'chapter' | 'course';
+
+export type StudentQuestionStatusFilter = 'all' | 'answered' | 'unanswered';
 
 export interface StudentQuestionOption {
   id: number;
-
   title: string;
 }
 
-/*
- * ============================================================
- * Student Question
- * ============================================================
- *
- * 題目列表與單題畫面共用。
- *
- * options / sub_answers：
- * 不同題型才會有。
- */
+export interface StudentQuestionKnowledgeCard {
+  id: number;
+  title: string;
+  content?: string;
+  example?: string | null;
+}
+
+export interface StudentQuestionLockedCard {
+  id: number;
+  title: string;
+}
+
+export interface StudentQuestionReviewSub {
+  sub_id: number;
+  my_answer: string | null;
+  correct_answer: string | null;
+  is_right: boolean;
+  description: string | null;
+}
+
+export interface StudentQuestionReview {
+  my_answer: string | null;
+  correct_answer: string | null;
+  subs: StudentQuestionReviewSub[];
+  explanation: string | null;
+}
+
+export interface StudentQuestionPractice {
+  record_id: number;
+  status: QuestionSystemStatus | null;
+  answered_at: string | null;
+  review?: StudentQuestionReview;
+}
 
 export interface StudentQuestion {
   id: number;
-
   course_id: number;
-
   title: string;
-
   type: StudentQuestionType;
 
-  question_content: string;
-
+  /* 列表 API 不回題目全文，單題 API 才會回。 */
+  question_content?: string;
   bloom_id?: string | null;
-
   description?: string | null;
 
-  /*
-   * ==========================================================
-   * Knowledge Cards
-   * ==========================================================
-   *
-   * 學生只拿 ID。
-   *
-   * Backend 不會把完整 Knowledge Card
-   * 或 example 無條件送給學生。
-   */
   knowledge_card_ids?: number[];
-
-  /*
-   * ==========================================================
-   * Knowledge Card Examples
-   * ==========================================================
-   *
-   * show_example = false
-   * → []
-   *
-   * show_example = true
-   * → ["...", "..."]
-   *
-   * Student 不需要知道 show_example 本身。
-   */
+  knowledge_cards?: StudentQuestionKnowledgeCard[];
   examples?: string[];
 
-  /*
-   * ==========================================================
-   * Choice / True False
-   * ==========================================================
-   */
   options?: StudentQuestionOption[];
-
-  /*
-   * ==========================================================
-   * Fill / Interpret
-   * ==========================================================
-   *
-   * 只回需要回答的 sub_id，
-   * 不會回標準答案。
-   */
   sub_ids?: number[];
-
-  /*
-   * ==========================================================
-   * Debug
-   * ==========================================================
-   *
-   * 只告訴學生有幾個錯誤，
-   * 不告訴學生錯在哪幾行。
-   */
   debug_error_count?: number;
-
-  /*
-   * ==========================================================
-   * Coding
-   * ==========================================================
-   *
-   * starter_code 可以給學生。
-   *
-   * expected_output / reference_answer
-   * 不會給學生。
-   */
   starter_code?: string | null;
+
+  /* 正式題目練習資訊 */
+  practice?: StudentQuestionPractice | null;
+  scope?: StudentPracticeScope;
+  scope_unit_ids?: number[];
+  scope_chapter_ids?: number[];
+  locked?: boolean;
+  locked_cards?: StudentQuestionLockedCard[];
 }
 
-/*
- * ============================================================
- * Question List Response
- * ============================================================
- *
- * GET
- *
- * /student/courses/{courseId}/questions
- */
+export interface StudentQuestionStructureCard {
+  id: number;
+  title: string;
+  completed: boolean;
+}
+
+export interface StudentQuestionStructureUnit {
+  id: number;
+  name: string;
+  knowledge_cards: StudentQuestionStructureCard[];
+}
+
+export interface StudentQuestionStructureChapter {
+  id: number;
+  name: string;
+  units: StudentQuestionStructureUnit[];
+}
+
+export interface StudentQuestionListMeta {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+}
+
+export interface StudentQuestionFilters {
+  scope?: StudentPracticeScope | null;
+  chapter_id?: number | null;
+  unit_id?: number | null;
+  knowledge_card_id?: number | null;
+  type?: StudentQuestionType | null;
+  status?: StudentQuestionStatusFilter | null;
+  keyword?: string | null;
+  page?: number | null;
+  per_page?: number | null;
+}
 
 export interface StudentQuestionListResponse {
   questions: StudentQuestion[];
+  chapters: StudentQuestionStructureChapter[];
+  meta?: StudentQuestionListMeta;
 }
-
-/*
- * ============================================================
- * Single Question Response
- * ============================================================
- *
- * GET
- *
- * /student/questions/{questionId}
- */
 
 export interface StudentQuestionResponse {
   question: StudentQuestion;
 }
 
-/*
- * ============================================================
- * Submit Payload
- * ============================================================
- */
-
-/*
- * Choice / True False
- *
- * Backend：
- *
- * {
- *   option_id: 1
- * }
- */
-
 export interface StudentChoiceSubmitRequest {
   option_id: number;
 }
-
-/*
- * Fill / Debug / Interpret
- *
- * Backend：
- *
- * {
- *   answers: {
- *     "1": "define",
- *     "2": "PI"
- *   }
- * }
- */
 
 export interface StudentSubAnswerSubmitRequest {
   answers: Record<string, string>;
 }
 
-/*
- * Coding
- *
- * Backend：
- *
- * {
- *   code: "<?php ... ?>"
- * }
- */
-
 export interface StudentCodingSubmitRequest {
   code: string;
 }
 
-/*
- * ============================================================
- * Unified Submit Request
- * ============================================================
- */
-
 export type StudentQuestionSubmitRequest =
-  StudentChoiceSubmitRequest | StudentSubAnswerSubmitRequest | StudentCodingSubmitRequest;
-
-/*
- * ============================================================
- * Question Result Status
- * ============================================================
- */
+  | StudentChoiceSubmitRequest
+  | StudentSubAnswerSubmitRequest
+  | StudentCodingSubmitRequest;
 
 export type QuestionSystemStatus = 'correct' | 'wrong' | 'pending';
-
 export type QuestionTeacherStatus = 'correct' | 'wrong' | 'pending';
 
 export interface StudentSubAnswerResult {
   correct: number;
-
   total: number;
-
   answers: Record<string, string>;
 }
 
 export type StudentQuestionRecordResult = string | number | StudentSubAnswerResult | null;
 
-/*
- * ============================================================
- * Question Record
- * ============================================================
- */
-
 export interface StudentQuestionRecordSub {
   id: number;
-
   sub_id: number;
-
   answer: string;
-
   is_right: boolean;
+  solo?: number | null;
 }
-
-/*
- * ============================================================
- * Question Record
- * ============================================================
- *
- * 學生送出答案後 Backend 建立的作答紀錄。
- */
 
 export interface StudentQuestionRecord {
   id: number;
-
-  student_id: number;
-
+  student_id?: number;
   question_id: number;
-
+  question_title?: string | null;
+  question_type?: StudentQuestionType | null;
+  course_id?: number | null;
   result?: StudentQuestionRecordResult;
-
   system_status: QuestionSystemStatus;
-
-  teacher_status: QuestionTeacherStatus;
-
+  teacher_status?: QuestionTeacherStatus | null;
+  needs_teacher_review?: boolean;
   subs?: StudentQuestionRecordSub[];
-
   solo?: number | null;
-
   bloom_id?: string | null;
-
+  question_bloom_id?: string | null;
   created_at?: string;
-
   updated_at?: string;
+}
+
+export interface StudentQuestionRecordResponse {
+  record: StudentQuestionRecord;
+}
+
+export interface StudentQuestionSubmitResponse {
+  message: string;
+  system_status: QuestionSystemStatus;
+  explanation?: string | null;
+  description?: string | null;
+  record: StudentQuestionRecord;
+  review?: StudentQuestionReview;
 }
 
 /*
  * ============================================================
- * Submit Response
+ * Knowledge Card Quiz (小試身手)
  * ============================================================
- *
- * POST
- *
- * /student/questions/{questionId}/submit
  */
 
-export interface StudentQuestionSubmitResponse {
-  message: string;
+export interface StudentKnowledgeCardQuizCard {
+  id: number;
+  title: string;
+  type: string;
+  content: string;
+  example: string | null;
+  chapter: { id: number; name: string } | null;
+  unit: { id: number; name: string } | null;
+}
 
-  system_status: QuestionSystemStatus;
+export interface StudentKnowledgeCardQuizQuestion extends StudentQuestion {
+  answered: boolean;
+  correct: boolean;
+  last_status: QuestionSystemStatus | null;
+}
 
-  /*
-   * Choice / Fill / Debug / Interpret
-   * Backend 可能回傳解釋。
-   */
-  explanation?: string | null;
+export interface StudentKnowledgeCardQuizResponse {
+  card: StudentKnowledgeCardQuizCard;
+  completed: boolean;
+  completed_at: string | null;
+  completion_method: string | null;
+  has_quiz: boolean;
+  question_count: number;
+  questions: StudentKnowledgeCardQuizQuestion[];
+}
 
-  /*
-   * 目前 Backend 的 Fill / Debug / Interpret
-   * 仍可能使用 description 回傳答案說明。
-   * 前端暫時相容兩種欄位名稱。
-   */
-  description?: string | null;
+export interface StudentKnowledgeCardQuizQuestionStatus {
+  answered: boolean;
+  correct: boolean;
+  last_status: QuestionSystemStatus | null;
+}
 
-  record: StudentQuestionRecord;
+export interface StudentKnowledgeCardQuizSubmitResponse extends StudentQuestionSubmitResponse {
+  question_status: StudentKnowledgeCardQuizQuestionStatus;
+  correct_count: number;
+  total: number;
+  completed: boolean;
+  completed_at: string | null;
 }

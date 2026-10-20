@@ -51,6 +51,22 @@
               </q-item-label>
             </q-item-section>
 
+            <q-item-section v-if="theme === 'student'" side>
+              <div class="material-tree-viewer__level-progress">
+                <q-linear-progress
+                  rounded
+                  size="6px"
+                  color="teal"
+                  track-color="teal-1"
+                  :value="chapterCompletionRatio(chapter)"
+                  class="material-tree-viewer__level-progress-bar"
+                />
+                <span>
+                  {{ chapterCompletedCount(chapter) }} / {{ chapterCardCount(chapter) }} 已完成
+                </span>
+              </div>
+            </q-item-section>
+
             <q-item-section v-if="editable" side>
               <div class="material-tree-viewer__actions">
                 <q-btn
@@ -121,6 +137,22 @@
                     {{ unit.knowledge_cards.length }}
                     張知識卡
                   </q-item-label>
+                </q-item-section>
+
+                <q-item-section v-if="theme === 'student'" side>
+                  <div class="material-tree-viewer__level-progress">
+                    <q-linear-progress
+                      rounded
+                      size="6px"
+                      color="teal"
+                      track-color="teal-1"
+                      :value="unitCompletionRatio(unit)"
+                      class="material-tree-viewer__level-progress-bar"
+                    />
+                    <span>
+                      {{ unitCompletedCount(unit) }} / {{ unit.knowledge_cards.length }} 已完成
+                    </span>
+                  </div>
                 </q-item-section>
 
                 <q-item-section v-if="editable" side>
@@ -213,6 +245,46 @@
                       <q-item-label v-if="card.type" caption>
                         {{ card.type }}
                       </q-item-label>
+                    </q-item-section>
+
+                    <q-item-section v-if="theme === 'student'" side>
+                      <div class="material-tree-viewer__student-card-side">
+                        <div class="material-tree-viewer__student-card-progress">
+                          <q-badge
+                            :color="studentCardStatusColor(card)"
+                            :text-color="studentCardStatusTextColor(card)"
+                            :label="studentCardStatusLabel(card)"
+                          />
+
+                          <span v-if="card.has_quiz" class="material-tree-viewer__student-card-count">
+                            {{ card.answered_count ?? 0 }} / {{ card.question_total ?? 0 }} 題已作答
+                          </span>
+                        </div>
+
+                        <q-btn
+                          v-if="card.has_quiz"
+                          unelevated
+                          dense
+                          no-caps
+                          color="teal"
+                          icon="bolt"
+                          :label="card.completed ? '再次練習' : '小試身手'"
+                          :disable="actionsDisabled"
+                          @click.stop="emit('quiz-card', chapter, unit, card)"
+                        />
+
+                        <q-btn
+                          v-else-if="!card.completed"
+                          outline
+                          dense
+                          no-caps
+                          color="teal"
+                          icon="done_all"
+                          label="我已讀完"
+                          :disable="actionsDisabled"
+                          @click.stop="emit('read-card', chapter, unit, card)"
+                        />
+                      </div>
                     </q-item-section>
 
                     <q-item-section v-if="editable" side>
@@ -340,6 +412,18 @@ const emit = defineEmits<{
   ];
 
   'delete-card': [card: MaterialKnowledgeCardNode];
+
+  'quiz-card': [
+    chapter: MaterialChapterNode,
+    unit: MaterialUnitNode,
+    card: MaterialKnowledgeCardNode,
+  ];
+
+  'read-card': [
+    chapter: MaterialChapterNode,
+    unit: MaterialUnitNode,
+    card: MaterialKnowledgeCardNode,
+  ];
 }>();
 
 const theme = computed(() => props.theme);
@@ -358,6 +442,70 @@ function sortedUnits(chapter: MaterialChapterNode) {
 
 function unitStatus(unit: MaterialUnitNode): MaterialUnitStatus {
   return unit.status === 'draft' ? 'draft' : 'published';
+}
+
+function unitCompletedCount(unit: MaterialUnitNode): number {
+  return unit.knowledge_cards.filter(
+    (card) => card.completed || card.learning_status === 'completed',
+  ).length;
+}
+
+function unitCompletionRatio(unit: MaterialUnitNode): number {
+  if (unit.knowledge_cards.length === 0) {
+    return 0;
+  }
+
+  return unitCompletedCount(unit) / unit.knowledge_cards.length;
+}
+
+function chapterCardCount(chapter: MaterialChapterNode): number {
+  return chapter.units.reduce((total, unit) => total + unit.knowledge_cards.length, 0);
+}
+
+function chapterCompletedCount(chapter: MaterialChapterNode): number {
+  return chapter.units.reduce((total, unit) => total + unitCompletedCount(unit), 0);
+}
+
+function chapterCompletionRatio(chapter: MaterialChapterNode): number {
+  const total = chapterCardCount(chapter);
+
+  return total > 0 ? chapterCompletedCount(chapter) / total : 0;
+}
+
+function studentCardStatusLabel(card: MaterialKnowledgeCardNode): string {
+  if (card.completed || card.learning_status === 'completed') {
+    return '已完成';
+  }
+
+  if (card.learning_status === 'retry') {
+    return '需再練習';
+  }
+
+  if (card.learning_status === 'in_progress') {
+    return '學習中';
+  }
+
+  return '未開始';
+}
+
+function studentCardStatusColor(card: MaterialKnowledgeCardNode): string {
+  if (card.completed || card.learning_status === 'completed') {
+    return 'positive';
+  }
+
+  if (card.learning_status === 'retry') {
+    return 'orange-7';
+  }
+
+  if (card.learning_status === 'in_progress') {
+    return 'teal-6';
+  }
+
+  return 'grey-3';
+}
+
+function studentCardStatusTextColor(card: MaterialKnowledgeCardNode): string {
+  return card.learning_status === 'not_started' && !card.completed ? 'grey-8' : 'white';
 }
 
 function sortedCards(unit: MaterialUnitNode) {

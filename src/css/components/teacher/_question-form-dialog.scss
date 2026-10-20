@@ -489,3 +489,34 @@
     min-width: 0;
   }
 }
+
+/* ============================================================
+ * B11 / 小試身手規則提示
+ * ============================================================ */
+.question-form-dialog {
+  &__quiz-rule-banner {
+    color: #5d4037;
+    background: linear-gradient(135deg, #fff8e1 0%, #fffdf7 100%);
+    border: 1px solid #ffe082;
+  }
+
+  &__quiz-rule-title {
+    color: #6d4c41;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  &__quiz-rule-description {
+    margin-top: 3px;
+    color: #795548;
+    font-size: 12px;
+    line-height: 1.65;
+  }
+
+  &__quiz-rule-adjusted {
+    margin-top: 6px;
+    color: #00897b;
+    font-size: 12px;
+    font-weight: 700;
+  }
+}

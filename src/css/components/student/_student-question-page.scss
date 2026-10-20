@@ -1,134 +1,347 @@
 .student-question-page {
   width: 100%;
-
   max-width: 1400px;
-
   margin: 0 auto;
-
   padding: 28px;
-
-  /*
-   * ==========================================================
-   * Header
-   * ==========================================================
-   */
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     gap: 18px;
-
-    margin-bottom: 22px;
+    margin-bottom: 18px;
   }
 
   &__header-main {
     display: flex;
     align-items: center;
-
     gap: 12px;
+    min-width: 0;
   }
-
-  /*
-   * ==========================================================
-   * Title
-   * ==========================================================
-   */
 
   &__title {
     color: #263238;
-
-    font-size: 26px;
-    font-weight: 700;
-
-    line-height: 1.4;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.35;
   }
 
   &__subtitle {
     margin-top: 4px;
-
     color: #78909c;
-
     font-size: 14px;
+    line-height: 1.6;
   }
 
-  /*
-   * ==========================================================
-   * Count
-   * ==========================================================
-   */
+  &__header-counts {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-shrink: 0;
 
-  &__count {
-    padding: 6px 10px;
+    .q-badge {
+      padding: 7px 10px;
+      font-size: 13px;
+    }
+  }
 
+  &__header-total {
+    color: #78909c;
     font-size: 13px;
   }
-
-  /*
-   * ==========================================================
-   * Content
-   * ==========================================================
-   */
-
-  &__content {
-    width: 100%;
-
-    overflow: hidden;
-
-    border-radius: 12px;
-
-    background-color: #ffffff;
-  }
-
-  /*
-   * ==========================================================
-   * Error
-   * ==========================================================
-   */
 
   &__error {
     margin-top: 20px;
   }
-}
 
-/*
- * ============================================================
- * Tablet
- * ============================================================
- */
+  &__rule-banner {
+    margin-bottom: 20px;
+    color: #00695c;
+    background: linear-gradient(135deg, #e0f2f1 0%, #f3fbfa 100%);
+    border: 1px solid #b2dfdb;
+  }
 
-@media (max-width: 900px) {
-  .student-question-page {
-    padding: 22px;
+  &__rule-main {
+    min-width: 0;
+  }
+
+  &__rule-title {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__rule-caption {
+    margin-top: 3px;
+    color: #4f7773;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  &__scope-section {
+    margin-bottom: 18px;
+  }
+
+  &__section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    // margin-bottom: 14px;
+
+    &--compact {
+      align-items: center;
+    }
+  }
+
+  &__section-kicker {
+    margin-bottom: 2px;
+    color: #00897b;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  &__section-title {
+    color: #263238;
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  &__section-caption {
+    margin-top: 3px;
+    color: #78909c;
+    font-size: 13px;
+  }
+
+  &__all-scope--active {
+    background: #e0f2f1;
+  }
+
+  &__scope-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  &__scope-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'icon main'
+      'icon stats';
+    align-items: start;
+    gap: 4px 12px;
+    min-height: 132px;
+    padding: 18px;
+    color: #455a64;
+    text-align: left;
+    background: #ffffff;
+    border: 1px solid #dfe7e6;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 2px 9px rgba(38, 50, 56, 0.035);
+    transition:
+      border-color 0.16s ease,
+      background-color 0.16s ease,
+      transform 0.16s ease,
+      box-shadow 0.16s ease;
+
+    &:hover {
+      border-color: #80cbc4;
+      transform: translateY(-1px);
+      box-shadow: 0 7px 18px rgba(0, 105, 92, 0.08);
+    }
+
+    &--active {
+      background: linear-gradient(145deg, #effaf8 0%, #ffffff 100%);
+      border-color: #26a69a;
+      box-shadow: 0 0 0 1px rgba(38, 166, 154, 0.14);
+
+      &::after {
+        position: absolute;
+        inset: auto 14px 0;
+        height: 3px;
+        content: '';
+        background: #009688;
+        border-radius: 3px 3px 0 0;
+      }
+    }
+  }
+
+  &__scope-card-icon {
+    grid-area: icon;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    color: #00796b;
+    background: #e0f2f1;
+    border-radius: 12px;
+  }
+
+  &__scope-card-main {
+    grid-area: main;
+    min-width: 0;
+  }
+
+  &__scope-card-title {
+    color: #263238;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  &__scope-card-caption {
+    margin-top: 4px;
+    color: #78909c;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  &__scope-card-stats {
+    grid-area: stats;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 7px;
+    color: #78909c;
+    font-size: 12px;
+
+    strong {
+      color: #00796b;
+      font-size: 16px;
+    }
+  }
+
+  &__filters,
+  &__content {
+    overflow: hidden;
+    border-radius: 14px;
+    background: #ffffff;
+  }
+
+  &__filters {
+    margin-bottom: 18px;
+  }
+
+  &__filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    align-items: end;
+  }
+
+  &__status-filter {
+    min-width: 0;
+  }
+
+  &__status-label {
+    margin-bottom: 6px;
+    color: #607d8b;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  &__active-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 14px;
+  }
+
+  &__active-filters-label {
+    margin-right: 4px;
+    color: #78909c;
+    font-size: 12px;
+  }
+
+  &__filter-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 15px;
+    border-top: 1px solid #edf1f0;
+  }
+
+  &__filter-result-caption {
+    color: #78909c;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  &__result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+  }
+
+  &__result-title {
+    color: #263238;
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  &__result-caption {
+    margin-top: 3px;
+    color: #78909c;
+    font-size: 12px;
   }
 }
 
-/*
- * ============================================================
- * Mobile
- * ============================================================
- */
-
-@media (max-width: 600px) {
+@media (max-width: 1100px) {
   .student-question-page {
-    padding: 16px;
+    &__scope-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &__filter-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (max-width: 700px) {
+  .student-question-page {
+    padding: 18px 14px;
 
     &__header {
       align-items: flex-start;
+      flex-direction: column;
+    }
+
+    &__header-counts {
+      padding-left: 50px;
     }
 
     &__title {
-      font-size: 22px;
+      font-size: 23px;
     }
 
-    &__count {
-      flex-shrink: 0;
+    &__section-header {
+      align-items: flex-start;
+      flex-direction: column;
     }
 
-    &__content {
-      .q-card__section {
-        padding: 14px;
+    &__scope-grid,
+    &__filter-grid {
+      grid-template-columns: 1fr;
+    }
+
+    &__scope-card {
+      min-height: auto;
+    }
+
+    &__filter-actions {
+      align-items: stretch;
+      flex-direction: column;
+
+      .q-btn {
+        width: 100%;
       }
     }
   }
