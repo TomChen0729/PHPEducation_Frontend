@@ -14,7 +14,9 @@ import type {
 export const studentQuestionApi = {
   getQuestions(courseId: number, filters: StudentQuestionFilters = {}) {
     const params = Object.fromEntries(
-      Object.entries(filters).filter(([, value]) => value !== null && value !== undefined && value !== ''),
+      Object.entries(filters).filter(
+        ([, value]) => value !== null && value !== undefined && value !== '',
+      ),
     );
 
     return api.get<StudentQuestionListResponse>(`/student/courses/${courseId}/questions`, {
@@ -29,7 +31,7 @@ export const studentQuestionApi = {
   submitQuestion(questionId: number, data: StudentQuestionSubmitRequest) {
     if ('file' in data) {
       const formData = new FormData();
-      formData.append('file', data.file);
+      formData.append('file', data.file as Blob);
 
       return api.post<StudentQuestionSubmitResponse>(
         `/student/questions/${questionId}/submit`,
