@@ -146,7 +146,7 @@ export interface TeacherCodingRecordReviewRequest {
 }
 
 export interface TeacherGeneralRecordReviewRequest {
-  solo: 1 | 2;
+  solo: 1 | 2 | 3 | 4 | 5;
 }
 
 export type TeacherQuestionRecordReviewRequest =

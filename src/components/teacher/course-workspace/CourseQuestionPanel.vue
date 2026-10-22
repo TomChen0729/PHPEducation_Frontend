@@ -177,6 +177,8 @@
       :mode="formMode"
       :question="editingQuestion"
       :blooms="blooms"
+      :solos="solos"
+      :solos-loading="loading"
       :knowledge-cards="knowledgeCards"
       :submitting="saving"
       :error-message="formErrorMessage"
@@ -223,6 +225,7 @@ const props = defineProps<{
 
 const {
   blooms,
+  solos,
 
   knowledgeCards,
 

@@ -685,6 +685,7 @@ async function rebuildGraph() {
     }
 
     selectedNodeId.value = String(id);
+    toggleNodeExpansion(String(id), nodeData, edgeData);
   });
 
   network.once('stabilizationIterationsDone', () => {
@@ -694,6 +695,47 @@ async function rebuildGraph() {
 
     fitGraph();
   });
+}
+
+function toggleNodeExpansion(
+  nodeId: string,
+  nodes: DataSet<Node>,
+  edges: DataSet<Edge>,
+): void {
+  const childIds = edges
+    .get({ filter: (edge) => String(edge.from) === nodeId })
+    .map((edge) => String(edge.to));
+
+  if (childIds.length === 0) return;
+
+  const children = childIds.map((childId) => nodes.get(childId)).filter(Boolean);
+  const shouldCollapse = children.some((child) => !child?.hidden);
+
+  if (shouldCollapse) {
+    const descendants = collectDescendants(childIds, edges);
+    nodes.update(descendants.map((id) => ({ id, hidden: true })));
+  } else {
+    nodes.update(childIds.map((id) => ({ id, hidden: false })));
+  }
+
+  network?.redraw();
+}
+
+function collectDescendants(startIds: string[], edges: DataSet<Edge>): string[] {
+  const visited = new Set<string>();
+  const pending = [...startIds];
+
+  while (pending.length > 0) {
+    const currentId = pending.pop()!;
+    if (visited.has(currentId)) continue;
+    visited.add(currentId);
+
+    edges
+      .get({ filter: (edge) => String(edge.from) === currentId })
+      .forEach((edge) => pending.push(String(edge.to)));
+  }
+
+  return [...visited];
 }
 
 function buildGraphData(tree: MaterialCourseTree) {
@@ -1010,6 +1052,10 @@ function buildGraphData(tree: MaterialCourseTree) {
         addEdge(edges, edgeIds, unitId, cardId);
       });
     });
+  });
+
+  nodes.forEach((node) => {
+    if (node.id !== topicId) node.hidden = true;
   });
 
   return {

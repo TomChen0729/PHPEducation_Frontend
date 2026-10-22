@@ -8,6 +8,7 @@ import type {
   TeacherBloom,
   TeacherQuestion,
   TeacherQuestionKnowledgeCardOption,
+  TeacherSolo,
   TeacherQuestionRequest,
   TeacherQuestionType,
 } from '../types/teacher-question';
@@ -30,6 +31,8 @@ export function useTeacherQuestions() {
   const questions = ref<TeacherQuestion[]>([]);
 
   const blooms = ref<TeacherBloom[]>([]);
+
+  const solos = ref<TeacherSolo[]>([]);
 
   const knowledgeCards = ref<TeacherQuestionKnowledgeCardOption[]>([]);
 
@@ -118,13 +121,20 @@ export function useTeacherQuestions() {
 
     errorMessage.value = '';
 
+    /*
+     * 新增 solos 狀態
+     * 載入題目資料時，同時呼叫 SOLO API
+     * 載入失敗時清空 SOLO 選項
+     */
     try {
-      const [questionResponse, bloomResponse, knowledgeCardResponse] = await Promise.all([
+      const [questionResponse, bloomResponse, knowledgeCardResponse, soloResponse] = await Promise.all([
         teacherQuestionApi.getQuestions(courseId),
 
         teacherQuestionApi.getBlooms(),
 
         teacherQuestionApi.getKnowledgeCards(courseId),
+
+        teacherQuestionApi.getSolos(),
       ]);
 
       questions.value = questionResponse.data.questions;
@@ -132,6 +142,8 @@ export function useTeacherQuestions() {
       blooms.value = bloomResponse.data.blooms;
 
       knowledgeCards.value = knowledgeCardResponse.data.knowledge_cards;
+
+      solos.value = soloResponse.data.solos;
 
       return true;
     } catch (error: unknown) {
@@ -142,6 +154,8 @@ export function useTeacherQuestions() {
       blooms.value = [];
 
       knowledgeCards.value = [];
+
+      solos.value = [];
 
       return false;
     } finally {
@@ -302,6 +316,8 @@ export function useTeacherQuestions() {
     questions,
 
     blooms,
+
+    solos,
 
     knowledgeCards,
 

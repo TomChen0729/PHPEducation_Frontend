@@ -7,6 +7,7 @@ import type {
   TeacherQuestionListResponse,
   TeacherQuestionRequest,
   TeacherQuestionResponse,
+  TeacherSolo,
 } from '../types/teacher-question';
 
 export const teacherQuestionApi = {
@@ -17,6 +18,11 @@ export const teacherQuestionApi = {
    */
   getBlooms() {
     return api.get<TeacherBloomListResponse>('/teacher/blooms');
+  },
+
+  // 新增 SOLO 選項 API，供教師題目表單載入 S1–S5 的資料
+  getSolos() {
+    return api.get<{ solos: TeacherSolo[] }>('/teacher/solos');
   },
 
   /*
