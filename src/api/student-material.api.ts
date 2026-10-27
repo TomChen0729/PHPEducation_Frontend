@@ -6,6 +6,7 @@ import type {
   StudentMaterialGraphResponse,
   StudentUnitListResponse,
 } from '../types/student-material';
+import type { MaterialUnitNode } from '../types/material';
 
 export const studentMaterialApi = {
   /*
@@ -42,5 +43,10 @@ export const studentMaterialApi = {
    */
   getGraph(courseId: number) {
     return api.get<StudentMaterialGraphResponse>(`/student/courses/${courseId}/graph`);
+  },
+
+  // 學生端單一單元知識圖譜查詢
+  getUnitGraph(unitId: number) {
+    return api.get<{ unit: MaterialUnitNode }>(`/student/units/${unitId}/graph`);
   },
 };

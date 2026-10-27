@@ -25,6 +25,14 @@ export interface TeacherBloomListResponse {
   blooms: TeacherBloom[];
 }
 
+/*新增SOLO 層級資料的說明*/
+export interface TeacherSolo {
+  level: number;
+  code: string;
+  title: string | null;
+  description: string | null;
+}
+
 /*
  * ============================================================
  * Knowledge Card Picker
@@ -79,18 +87,15 @@ export interface TeacherQuestionOption {
   solo: number;
 }
 
-/*
- * 新增 / 修改時送 Backend。
- *
- * solo 不需要 Frontend 傳，
- * Backend 會依 is_answer 自動處理。
- */
+/* 新增／修改時可指定此選項本身的 SOLO 層級，作答正誤不影響記錄值。 */
 export interface TeacherQuestionOptionInput {
   title: string;
 
   description?: string | null;
 
   is_answer: boolean;
+
+  solo?: number;
 }
 
 /*
@@ -117,6 +122,8 @@ export interface TeacherQuestionSubAnswerInput {
   answer: string;
 
   description?: string | null;
+
+  solo?: number;
 }
 
 /*

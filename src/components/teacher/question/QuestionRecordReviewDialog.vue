@@ -312,23 +312,7 @@
                 Interpret 的每一個子答案。
               </q-banner>
 
-              <div class="question-record-review-dialog__review-options">
-                <q-radio
-                  v-model="reviewSolo"
-                  :val="1"
-                  color="negative"
-                  label="判定錯誤"
-                  :disable="reviewing"
-                />
-
-                <q-radio
-                  v-model="reviewSolo"
-                  :val="2"
-                  color="positive"
-                  label="判定正確"
-                  :disable="reviewing"
-                />
-              </div>
+              <q-select v-model.number="reviewSolo" outlined emit-value map-options label="教師修正 SOLO 層級 *" :options="reviewSoloOptions" :disable="reviewing" />
             </template>
           </section>
         </template>
@@ -403,7 +387,8 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-const reviewSolo = ref<1 | 2 | null>(null);
+const reviewSolo = ref<number | null>(null);
+const reviewSoloOptions = [1, 2, 3, 4, 5].map((level) => ({ label: `S${level}`, value: level }));
 
 const reviewBloomId = ref<string | null>(null);
 
@@ -524,7 +509,8 @@ const canSubmitReview = computed(() => {
     return Boolean(reviewBloomId.value);
   }
 
-  return reviewSolo.value === 1 || reviewSolo.value === 2;
+  // 教師覆核選取的 SOLO 會直接寫回整題紀錄。
+  return reviewSolo.value !== null && reviewSolo.value >= 1 && reviewSolo.value <= 5;
 });
 
 watch(
@@ -563,13 +549,7 @@ function resetReviewState() {
 
   reviewBloomId.value = props.record.bloom_id;
 
-  if (props.record.teacher_status === 'correct') {
-    reviewSolo.value = 2;
-  } else if (props.record.teacher_status === 'wrong') {
-    reviewSolo.value = 1;
-  } else {
-    reviewSolo.value = null;
-  }
+  reviewSolo.value = props.record.solo ?? null;
 }
 
 function studentSub(subId: number) {
@@ -605,12 +585,12 @@ function submitReview() {
     return;
   }
 
-  if (reviewSolo.value !== 1 && reviewSolo.value !== 2) {
+  if (reviewSolo.value === null || reviewSolo.value < 1 || reviewSolo.value > 5) {
     return;
   }
 
   emit('submit', {
-    solo: reviewSolo.value,
+    solo: reviewSolo.value as 1 | 2 | 3 | 4 | 5,
   });
 }
 

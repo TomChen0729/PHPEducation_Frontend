@@ -147,6 +147,78 @@
             @click="continueLastActivity"
           />
         </div>
+
+        <div class="student-material-page__progress-details q-mt-md">
+          <div class="text-subtitle2 q-mb-sm">各章節學習明細</div>
+
+          <q-card
+            v-for="chapter in learningProgress.chapters"
+            :key="chapter.id"
+            flat
+            bordered
+            class="q-mb-sm"
+          >
+            <q-expansion-item expand-separator default-opened>
+              <template #header>
+                <q-item-section>
+                  <q-item-label class="text-weight-medium">{{ chapter.name }}</q-item-label>
+                  <q-item-label caption>
+                    已完成 {{ chapter.completed }} / {{ chapter.total }} 張知識卡
+                  </q-item-label>
+                </q-item-section>
+              </template>
+
+              <q-card-section
+                v-for="unit in chapter.units"
+                :key="unit.id"
+                class="q-pt-none q-pb-sm"
+              >
+                <div class="text-body2 text-weight-medium q-mb-xs">{{ unit.name }}</div>
+                <q-list bordered separator class="rounded-borders">
+                  <q-item
+                    v-for="card in unit.knowledge_cards"
+                    :key="card.id"
+                    class="q-py-sm"
+                  >
+                    <q-item-section avatar>
+                      <q-icon
+                        :name="progressStatusIcon(card.status)"
+                        :color="progressStatusColor(card.status)"
+                        size="sm"
+                      />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>{{ card.title }}</q-item-label>
+                      <q-item-label caption>
+                        {{ progressStatusLabel(card.status) }}
+                        <template v-if="card.has_quiz">
+                          ・已作答 {{ card.answered_count }} / {{ card.question_total }} 題
+                        </template>
+                      </q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <q-btn
+                        v-if="card.has_quiz"
+                        flat
+                        dense
+                        no-caps
+                        color="teal-8"
+                        icon="quiz"
+                        label="前往測驗"
+                        :to="`/student/course/${courseId}/knowledge-card/${card.id}/quiz`"
+                      />
+                      <q-badge
+                        v-else
+                        :color="card.status === 'completed' ? 'positive' : 'grey-6'"
+                        :label="card.status === 'completed' ? '閱讀完成' : '無測驗題目'"
+                      />
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-card-section>
+            </q-expansion-item>
+          </q-card>
+        </div>
       </q-card-section>
     </q-card>
 
@@ -170,9 +242,43 @@
           :options="[
             { label: '階層檢視', value: 'tree', icon: 'account_tree' },
             { label: '知識圖譜', value: 'graph', icon: 'hub' },
+            { label: '單一單元', value: 'unit', icon: 'schema' },
           ]"
         />
       </q-card-section>
+
+      <q-card-section v-if="viewMode === 'unit'" class="row q-col-gutter-md q-pt-none">
+        <q-select
+          v-model="selectedChapterId"
+          class="col-12 col-sm-6"
+          outlined
+          dense
+          label="選擇章節"
+          :options="unitChapterOptions"
+          emit-value
+          map-options
+        />
+        <q-select
+          v-model="selectedUnitId"
+          class="col-12 col-sm-6"
+          outlined
+          dense
+          label="選擇單元"
+          :options="unitSelectOptions"
+          emit-value
+          map-options
+          :disable="selectedChapterId === null || unitSelectOptions.length === 0"
+        />
+      </q-card-section>
+
+      <div v-if="viewMode === 'unit' && unitGraphLoading" class="student-material-page__loading">
+        <q-spinner color="teal" size="42px" />
+        <div>單元教材載入中...</div>
+      </div>
+
+      <q-banner v-else-if="viewMode === 'unit' && unitGraphError" class="q-mx-md q-mb-md bg-red-1 text-negative" rounded>
+        {{ unitGraphError }}
+      </q-banner>
 
       <div v-if="loading" class="student-material-page__loading">
         <q-spinner color="teal" size="42px" />
@@ -180,11 +286,15 @@
       </div>
 
       <div
-        v-else-if="!displayTree || displayTree.chapters.length === 0"
+        v-else-if="
+          !unitGraphLoading &&
+          !unitGraphError &&
+          (!displayTree || displayTree.chapters.length === 0)
+        "
         class="student-material-page__empty"
       >
         <q-icon name="auto_stories" size="52px" color="grey-4" />
-        <div>此課程目前沒有教材</div>
+        <div>{{ viewMode === 'unit' ? '請先選擇章節與單元' : '此課程目前沒有教材' }}</div>
       </div>
 
       <q-card-section v-else-if="viewMode === 'tree'" class="student-material-page__viewer">
@@ -250,6 +360,7 @@ import MaterialEditor from '../../../../components/teacher/course-workspace/Mate
 import { useDashboard } from '../../../../composables/useDashboard.js';
 import { useStudentLearningProgress } from '../../../../composables/useStudentLearningProgress.js';
 import { useStudentMaterial } from '../../../../composables/useStudentMaterial.js';
+import { studentMaterialApi } from '../../../../api/student-material.api';
 
 import type {
   MaterialChapterNode,
@@ -258,13 +369,19 @@ import type {
   MaterialKnowledgeCardNode,
   MaterialUnitNode,
 } from '../../../../types/material.js';
+import type { StudentLearningCardStatus } from '../../../../types/student-learning.js';
 
-type MaterialViewMode = 'tree' | 'graph';
+type MaterialViewMode = 'tree' | 'graph' | 'unit';
 
 const route = useRoute();
 const router = useRouter();
 
 const viewMode = ref<MaterialViewMode>('tree');
+const selectedChapterId = ref<number | null>(null);
+const selectedUnitId = ref<number | null>(null);
+const singleUnitGraph = ref<MaterialUnitNode | null>(null);
+const unitGraphLoading = ref(false);
+const unitGraphError = ref('');
 const cardDialogOpen = ref(false);
 const cardDialogContext = ref<MaterialEditorContext | null>(null);
 
@@ -310,6 +427,19 @@ const course = computed(() => {
   return dashboard.value?.courses?.find((item) => item.id === courseId.value);
 });
 
+const unitChapterOptions = computed(() => (courseTree.value?.chapters ?? []).map((chapter) => ({
+  label: chapter.name,
+  value: chapter.id,
+})));
+
+const unitSelectOptions = computed(() => {
+  const chapter = courseTree.value?.chapters.find((item) => item.id === selectedChapterId.value);
+
+  return (chapter?.units ?? [])
+    .filter((unit) => unit.status !== 'draft')
+    .map((unit) => ({ label: unit.name, value: unit.id }));
+});
+
 const displayTree = computed<MaterialCourseTree | null>(() => {
   const tree = courseTree.value;
 
@@ -317,9 +447,23 @@ const displayTree = computed<MaterialCourseTree | null>(() => {
     return null;
   }
 
+  const chapters = viewMode.value === 'unit'
+    ? (() => {
+        if (!singleUnitGraph.value) return [];
+        const sourceChapter = tree.chapters.find((chapter) => chapter.id === selectedChapterId.value);
+        return [{
+          id: sourceChapter?.id ?? 0,
+          name: sourceChapter?.name ?? '',
+          title: sourceChapter?.title ?? '',
+          sort_order: sourceChapter?.sort_order ?? 0,
+          units: [singleUnitGraph.value],
+        }];
+      })()
+    : tree.chapters;
+
   return {
     ...tree,
-    chapters: tree.chapters.map((chapter) => ({
+    chapters: chapters.map((chapter) => ({
       ...chapter,
       units: chapter.units.map((unit) => ({
         ...unit,
@@ -360,6 +504,9 @@ watch(
     clearMaterial();
     clearProgress();
     clearCardDialog();
+    selectedChapterId.value = null;
+    selectedUnitId.value = null;
+    singleUnitGraph.value = null;
     viewMode.value = 'tree';
 
     if (id === null) {
@@ -370,6 +517,27 @@ watch(
   },
   { immediate: true },
 );
+
+watch(selectedChapterId, () => {
+  selectedUnitId.value = null;
+  singleUnitGraph.value = null;
+  unitGraphError.value = '';
+});
+
+watch(selectedUnitId, async (unitId) => {
+  singleUnitGraph.value = null;
+  unitGraphError.value = '';
+  if (!unitId) return;
+
+  unitGraphLoading.value = true;
+  try {
+    singleUnitGraph.value = (await studentMaterialApi.getUnitGraph(unitId)).data.unit;
+  } catch {
+    unitGraphError.value = '單元教材載入失敗，請重新選擇單元。';
+  } finally {
+    unitGraphLoading.value = false;
+  }
+});
 
 function handleViewCard(
   chapter: MaterialChapterNode,
@@ -466,6 +634,33 @@ function continueLastActivity() {
   }
 
   viewMode.value = 'tree';
+}
+
+function progressStatusLabel(status: StudentLearningCardStatus): string {
+  return {
+    completed: '已完成',
+    retry: '需要複習',
+    in_progress: '進行中',
+    not_started: '尚未開始',
+  }[status];
+}
+
+function progressStatusIcon(status: StudentLearningCardStatus): string {
+  return {
+    completed: 'check_circle',
+    retry: 'refresh',
+    in_progress: 'pending',
+    not_started: 'radio_button_unchecked',
+  }[status];
+}
+
+function progressStatusColor(status: StudentLearningCardStatus): string {
+  return {
+    completed: 'positive',
+    retry: 'deep-orange',
+    in_progress: 'primary',
+    not_started: 'grey-6',
+  }[status];
 }
 
 function closeCardDialog() {

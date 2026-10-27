@@ -135,6 +135,11 @@
                   value: 'graph',
                   icon: 'hub',
                 },
+                {
+                  label: '單一單元',
+                  value: 'unit',
+                  icon: 'filter_1',
+                },
               ]"
             />
           </div>
@@ -153,6 +158,33 @@
 
           <q-banner v-else rounded class="course-material-panel__student-preview-hint q-mb-md">
             這是預覽畫面；實際學生端只會取得已開放（published）的單元。
+          </q-banner>
+
+          <div v-if="viewMode === 'unit'" class="row q-col-gutter-md q-mb-md">
+            <q-select
+              v-model="selectedUnitChapterId"
+              class="col-12 col-sm-6"
+              outlined
+              emit-value
+              map-options
+              label="選擇章節"
+              :options="unitChapterOptions"
+            />
+            <q-select
+              v-model="selectedUnitId"
+              class="col-12 col-sm-6"
+              outlined
+              emit-value
+              map-options
+              label="選擇單元"
+              :options="unitSelectOptions"
+              :disable="!selectedUnitChapterId"
+              :loading="singleUnitLoading"
+            />
+          </div>
+
+          <q-banner v-if="singleUnitError" rounded class="bg-red-1 text-negative q-mb-md">
+            {{ singleUnitError }}
           </q-banner>
 
           <div
@@ -190,6 +222,16 @@
             @edit-chapter="(chapter) => emit('edit-chapter', chapter)"
             @edit-unit="(chapter, unit) => emit('edit-unit', chapter, unit)"
             @edit-card="(chapter, unit, card) => emit('edit-card', chapter, unit, card)"
+          />
+
+          <div v-else-if="viewMode === 'unit' && singleUnitLoading" class="course-material-panel__loading">
+            <q-spinner color="blue" size="36px" />
+          </div>
+
+          <MaterialTreeViewer
+            v-else-if="viewMode === 'unit' && singleUnitTree"
+            :tree="singleUnitTree"
+            :theme="audienceMode === 'student' ? 'student' : 'teacher'"
           />
         </div>
       </div>
@@ -485,13 +527,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 // import { Dialog } from 'quasar';
 
 import MaterialTreeViewer from '../../material/MaterialTreeViewer.vue';
 
 import MaterialGraphViewer from '../../material/MaterialGraphViewer.vue';
+import { teacherMaterialApi } from '../../../api/teacher-material.api';
+import { studentMaterialApi } from '../../../api/student-material.api';
 
 import type {
   MaterialChapterNode,
@@ -503,7 +547,7 @@ import type {
   MaterialUnitStatus,
 } from '../../../types/material';
 
-type MaterialViewMode = 'tree' | 'graph';
+type MaterialViewMode = 'tree' | 'graph' | 'unit';
 
 type MaterialAudienceMode = 'teacher' | 'student';
 
@@ -581,6 +625,51 @@ const emit = defineEmits<{
 const viewMode = ref<MaterialViewMode>('tree');
 
 const audienceMode = ref<MaterialAudienceMode>('teacher');
+const selectedUnitChapterId = ref<number | null>(null);
+const selectedUnitId = ref<number | null>(null);
+const singleUnitLoading = ref(false);
+const singleUnitError = ref('');
+const singleUnitTree = ref<MaterialCourseTree | null>(null);
+/*
+ * 可選擇章節及單元，並依教師檢視或學生預覽呼叫對應的單元圖譜
+ * 查詢結果只以選取單元的資料呈現
+*/
+const unitChapterOptions = computed(() => (props.courseTree?.chapters ?? [])
+  .map((chapter) => ({ label: chapter.name, value: chapter.id })));
+const unitSelectOptions = computed(() => {
+  const chapter = props.courseTree?.chapters.find((item) => item.id === selectedUnitChapterId.value);
+  return (chapter?.units ?? [])
+    .filter((unit) => audienceMode.value === 'teacher' || unit.status !== 'draft')
+    .map((unit) => ({ label: unit.name, value: unit.id }));
+});
+
+watch(selectedUnitChapterId, () => {
+  selectedUnitId.value = null;
+  singleUnitTree.value = null;
+});
+
+watch([selectedUnitId, audienceMode], async ([unitId, audience]) => {
+  singleUnitTree.value = null;
+  singleUnitError.value = '';
+  if (!unitId || viewMode.value !== 'unit') return;
+  singleUnitLoading.value = true;
+  try {
+    const unit = audience === 'teacher'
+      ? (await teacherMaterialApi.getUnitGraph(unitId)).data.unit
+      : (await studentMaterialApi.getUnitGraph(unitId)).data.unit;
+      // 將查詢回來的單元包成既有教材檢視元件可顯示的結構
+    const chapter = props.courseTree?.chapters.find((item) => item.id === selectedUnitChapterId.value);
+    singleUnitTree.value = {
+      id: props.courseTree?.id ?? 0,
+      name: props.courseTree?.name ?? '課程教材',
+      chapters: [{ id: selectedUnitChapterId.value ?? 0, name: chapter?.name ?? '', title: chapter?.name ?? '', sort_order: 0, units: [unit] }],
+    };
+  } catch {
+    singleUnitError.value = '單元教材載入失敗，請重新選擇或稍後再試。';
+  } finally {
+    singleUnitLoading.value = false;
+  }
+});
 
 const studentPreviewTree = computed<MaterialCourseTree | null>(() => {
   if (!props.courseTree) {

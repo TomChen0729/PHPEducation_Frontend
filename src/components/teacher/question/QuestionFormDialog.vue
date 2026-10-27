@@ -157,7 +157,7 @@
                 </div>
 
                 <div class="question-form-dialog__section-description">
-                  選擇其中一個選項作為正確答案。
+                  選擇正確答案，並為每個選項設定 SOLO；學生選取後不論答對或答錯，都記錄該選項的 SOLO。
                 </div>
               </div>
 
@@ -207,6 +207,22 @@
                     label="選項說明（選填）"
                     :disable="submitting"
                   />
+
+                  <q-select
+                    v-model.number="option.solo"
+                    outlined
+                    dense
+                    label="SOLO 編碼 *"
+                    :options="soloOptions"
+                    option-value="value"
+                    option-label="label"
+                    emit-value
+                    map-options
+                    :loading="solosLoading"
+                    :disable="submitting || solos.length === 0"
+                    :rules="[requiredSelectRule]"
+                    lazy-rules
+                  />
                 </div>
 
                 <q-btn
@@ -234,7 +250,7 @@
                 <div class="question-form-dialog__section-title">標準答案</div>
 
                 <div class="question-form-dialog__section-description">
-                  依題幹中的（1）、（2）順序設定每一格標準答案。
+                  依題幹中的（1）、（2）順序設定答案與 SOLO；每格不論答對或答錯，都記錄該格設定的 SOLO。
                 </div>
               </div>
 
@@ -265,6 +281,21 @@
                     :label="`標準答案 ${index + 1} *`"
                     :disable="submitting"
                     :rules="[requiredTextRule]"
+                    lazy-rules
+                  />
+
+                  <q-select
+                    v-model.number="item.solo"
+                    outlined
+                    label="SOLO 編碼 *"
+                    :options="soloOptions"
+                    option-value="value"
+                    option-label="label"
+                    emit-value
+                    map-options
+                    :loading="solosLoading"
+                    :disable="submitting || solos.length === 0"
+                    :rules="[requiredSelectRule]"
                     lazy-rules
                   />
 
@@ -697,6 +728,7 @@ import type {
   TeacherBloom,
   TeacherQuestion,
   TeacherQuestionKnowledgeCardOption,
+  TeacherSolo,
   TeacherQuestionOptionInput,
   TeacherQuestionRequest,
   TeacherQuestionSubAnswerInput,
@@ -720,18 +752,20 @@ type QuestionFormMode = 'create' | 'edit';
  * 但 q-input 的 Form State
  * 統一使用 string。
  */
-type QuestionOptionForm = Omit<TeacherQuestionOptionInput, 'description'> & {
+type QuestionOptionForm = Omit<TeacherQuestionOptionInput, 'description' | 'solo'> & {
   description: string;
+  solo: number;
 };
 
 /*
  * 同樣把 description
  * 在表單內固定成 string。
  */
-type QuestionSubAnswerForm = Omit<TeacherQuestionSubAnswerInput, 'description' | 'sub_id'> & {
+type QuestionSubAnswerForm = Omit<TeacherQuestionSubAnswerInput, 'description' | 'sub_id' | 'solo'> & {
   sub_id: number | null;
 
   description: string;
+  solo: number;
 };
 
 /*
@@ -771,6 +805,7 @@ type QuestionFormState = Omit<
   interpret_answer: string;
 
   interpret_answer_description: string;
+
 };
 
 /*
@@ -808,11 +843,15 @@ const props = withDefaults(
 
     knowledgeCards: TeacherQuestionKnowledgeCardOption[];
 
+    solos: TeacherSolo[];
+
     submitting?: boolean;
 
     bloomsLoading?: boolean;
 
     knowledgeCardsLoading?: boolean;
+
+    solosLoading?: boolean;
 
     errorMessage?: string;
   }>(),
@@ -826,6 +865,8 @@ const props = withDefaults(
     bloomsLoading: false,
 
     knowledgeCardsLoading: false,
+
+    solosLoading: false,
 
     errorMessage: '',
   },
@@ -906,21 +947,25 @@ function createChoiceOptions(): QuestionOptionForm[] {
       title: '',
       description: '',
       is_answer: false,
+      solo: 1,
     },
     {
       title: '',
       description: '',
       is_answer: false,
+      solo: 1,
     },
     {
       title: '',
       description: '',
       is_answer: false,
+      solo: 1,
     },
     {
       title: '',
       description: '',
       is_answer: false,
+      solo: 1,
     },
   ];
 }
@@ -931,11 +976,13 @@ function createTrueFalseOptions(): QuestionOptionForm[] {
       title: '正確',
       description: '',
       is_answer: false,
+      solo: 1,
     },
     {
       title: '錯誤',
       description: '',
       is_answer: false,
+      solo: 1,
     },
   ];
 }
@@ -955,6 +1002,7 @@ function createSubAnswers(type: TeacherQuestionType): QuestionSubAnswerForm[] {
       answer: '',
 
       description: '',
+      solo: 1,
     },
   ];
 }
@@ -996,10 +1044,19 @@ function createEmptyForm(): QuestionFormState {
     interpret_answer: '',
 
     interpret_answer_description: '',
+
   };
 }
 
 const form = reactive<QuestionFormState>(createEmptyForm());
+
+const soloOptions = computed(() =>
+  props.solos.map((solo) => ({
+    value: solo.level,
+    label: `${solo.code}${solo.title ? `・${solo.title}` : ''}`,
+    description: solo.description,
+  })),
+);
 
 /*
  * ============================================================
@@ -1230,6 +1287,8 @@ function fillForm(question: TeacherQuestion) {
     description: option.description ?? '',
 
     is_answer: option.is_answer,
+
+    solo: option.solo ?? 1,
   }));
 
   /*
@@ -1249,6 +1308,8 @@ function fillForm(question: TeacherQuestion) {
     answer: item.answer,
 
     description: item.description ?? '',
+
+    solo: item.solo ?? 1,
   }));
 
   if (form.type === 'interpret') {
@@ -1402,6 +1463,7 @@ function addOption() {
     description: '',
 
     is_answer: false,
+    solo: 1,
   });
 }
 
@@ -1429,6 +1491,7 @@ function addSubAnswer() {
     answer: '',
 
     description: '',
+    solo: 1,
   });
 }
 
@@ -1598,12 +1661,15 @@ function buildRequest(): TeacherQuestionRequest {
    * Choice / True False
    */
   if (form.type === 'choice' || form.type === 'true_false') {
+    // 每個選項只送一個 solo，學生作答後沿用該值，不拆成正誤兩組編碼。
     payload.options = form.options.map((option) => ({
       title: option.title.trim(),
 
       description: option.description.trim() || null,
 
       is_answer: option.is_answer,
+
+      solo: option.solo ?? 1,
     }));
   }
 
@@ -1611,12 +1677,15 @@ function buildRequest(): TeacherQuestionRequest {
    * Fill
    */
   if (form.type === 'fill') {
+    // 每個填空格只送一個 solo；不論該格答對或答錯，都記錄這個設定值。
     payload.sub_answers = form.sub_answers.map((item, index) => ({
       sub_id: index + 1,
 
       answer: item.answer.trim(),
 
       description: item.description.trim() || null,
+
+      solo: item.solo ?? 1,
     }));
   }
 

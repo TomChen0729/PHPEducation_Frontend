@@ -14,6 +14,7 @@ import type {
   MaterialKnowledgeCardResponse,
   MaterialNamePayload,
   MaterialUnitListResponse,
+  MaterialUnitNode,
   MaterialUnitPayload,
   MaterialUnitResponse,
 } from '../types/material';
@@ -80,6 +81,11 @@ export const teacherMaterialApi = {
 
   getCourseTree(courseId: number) {
     return api.get<MaterialCourseTreeResponse>(`/teacher/courses/${courseId}/tree`);
+  },
+
+  // 教師端單一單元知識圖譜查詢
+  getUnitGraph(unitId: number) {
+    return api.get<{ unit: MaterialUnitNode }>(`/teacher/units/${unitId}/graph`);
   },
 
   /*
