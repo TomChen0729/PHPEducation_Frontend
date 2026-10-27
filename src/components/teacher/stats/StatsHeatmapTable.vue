@@ -30,7 +30,7 @@
                 <span>{{ row.chapter_name }}</span>
                 <q-badge
                   outline
-                  :color="row.unit_status === 'published' ? 'teal' : 'grey-6'"
+                  :color="row.unit_status === 'published' ? 'primary' : 'grey-6'"
                   :label="row.unit_status === 'published' ? '開放中' : '草稿'"
                 />
               </div>
