@@ -32,6 +32,7 @@
           :key="chapter.id"
           expand-separator
           class="material-tree-viewer__chapter"
+          header-class="material-tree-viewer__chapter-header"
         >
           <template #header>
             <q-item-section avatar>
@@ -40,15 +41,30 @@
 
             <q-item-section>
               <q-item-label class="material-tree-viewer__chapter-title">
-                {{ getChapterNumber(chapter.sort_order, chapterIndex) }}
-
-                {{ chapter.name }}
+                <span class="material-tree-viewer__chapter-number">
+                  {{ getChapterNumber(chapter.sort_order, chapterIndex) }}
+                </span>
+                <span class="material-tree-viewer__chapter-name">{{ chapter.name }}</span>
               </q-item-label>
 
               <q-item-label caption>
                 {{ chapter.units.length }}
                 個單元
               </q-item-label>
+            </q-item-section>
+
+            <q-item-section v-if="showChapterGraphButton" side>
+              <q-btn
+                flat
+                dense
+                round
+                icon="hub"
+                :color="theme === 'student' ? 'teal' : 'blue'"
+                aria-label="查看章節圖譜"
+                @click.stop="handleViewChapterGraph(chapter)"
+              >
+                <q-tooltip>查看章節圖譜</q-tooltip>
+              </q-btn>
             </q-item-section>
 
             <q-item-section v-if="theme === 'student'" side>
@@ -110,6 +126,7 @@
               v-for="(unit, unitIndex) in sortedUnits(chapter)"
               :key="unit.id"
               class="material-tree-viewer__unit"
+              header-class="material-tree-viewer__unit-header"
             >
               <template #header>
                 <q-item-section avatar>
@@ -118,11 +135,12 @@
 
                 <q-item-section>
                   <q-item-label class="material-tree-viewer__unit-title">
-                    {{
-                      getUnitNumber(chapter.sort_order, chapterIndex, unit.sort_order, unitIndex)
-                    }}
-
-                    {{ unit.name }}
+                    <span class="material-tree-viewer__unit-number">
+                      {{
+                        getUnitNumber(chapter.sort_order, chapterIndex, unit.sort_order, unitIndex)
+                      }}
+                    </span>
+                    <span class="material-tree-viewer__unit-name">{{ unit.name }}</span>
 
                     <q-badge
                       v-if="editable"
@@ -137,6 +155,20 @@
                     {{ unit.knowledge_cards.length }}
                     張知識卡
                   </q-item-label>
+                </q-item-section>
+
+                <q-item-section v-if="showUnitGraphButton" side>
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="hub"
+                    :color="theme === 'student' ? 'teal' : 'blue'"
+                    aria-label="查看單元圖譜"
+                    @click.stop="handleViewUnitGraph(unit)"
+                  >
+                    <q-tooltip>查看單元圖譜</q-tooltip>
+                  </q-btn>
                 </q-item-section>
 
                 <q-item-section v-if="theme === 'student'" side>
@@ -218,6 +250,7 @@
                   :key="`${unit.id}-${card.id}`"
                   expand-separator
                   class="material-tree-viewer__card"
+                  header-class="material-tree-viewer__card-header"
                 >
                   <template #header>
                     <q-item-section avatar>
@@ -228,18 +261,19 @@
                       <q-item-label
                         class="material-tree-viewer__card-title material-tree-viewer__card-title--header"
                       >
-                        {{
-                          getCardNumber(
-                            chapter.sort_order,
-                            chapterIndex,
-                            unit.sort_order,
-                            unitIndex,
-                            card.sort_order,
-                            cardIndex,
-                          )
-                        }}
-
-                        {{ card.title }}
+                        <span class="material-tree-viewer__card-number">
+                          {{
+                            getCardNumber(
+                              chapter.sort_order,
+                              chapterIndex,
+                              unit.sort_order,
+                              unitIndex,
+                              card.sort_order,
+                              cardIndex,
+                            )
+                          }}
+                        </span>
+                        <span class="material-tree-viewer__card-name">{{ card.title }}</span>
                       </q-item-label>
 
                       <q-item-label v-if="card.type" caption>
@@ -317,6 +351,19 @@
                   </template>
 
                   <div class="material-tree-viewer__card-body">
+                    <div v-if="showUnitGraphButton" class="q-mb-md">
+                      <q-btn
+                        type="button"
+                        outline
+                        dense
+                        no-caps
+                        :color="theme === 'student' ? 'teal' : 'blue'"
+                        icon="hub"
+                        label="查看所屬單元圖譜"
+                        @click.stop.prevent="handleViewUnitGraph(unit)"
+                      />
+                    </div>
+
                     <div class="material-tree-viewer__card-block">
                       <div class="material-tree-viewer__card-label">內容</div>
 
@@ -376,6 +423,14 @@ const props = withDefaults(
     editable?: boolean;
 
     actionsDisabled?: boolean;
+
+    showChapterGraphButton?: boolean;
+
+    showUnitGraphButton?: boolean;
+
+    chapterGraphAction?: (chapter: MaterialChapterNode) => void;
+
+    unitGraphAction?: (unit: MaterialUnitNode) => void;
   }>(),
   {
     theme: 'teacher',
@@ -383,6 +438,10 @@ const props = withDefaults(
     editable: false,
 
     actionsDisabled: false,
+
+    showChapterGraphButton: false,
+
+    showUnitGraphButton: false,
   },
 );
 
@@ -424,9 +483,33 @@ const emit = defineEmits<{
     unit: MaterialUnitNode,
     card: MaterialKnowledgeCardNode,
   ];
+
+  'view-chapter-graph': [chapter: MaterialChapterNode];
+
+  'view-unit-graph': [
+    unit: MaterialUnitNode,
+  ];
 }>();
 
 const theme = computed(() => props.theme);
+
+function handleViewChapterGraph(chapter: MaterialChapterNode) {
+  if (props.chapterGraphAction) {
+    props.chapterGraphAction(chapter);
+    return;
+  }
+
+  emit('view-chapter-graph', chapter);
+}
+
+function handleViewUnitGraph(unit: MaterialUnitNode) {
+  if (props.unitGraphAction) {
+    props.unitGraphAction(unit);
+    return;
+  }
+
+  emit('view-unit-graph', unit);
+}
 
 const themeClass = computed(() =>
   props.theme === 'student' ? 'material-tree-viewer--student' : 'material-tree-viewer--teacher',

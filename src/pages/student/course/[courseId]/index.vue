@@ -76,9 +76,7 @@
             </div>
           </div>
 
-          <div class="student-material-page__learning-percent">
-            {{ progressPercent }}%
-          </div>
+          <div class="student-material-page__learning-percent">{{ progressPercent }}%</div>
         </div>
 
         <q-linear-progress
@@ -91,35 +89,85 @@
         />
 
         <div class="student-material-page__learning-statuses">
-          <div class="student-material-page__learning-status student-material-page__learning-status--completed">
+          <div
+            class="student-material-page__learning-status student-material-page__learning-status--completed"
+          >
             <q-icon name="check_circle" />
             <div>
               <strong>{{ learningProgress.summary.completed }}</strong>
-              <span>已完成</span>
+              <div class="student-material-page__learning-status-label">
+                <span>已完成</span>
+                <q-btn flat dense round size="xs" icon="help_outline" aria-label="已完成狀態說明">
+                  <q-tooltip>已完成知識卡閱讀，或完成該卡所需的測驗。</q-tooltip>
+                  <q-menu anchor="top middle" self="bottom middle" :offset="[0, 8]">
+                    <q-card class="student-material-page__status-help-popup">
+                      <q-card-section>
+                        已完成知識卡閱讀，或完成該卡所需的測驗。
+                      </q-card-section>
+                    </q-card>
+                  </q-menu>
+                </q-btn>
+              </div>
             </div>
           </div>
 
-          <div class="student-material-page__learning-status student-material-page__learning-status--progress">
+          <div
+            class="student-material-page__learning-status student-material-page__learning-status--progress"
+          >
             <q-icon name="pending" />
             <div>
               <strong>{{ learningProgress.summary.in_progress }}</strong>
-              <span>學習中</span>
+              <div class="student-material-page__learning-status-label">
+                <span>學習中</span>
+                <q-btn flat dense round size="xs" icon="help_outline" aria-label="學習中狀態說明">
+                  <q-tooltip>已開始作答，尚未完成的題目。</q-tooltip>
+                  <q-menu anchor="top middle" self="bottom middle" :offset="[0, 8]">
+                    <q-card class="student-material-page__status-help-popup">
+                      <q-card-section>已開始作答，尚未完成的題目。</q-card-section>
+                    </q-card>
+                  </q-menu>
+                </q-btn>
+              </div>
             </div>
           </div>
 
-          <div class="student-material-page__learning-status student-material-page__learning-status--retry">
+          <div
+            class="student-material-page__learning-status student-material-page__learning-status--retry"
+          >
             <q-icon name="refresh" />
             <div>
               <strong>{{ learningProgress.summary.retry }}</strong>
-              <span>需再練習</span>
+              <div class="student-material-page__learning-status-label">
+                <span>需再練習</span>
+                <q-btn flat dense round size="xs" icon="help_outline" aria-label="需再練習狀態說明">
+                  <q-tooltip>作答中有答錯的題目，建議重新練習。</q-tooltip>
+                  <q-menu anchor="top middle" self="bottom middle" :offset="[0, 8]">
+                    <q-card class="student-material-page__status-help-popup">
+                      <q-card-section>作答中有答錯的題目，建議重新練習。</q-card-section>
+                    </q-card>
+                  </q-menu>
+                </q-btn>
+              </div>
             </div>
           </div>
 
-          <div class="student-material-page__learning-status student-material-page__learning-status--not-started">
+          <div
+            class="student-material-page__learning-status student-material-page__learning-status--not-started"
+          >
             <q-icon name="radio_button_unchecked" />
             <div>
               <strong>{{ learningProgress.summary.not_started }}</strong>
-              <span>未開始</span>
+              <div class="student-material-page__learning-status-label">
+                <span>未開始</span>
+                <q-btn flat dense round size="xs" icon="help_outline" aria-label="未開始狀態說明">
+                  <q-tooltip>尚未完成閱讀，也尚未開始作答測驗。</q-tooltip>
+                  <q-menu anchor="top middle" self="bottom middle" :offset="[0, 8]">
+                    <q-card class="student-material-page__status-help-popup">
+                      <q-card-section>尚未完成閱讀，也尚未開始作答測驗。</q-card-section>
+                    </q-card>
+                  </q-menu>
+                </q-btn>
+              </div>
             </div>
           </div>
         </div>
@@ -146,78 +194,6 @@
             label="繼續學習"
             @click="continueLastActivity"
           />
-        </div>
-
-        <div class="student-material-page__progress-details q-mt-md">
-          <div class="text-subtitle2 q-mb-sm">各章節學習明細</div>
-
-          <q-card
-            v-for="chapter in learningProgress.chapters"
-            :key="chapter.id"
-            flat
-            bordered
-            class="q-mb-sm"
-          >
-            <q-expansion-item expand-separator default-opened>
-              <template #header>
-                <q-item-section>
-                  <q-item-label class="text-weight-medium">{{ chapter.name }}</q-item-label>
-                  <q-item-label caption>
-                    已完成 {{ chapter.completed }} / {{ chapter.total }} 張知識卡
-                  </q-item-label>
-                </q-item-section>
-              </template>
-
-              <q-card-section
-                v-for="unit in chapter.units"
-                :key="unit.id"
-                class="q-pt-none q-pb-sm"
-              >
-                <div class="text-body2 text-weight-medium q-mb-xs">{{ unit.name }}</div>
-                <q-list bordered separator class="rounded-borders">
-                  <q-item
-                    v-for="card in unit.knowledge_cards"
-                    :key="card.id"
-                    class="q-py-sm"
-                  >
-                    <q-item-section avatar>
-                      <q-icon
-                        :name="progressStatusIcon(card.status)"
-                        :color="progressStatusColor(card.status)"
-                        size="sm"
-                      />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label>{{ card.title }}</q-item-label>
-                      <q-item-label caption>
-                        {{ progressStatusLabel(card.status) }}
-                        <template v-if="card.has_quiz">
-                          ・已作答 {{ card.answered_count }} / {{ card.question_total }} 題
-                        </template>
-                      </q-item-label>
-                    </q-item-section>
-                    <q-item-section side>
-                      <q-btn
-                        v-if="card.has_quiz"
-                        flat
-                        dense
-                        no-caps
-                        color="teal-8"
-                        icon="quiz"
-                        label="前往測驗"
-                        :to="`/student/course/${courseId}/knowledge-card/${card.id}/quiz`"
-                      />
-                      <q-badge
-                        v-else
-                        :color="card.status === 'completed' ? 'positive' : 'grey-6'"
-                        :label="card.status === 'completed' ? '閱讀完成' : '無測驗題目'"
-                      />
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-              </q-card-section>
-            </q-expansion-item>
-          </q-card>
         </div>
       </q-card-section>
     </q-card>
@@ -276,7 +252,11 @@
         <div>單元教材載入中...</div>
       </div>
 
-      <q-banner v-else-if="viewMode === 'unit' && unitGraphError" class="q-mx-md q-mb-md bg-red-1 text-negative" rounded>
+      <q-banner
+        v-else-if="viewMode === 'unit' && unitGraphError"
+        class="q-mx-md q-mb-md bg-red-1 text-negative"
+        rounded
+      >
         {{ unitGraphError }}
       </q-banner>
 
@@ -302,8 +282,12 @@
           :tree="displayTree"
           theme="student"
           :actions-disabled="readingCardId !== null"
+          show-chapter-graph-button
+          show-unit-graph-button
           @quiz-card="handleQuizCard"
           @read-card="handleReadCard"
+          @view-chapter-graph="handleViewChapterGraph"
+          @view-unit-graph="handleViewUnitGraph"
         />
       </q-card-section>
 
@@ -369,7 +353,6 @@ import type {
   MaterialKnowledgeCardNode,
   MaterialUnitNode,
 } from '../../../../types/material.js';
-import type { StudentLearningCardStatus } from '../../../../types/student-learning.js';
 
 type MaterialViewMode = 'tree' | 'graph' | 'unit';
 
@@ -379,6 +362,8 @@ const router = useRouter();
 const viewMode = ref<MaterialViewMode>('tree');
 const selectedChapterId = ref<number | null>(null);
 const selectedUnitId = ref<number | null>(null);
+const graphChapterId = ref<number | null>(null);
+const graphUnitId = ref<number | null>(null);
 const singleUnitGraph = ref<MaterialUnitNode | null>(null);
 const unitGraphLoading = ref(false);
 const unitGraphError = ref('');
@@ -393,11 +378,7 @@ const courseId = computed<number | null>(() => {
   return Number.isNaN(id) ? null : id;
 });
 
-const {
-  dashboard,
-  errorMessage: dashboardErrorMessage,
-  fetchDashboard,
-} = useDashboard();
+const { dashboard, errorMessage: dashboardErrorMessage, fetchDashboard } = useDashboard();
 
 const {
   courseTree,
@@ -427,10 +408,12 @@ const course = computed(() => {
   return dashboard.value?.courses?.find((item) => item.id === courseId.value);
 });
 
-const unitChapterOptions = computed(() => (courseTree.value?.chapters ?? []).map((chapter) => ({
-  label: chapter.name,
-  value: chapter.id,
-})));
+const unitChapterOptions = computed(() =>
+  (courseTree.value?.chapters ?? []).map((chapter) => ({
+    label: chapter.name,
+    value: chapter.id,
+  })),
+);
 
 const unitSelectOptions = computed(() => {
   const chapter = courseTree.value?.chapters.find((item) => item.id === selectedChapterId.value);
@@ -447,19 +430,41 @@ const displayTree = computed<MaterialCourseTree | null>(() => {
     return null;
   }
 
-  const chapters = viewMode.value === 'unit'
-    ? (() => {
-        if (!singleUnitGraph.value) return [];
-        const sourceChapter = tree.chapters.find((chapter) => chapter.id === selectedChapterId.value);
-        return [{
+  let chapters = tree.chapters;
+
+  if (viewMode.value === 'graph') {
+    const scopedChapters = chapters
+      .filter((chapter) => graphChapterId.value === null || chapter.id === graphChapterId.value)
+      .map((chapter) => ({
+        ...chapter,
+        units:
+          graphUnitId.value === null
+            ? chapter.units
+            : chapter.units.filter((unit) => unit.id === graphUnitId.value),
+      }));
+
+    chapters =
+      graphUnitId.value === null
+        ? scopedChapters
+        : scopedChapters.filter((chapter) => chapter.units.length > 0);
+  } else if (viewMode.value === 'unit') {
+    if (!singleUnitGraph.value) {
+      chapters = [];
+    } else {
+      const sourceChapter = tree.chapters.find(
+        (chapter) => chapter.id === selectedChapterId.value,
+      );
+      chapters = [
+        {
           id: sourceChapter?.id ?? 0,
           name: sourceChapter?.name ?? '',
           title: sourceChapter?.title ?? '',
           sort_order: sourceChapter?.sort_order ?? 0,
           units: [singleUnitGraph.value],
-        }];
-      })()
-    : tree.chapters;
+        },
+      ];
+    }
+  }
 
   return {
     ...tree,
@@ -491,11 +496,7 @@ const displayTree = computed<MaterialCourseTree | null>(() => {
 });
 
 const pageErrorMessage = computed(() => {
-  return (
-    materialErrorMessage.value ||
-    dashboardErrorMessage.value ||
-    progressErrorMessage.value
-  );
+  return materialErrorMessage.value || dashboardErrorMessage.value || progressErrorMessage.value;
 });
 
 watch(
@@ -506,6 +507,8 @@ watch(
     clearCardDialog();
     selectedChapterId.value = null;
     selectedUnitId.value = null;
+    graphChapterId.value = null;
+    graphUnitId.value = null;
     singleUnitGraph.value = null;
     viewMode.value = 'tree';
 
@@ -517,6 +520,13 @@ watch(
   },
   { immediate: true },
 );
+
+watch(viewMode, (mode) => {
+  if (mode !== 'graph') {
+    graphChapterId.value = null;
+    graphUnitId.value = null;
+  }
+});
 
 watch(selectedChapterId, () => {
   selectedUnitId.value = null;
@@ -555,6 +565,18 @@ function handleViewCard(
   cardDialogOpen.value = true;
 }
 
+function handleViewChapterGraph(chapter: MaterialChapterNode) {
+  graphChapterId.value = chapter.id;
+  graphUnitId.value = null;
+  viewMode.value = 'graph';
+}
+
+function handleViewUnitGraph(unit: MaterialUnitNode) {
+  graphChapterId.value = null;
+  graphUnitId.value = unit.id;
+  viewMode.value = 'graph';
+}
+
 function handleQuizCard(
   _chapter: MaterialChapterNode,
   _unit: MaterialUnitNode,
@@ -564,9 +586,7 @@ function handleQuizCard(
     return;
   }
 
-  void router.push(
-    `/student/course/${courseId.value}/knowledge-card/${card.id}/quiz`,
-  );
+  void router.push(`/student/course/${courseId.value}/knowledge-card/${card.id}/quiz`);
 }
 
 function handleReadCard(
@@ -627,40 +647,11 @@ function continueLastActivity() {
   const cardProgress = cardProgressMap.value.get(card.id);
 
   if (cardProgress?.has_quiz) {
-    void router.push(
-      `/student/course/${courseId.value}/knowledge-card/${card.id}/quiz`,
-    );
+    void router.push(`/student/course/${courseId.value}/knowledge-card/${card.id}/quiz`);
     return;
   }
 
   viewMode.value = 'tree';
-}
-
-function progressStatusLabel(status: StudentLearningCardStatus): string {
-  return {
-    completed: '已完成',
-    retry: '需要複習',
-    in_progress: '進行中',
-    not_started: '尚未開始',
-  }[status];
-}
-
-function progressStatusIcon(status: StudentLearningCardStatus): string {
-  return {
-    completed: 'check_circle',
-    retry: 'refresh',
-    in_progress: 'pending',
-    not_started: 'radio_button_unchecked',
-  }[status];
-}
-
-function progressStatusColor(status: StudentLearningCardStatus): string {
-  return {
-    completed: 'positive',
-    retry: 'deep-orange',
-    in_progress: 'primary',
-    not_started: 'grey-6',
-  }[status];
 }
 
 function closeCardDialog() {

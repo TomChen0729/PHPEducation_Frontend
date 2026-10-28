@@ -117,6 +117,24 @@
     border-radius: 50%;
   }
 
+  &__interaction-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    padding: 8px 16px;
+    color: #546e7a;
+    font-size: 12px;
+    line-height: 1.5;
+    background: #f5f8fa;
+    border-bottom: 1px solid #eceff1;
+
+    .q-icon {
+      flex: 0 0 auto;
+      margin-top: 1px;
+      font-size: 16px;
+    }
+  }
+
   &__body {
     display: grid;
     grid-template-columns: minmax(0, 1fr);

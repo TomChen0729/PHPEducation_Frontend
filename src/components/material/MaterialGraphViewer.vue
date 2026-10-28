@@ -132,6 +132,11 @@
       </div>
     </div>
 
+    <div class="material-graph-viewer__interaction-hint">
+      <q-icon name="ads_click" />
+      <span>點選節點只顯示該節點與下一層子節點，父節點和其他分支會收合；再次點選可收合。「▶」表示尚有下層可展開，「▼」表示下層已展開。</span>
+    </div>
+
     <!-- Graph -->
     <div
       class="material-graph-viewer__body"
@@ -568,6 +573,8 @@ async function rebuildGraph() {
 
   const edgeData = new DataSet<Edge>(edges);
 
+  updateNodeExpansionIndicators(nodeData, edgeData);
+
   const options: Options = {
     autoResize: true,
 
@@ -684,8 +691,11 @@ async function rebuildGraph() {
       return;
     }
 
-    selectedNodeId.value = String(id);
-    toggleNodeExpansion(String(id), nodeData, edgeData);
+    const nodeId = String(id);
+    const isRepeatedClick = selectedNodeId.value === nodeId;
+
+    selectedNodeId.value = nodeId;
+    toggleNodeExpansion(nodeId, nodeData, edgeData, isRepeatedClick);
   });
 
   network.once('stabilizationIterationsDone', () => {
@@ -701,41 +711,65 @@ function toggleNodeExpansion(
   nodeId: string,
   nodes: DataSet<Node>,
   edges: DataSet<Edge>,
+  isRepeatedClick: boolean,
 ): void {
+  const visibleIds = new Set([nodeId]);
   const childIds = edges
     .get({ filter: (edge) => String(edge.from) === nodeId })
     .map((edge) => String(edge.to));
+  const shouldCollapse =
+    isRepeatedClick && childIds.some((id) => nodes.get(id)?.hidden !== true);
 
-  if (childIds.length === 0) return;
-
-  const children = childIds.map((childId) => nodes.get(childId)).filter(Boolean);
-  const shouldCollapse = children.some((child) => !child?.hidden);
-
-  if (shouldCollapse) {
-    const descendants = collectDescendants(childIds, edges);
-    nodes.update(descendants.map((id) => ({ id, hidden: true })));
-  } else {
-    nodes.update(childIds.map((id) => ({ id, hidden: false })));
+  if (!shouldCollapse) {
+    childIds.forEach((id) => visibleIds.add(id));
   }
 
-  network?.redraw();
+  nodes.update(
+    nodes.getIds().map((id) => ({
+      id,
+      hidden: !visibleIds.has(String(id)),
+    })),
+  );
+
+  updateNodeExpansionIndicators(nodes, edges);
+
+  fitGraph();
 }
 
-function collectDescendants(startIds: string[], edges: DataSet<Edge>): string[] {
-  const visited = new Set<string>();
-  const pending = [...startIds];
+function updateNodeExpansionIndicators(nodes: DataSet<Node>, edges: DataSet<Edge>): void {
+  const nodeItems = nodes.get();
+  const edgeItems = edges.get();
+  const updates: Node[] = [];
 
-  while (pending.length > 0) {
-    const currentId = pending.pop()!;
-    if (visited.has(currentId)) continue;
-    visited.add(currentId);
+  nodeItems.forEach((node) => {
+    const meta = nodeMeta.get(String(node.id));
+    if (!meta) return;
 
-    edges
-      .get({ filter: (edge) => String(edge.from) === currentId })
-      .forEach((edge) => pending.push(String(edge.to)));
-  }
+    const childIds = edgeItems
+      .filter((edge) => String(edge.from) === String(node.id))
+      .map((edge) => String(edge.to));
+    if (childIds.length === 0) return;
 
-  return [...visited];
+    const expanded = childIds.every((childId) => {
+      const child = nodeItems.find((item) => String(item.id) === childId);
+      return child?.hidden !== true;
+    });
+    const marker = expanded ? '▼' : '▶';
+    let label = shortenLabel(meta.title, 22);
+
+    if (meta.kind === 'chapter') {
+      label = `${meta.number}\n${shortenLabel(meta.title, 20)}`;
+    } else if (meta.kind === 'unit') {
+      label = `${meta.number}\n${shortenLabel(meta.title, 18)}`;
+    }
+
+    updates.push({
+      id: node.id,
+      label: `${marker} ${label}`,
+    });
+  });
+
+  nodes.update(updates);
 }
 
 function buildGraphData(tree: MaterialCourseTree) {
@@ -1052,10 +1086,6 @@ function buildGraphData(tree: MaterialCourseTree) {
         addEdge(edges, edgeIds, unitId, cardId);
       });
     });
-  });
-
-  nodes.forEach((node) => {
-    if (node.id !== topicId) node.hidden = true;
   });
 
   return {

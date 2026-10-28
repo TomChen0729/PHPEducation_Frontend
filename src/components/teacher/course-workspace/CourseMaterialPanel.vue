@@ -202,6 +202,10 @@
             :theme="audienceMode === 'student' ? 'student' : 'teacher'"
             :editable="audienceMode === 'teacher'"
             :actions-disabled="editing"
+            show-chapter-graph-button
+            show-unit-graph-button
+            :chapter-graph-action="handleViewChapterGraph"
+            :unit-graph-action="handleViewUnitGraph"
             @create-chapter="emit('create-chapter')"
             @edit-chapter="(chapter) => emit('edit-chapter', chapter)"
             @delete-chapter="(chapter) => emit('delete-chapter', chapter)"
@@ -623,6 +627,8 @@ const emit = defineEmits<{
 }>();
 
 const viewMode = ref<MaterialViewMode>('tree');
+const graphChapterId = ref<number | null>(null);
+const graphUnitId = ref<number | null>(null);
 
 const audienceMode = ref<MaterialAudienceMode>('teacher');
 const selectedUnitChapterId = ref<number | null>(null);
@@ -646,6 +652,13 @@ const unitSelectOptions = computed(() => {
 watch(selectedUnitChapterId, () => {
   selectedUnitId.value = null;
   singleUnitTree.value = null;
+});
+
+watch(viewMode, (mode) => {
+  if (mode !== 'graph') {
+    graphChapterId.value = null;
+    graphUnitId.value = null;
+  }
 });
 
 watch([selectedUnitId, audienceMode], async ([unitId, audience]) => {
@@ -688,8 +701,46 @@ const studentPreviewTree = computed<MaterialCourseTree | null>(() => {
 });
 
 const displayTree = computed(() => {
-  return audienceMode.value === 'student' ? studentPreviewTree.value : props.courseTree;
+  const tree = audienceMode.value === 'student' ? studentPreviewTree.value : props.courseTree;
+
+  if (
+    !tree ||
+    viewMode.value !== 'graph' ||
+    (graphChapterId.value === null && graphUnitId.value === null)
+  ) {
+    return tree;
+  }
+
+  const scopedChapters = tree.chapters
+    .filter((chapter) => graphChapterId.value === null || chapter.id === graphChapterId.value)
+    .map((chapter) => ({
+      ...chapter,
+      units:
+        graphUnitId.value === null
+          ? chapter.units
+          : chapter.units.filter((unit) => unit.id === graphUnitId.value),
+    }));
+
+  return {
+    ...tree,
+    chapters:
+      graphUnitId.value === null
+        ? scopedChapters
+        : scopedChapters.filter((chapter) => chapter.units.length > 0),
+  };
 });
+
+function handleViewChapterGraph(chapter: MaterialChapterNode) {
+  graphChapterId.value = chapter.id;
+  graphUnitId.value = null;
+  viewMode.value = 'graph';
+}
+
+function handleViewUnitGraph(unit: MaterialUnitNode) {
+  graphChapterId.value = null;
+  graphUnitId.value = unit.id;
+  viewMode.value = 'graph';
+}
 
 const publishedUnitCount = computed(() => {
   return (
