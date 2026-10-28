@@ -2,14 +2,13 @@
   <section class="course-stats-panel">
     <div class="course-stats-panel__header">
       <div>
-        <div class="course-stats-panel__eyebrow">LEARNING INSIGHTS</div>
         <h5 class="text-weight-bold">數據統計</h5>
         <p>從教材配置與學生正式作答，快速掌握課程的 Bloom 與 SOLO 分布。</p>
       </div>
 
       <q-btn
         outline
-        color="teal"
+        color="primary"
         icon="refresh"
         label="重新整理"
         :loading="refreshing"
@@ -67,7 +66,7 @@
           no-caps
           color="grey-2"
           text-color="grey-8"
-          toggle-color="teal"
+          toggle-color="primary"
           :options="[
             { label: 'Bloom 統計', value: 'bloom' },
             { label: 'SOLO 統計', value: 'solo' },
@@ -76,7 +75,7 @@
       </div>
 
       <div v-if="loadingMaterial" class="course-stats-panel__loading">
-        <q-spinner-dots color="teal" size="42px" />
+        <q-spinner-dots color="primary" size="42px" />
         <span>正在整理教材統計...</span>
       </div>
 
@@ -157,7 +156,7 @@
               <q-linear-progress
                 rounded
                 size="8px"
-                color="teal"
+                color="primary"
                 track-color="grey-3"
                 :value="item.ratio"
               />
@@ -194,7 +193,7 @@
             no-caps
             color="grey-2"
             text-color="grey-8"
-            toggle-color="teal"
+            toggle-color="primary"
             :options="[
               { label: '全班整體', value: 'class' },
               { label: '單一學生', value: 'individual' },
@@ -219,7 +218,7 @@
       </div>
 
       <div v-if="loadingStudent" class="course-stats-panel__loading">
-        <q-spinner-dots color="teal" size="42px" />
+        <q-spinner-dots color="primary" size="42px" />
         <span>正在整理學生作答統計...</span>
       </div>
 
@@ -227,7 +226,7 @@
         <q-banner
           v-if="studentMode === 'individual' && selectedStudentId === null"
           rounded
-          class="course-stats-panel__student-guide bg-teal-1 text-teal-9"
+          class="course-stats-panel__student-guide bg-blue-1 text-blue-9"
         >
           <template #avatar>
             <q-icon name="person_search" />
@@ -315,7 +314,7 @@
                 <q-linear-progress
                   rounded
                   size="8px"
-                  color="teal"
+                  color="primary"
                   track-color="grey-3"
                   :value="item.ratio"
                 />

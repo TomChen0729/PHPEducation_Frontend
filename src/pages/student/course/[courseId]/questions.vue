@@ -34,11 +34,7 @@
       <section class="student-question-page__scope-section">
         <div class="student-question-page__section-header">
           <div>
-            <div class="student-question-page__section-kicker">STEP 1</div>
             <div class="student-question-page__section-title">選擇練習範圍</div>
-            <div class="student-question-page__section-caption">
-              不同範圍會自動開放適合的教材篩選欄位。
-            </div>
           </div>
 
           <q-btn
@@ -85,27 +81,45 @@
         </div>
       </section>
 
-      <q-card flat bordered class="student-question-page__filters">
-        <q-card-section>
-          <div
-            class="student-question-page__section-header student-question-page__section-header--compact"
-          >
-            <div>
-              <div class="student-question-page__section-kicker">STEP 2</div>
-              <div class="student-question-page__section-title">縮小題目範圍</div>
-            </div>
+      <div
+        class="student-question-page__section-header student-question-page__section-header--compact"
+      >
+        <div>
+          <div class="student-question-page__section-title">作答情況</div>
+        </div>
 
-            <q-btn
-              flat
-              color="grey-7"
-              icon="restart_alt"
-              label="清除條件"
-              no-caps
-              :disable="loading"
-              @click="resetFilters"
-            />
-          </div>
+        <q-btn
+          flat
+          color="grey-7"
+          icon="restart_alt"
+          label="清除條件"
+          no-caps
+          :disable="loading"
+          @click="resetFilters"
+        />
+      </div>
 
+      <q-btn-toggle
+        v-model="filters.status"
+        no-caps
+        unelevated
+        spread
+        toggle-color="teal"
+        color="grey-2"
+        text-color="grey-8"
+        :options="statusOptions"
+      />
+
+      <q-expansion-item
+        v-model="advancedSearchOpen"
+        class="student-question-page__advanced-search"
+        icon="tune"
+        label="進階搜尋"
+        caption="依章節、單元、知識卡、題型或關鍵字縮小範圍"
+        header-class="student-question-page__advanced-search-header"
+        expand-icon-class="text-teal-8"
+      >
+        <q-card-section class="student-question-page__advanced-search-body">
           <div class="student-question-page__filter-grid">
             <q-select
               v-model="filters.chapter_id"
@@ -187,20 +201,6 @@
                 <q-icon name="search" size="19px" />
               </template>
             </q-input>
-
-            <div class="student-question-page__status-filter">
-              <div class="student-question-page__status-label">作答情況</div>
-              <q-btn-toggle
-                v-model="filters.status"
-                no-caps
-                unelevated
-                spread
-                toggle-color="teal"
-                color="grey-2"
-                text-color="grey-8"
-                :options="statusOptions"
-              />
-            </div>
           </div>
 
           <div
@@ -211,24 +211,7 @@
             {{ hierarchyGuide }}
           </div>
 
-          <div v-if="activeFilterLabels.length > 0" class="student-question-page__active-filters">
-            <span class="student-question-page__active-filters-label">目前條件</span>
-            <q-chip
-              v-for="label in activeFilterLabels"
-              :key="label"
-              dense
-              color="teal-1"
-              text-color="teal-9"
-            >
-              {{ label }}
-            </q-chip>
-          </div>
-
           <div class="student-question-page__filter-actions">
-            <div class="student-question-page__filter-result-caption">
-              {{ selectedScopeDescription }}
-            </div>
-
             <q-btn
               unelevated
               color="teal"
@@ -240,7 +223,9 @@
             />
           </div>
         </q-card-section>
-      </q-card>
+      </q-expansion-item>
+
+      <div v-if="activeFilterLabels.length > 0" class="student-question-page__active-filters"></div>
 
       <q-card flat bordered class="student-question-page__content">
         <q-card-section class="student-question-page__result-header">
@@ -304,6 +289,7 @@ const { questions, questionStructure, loading, errorMessage, questionCount, load
 
 const overviewQuestions = ref<StudentQuestion[]>([]);
 const overviewLoading = ref(false);
+const advancedSearchOpen = ref(false);
 
 const filters = reactive<{
   scope: StudentPracticeScope | null;
@@ -435,13 +421,13 @@ const selectedScopeLabel = computed(() => {
   return scopeCards.find((item) => item.value === filters.scope)?.label ?? '題目練習';
 });
 
-const selectedScopeDescription = computed(() => {
-  if (filters.scope === null) {
-    return '目前顯示所有正式題目；章節、單元與知識卡條件需先選擇一種練習範圍。';
-  }
+// const selectedScopeDescription = computed(() => {
+//   if (filters.scope === null) {
+//     return '目前顯示所有正式題目；章節、單元與知識卡條件需先選擇一種練習範圍。';
+//   }
 
-  return scopeCards.find((item) => item.value === filters.scope)?.caption ?? '';
-});
+//   return scopeCards.find((item) => item.value === filters.scope)?.caption ?? '';
+// });
 
 const activeFilterLabels = computed(() => {
   const labels: string[] = [];
@@ -554,6 +540,7 @@ function resetFilterValues() {
   filters.type = null;
   filters.status = 'all';
   filters.keyword = '';
+  advancedSearchOpen.value = false;
 }
 
 async function selectScope(scope: StudentPracticeScope) {
